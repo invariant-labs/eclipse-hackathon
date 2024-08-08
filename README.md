@@ -17,11 +17,11 @@
 ./build.sh
 ```
 
-### Test all
+<!-- ### Test all
 
 ```bash
 ./tests.sh
-```
+``` -->
 
 ### Build Program
 
