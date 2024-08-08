@@ -8,5 +8,18 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@coral-xyz/anchor": "0.29.0",
+    "@project-serum/serum": "^0.13.65",
+    "@solana/spl-token": "^0.4.3",
+    "@solana/web3.js": "^1.91.4",
+    "ts-mocha": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.14",
+    "@types/mocha": "^10.0.6",
+    "chai": "^4.4.1",
+    "typescript": "^5.4.5"
+  }
 }
