@@ -17,11 +17,11 @@
 ./build.sh
 ```
 
-<!-- ### Test all
+### Test all
 
 ```bash
 ./tests.sh
-``` -->
+```
 
 ### Build Program
 
@@ -29,15 +29,15 @@
 anchor build
 ```
 
-<!-- ### Build SDK
+### Build SDK
 
 ```bash
 cd sdk
 npm i
 npm run build
-``` -->
+```
 
-<!-- ### Run unit tests
+### Run unit tests
 
 ```bash
 cargo test
@@ -48,4 +48,4 @@ cargo test
 ```bash
 npm i
 ./tests.sh
-``` -->
+```

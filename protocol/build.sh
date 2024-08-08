@@ -10,7 +10,7 @@ echo "$protocol" > target/deploy/protocol-keypair.json
 anchor build
 
 # Navigate to the SDK directory
-# cd sdk
+cd sdk
 
 # Build the SDK
-# npm run build
+npm run build
