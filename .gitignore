@@ -1,0 +1,12 @@
+.anchor
+.vscode
+.DS_Store
+target
+**/*.rs.bk
+.env
+node_modules
+programs/*/key.json
+programs/*/admin.json
+programs/*/user.json
+.ipynb_checkpoints
+__pycache__
