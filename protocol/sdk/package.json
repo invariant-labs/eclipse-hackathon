@@ -5,7 +5,7 @@
   "scripts": {
     "prebuild": "rm -rf ./src/idl/protocol.ts && cp -r ../target/types/protocol.ts ./src/idl",
     "build": "npx tsc",
-    "start": "npm run build && node ."
+    "start": "npm run prebuild && npm run build && node ."
   },
   "keywords": [],
   "author": "",
