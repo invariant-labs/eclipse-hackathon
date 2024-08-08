@@ -1,0 +1,45 @@
+import { AnchorProvider, utils } from "@coral-xyz/anchor";
+import {
+  ConfirmOptions,
+  Connection,
+  Keypair,
+  PublicKey,
+  sendAndConfirmRawTransaction,
+  Transaction,
+} from "@solana/web3.js";
+import { STATE_SEED } from "./consts";
+
+export const signAndSend = async (
+  tx: Transaction,
+  signers: Keypair[],
+  connection: Connection,
+  opts?: ConfirmOptions
+) => {
+  tx.setSigners(...signers.map((s) => s.publicKey));
+  const blockhash = await connection.getRecentBlockhash(
+    opts?.commitment ?? AnchorProvider.defaultOptions().commitment
+  );
+  tx.recentBlockhash = blockhash.blockhash;
+  tx.partialSign(...signers);
+  const rawTx = tx.serialize();
+  return await sendAndConfirmRawTransaction(
+    connection,
+    rawTx,
+    opts ?? AnchorProvider.defaultOptions()
+  );
+};
+
+export const getStateAddressAndBump = async (
+  programId: PublicKey
+): Promise<[PublicKey, number]> => {
+  return await PublicKey.findProgramAddress(
+    [Buffer.from(utils.bytes.utf8.encode(STATE_SEED))],
+    programId
+  );
+};
+
+export const getStateAddress = async (
+  programId: PublicKey
+): Promise<PublicKey> => {
+  return (await getStateAddressAndBump(programId))[0];
+};
