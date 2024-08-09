@@ -2856,6 +2856,35 @@ dependencies = [
  "once_cell",
  "prettytable-rs",
  "proptest",
+ "puppet",
+ "roots",
+ "serial_test",
+ "solana-client",
+ "solana-program",
+ "solana-sdk",
+ "spl-associated-token-account 1.1.3",
+ "spl-math",
+ "spl-token 3.5.0",
+ "structopt",
+ "thiserror",
+]
+
+[[package]]
+name = "puppet"
+version = "0.1.0"
+dependencies = [
+ "anchor-client",
+ "anchor-lang",
+ "anchor-spl",
+ "anyhow",
+ "borsh 0.9.3",
+ "enum_dispatch",
+ "env_logger",
+ "num-derive 0.3.3",
+ "num-traits",
+ "once_cell",
+ "prettytable-rs",
+ "proptest",
  "roots",
  "serial_test",
  "solana-client",

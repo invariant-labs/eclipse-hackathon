@@ -4,8 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "npx ts-mocha -p tsconfig.json tests/**/*.ts",
-    "test:init": "anchor test --skip-build tests/init.test.ts"
+    "build:program": "anchor build",
+    "build:sdk": "cd sdk && npm run build && cd ..",
+    "build:all": "npm run build:program && npm run build:sdk",
+    "test": "npm run build:all && npx ts-mocha -p tsconfig.json tests/**/*.ts",
+    "test:init": "npm run build:all && anchor test --skip-build tests/init.test.ts"
   },
   "keywords": [],
   "author": "",

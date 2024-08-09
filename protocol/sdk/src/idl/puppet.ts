@@ -1,35 +1,19 @@
-export type Protocol = {
+export type Puppet = {
   "version": "0.1.0",
-  "name": "protocol",
+  "name": "puppet",
   "instructions": [
     {
-      "name": "init",
+      "name": "createCounter",
       "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "test",
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "puppetProgram",
-          "isMut": false,
-          "isSigner": false
-        },
         {
           "name": "counter",
           "isMut": true,
           "isSigner": false
+        },
+        {
+          "name": "admin",
+          "isMut": true,
+          "isSigner": true
         },
         {
           "name": "systemProgram",
@@ -47,7 +31,7 @@ export type Protocol = {
   ],
   "accounts": [
     {
-      "name": "state",
+      "name": "counter",
       "type": {
         "kind": "struct",
         "fields": [
@@ -76,38 +60,22 @@ export type Protocol = {
   ]
 };
 
-export const IDL: Protocol = {
+export const IDL: Puppet = {
   "version": "0.1.0",
-  "name": "protocol",
+  "name": "puppet",
   "instructions": [
     {
-      "name": "init",
+      "name": "createCounter",
       "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "test",
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "puppetProgram",
-          "isMut": false,
-          "isSigner": false
-        },
         {
           "name": "counter",
           "isMut": true,
           "isSigner": false
+        },
+        {
+          "name": "admin",
+          "isMut": true,
+          "isSigner": true
         },
         {
           "name": "systemProgram",
@@ -125,7 +93,7 @@ export const IDL: Protocol = {
   ],
   "accounts": [
     {
-      "name": "state",
+      "name": "counter",
       "type": {
         "kind": "struct",
         "fields": [

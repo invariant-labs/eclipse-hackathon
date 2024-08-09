@@ -7,7 +7,7 @@ import {
   sendAndConfirmRawTransaction,
   Transaction,
 } from "@solana/web3.js";
-import { STATE_SEED } from "./consts";
+import { PROTOCOL_STATE_SEED, PUPPET_COUNTER_SEED } from "./consts";
 
 export const signAndSend = async (
   tx: Transaction,
@@ -29,17 +29,32 @@ export const signAndSend = async (
   );
 };
 
-export const getStateAddressAndBump = async (
+export const getProtocolStateAddressAndBump = async (
   programId: PublicKey
 ): Promise<[PublicKey, number]> => {
   return await PublicKey.findProgramAddress(
-    [Buffer.from(utils.bytes.utf8.encode(STATE_SEED))],
+    [Buffer.from(utils.bytes.utf8.encode(PROTOCOL_STATE_SEED))],
     programId
   );
 };
 
-export const getStateAddress = async (
+export const getProtocolStateAddress = async (
   programId: PublicKey
 ): Promise<PublicKey> => {
-  return (await getStateAddressAndBump(programId))[0];
+  return (await getProtocolStateAddressAndBump(programId))[0];
+};
+
+export const getPuppetCounterAddressAndBump = async (
+  programId: PublicKey
+): Promise<[PublicKey, number]> => {
+  return await PublicKey.findProgramAddress(
+    [Buffer.from(utils.bytes.utf8.encode(PUPPET_COUNTER_SEED))],
+    programId
+  );
+};
+
+export const getPuppetCounterAddress = async (
+  programId: PublicKey
+): Promise<PublicKey> => {
+  return (await getPuppetCounterAddressAndBump(programId))[0];
 };

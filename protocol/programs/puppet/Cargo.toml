@@ -3,14 +3,14 @@ authors = [""]
 description = ""
 edition = "2018"
 license = "MIT"
-name = "protocol"
+name = "puppet"
 readme = ""
 repository = ""
 version = "0.1.0"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "protocol"
+name = "puppet"
 
 [features]
 cpi = ["no-entrypoint"]
@@ -30,7 +30,6 @@ spl-associated-token-account = {version = "1", features = ["no-entrypoint"]}
 spl-math = {version = "0.1", features = ["no-entrypoint"]}
 spl-token = {version = "3", features = ["no-entrypoint"]}
 thiserror = "1"
-puppet = { path = "../puppet", features = ["cpi"]}
 
 [dev-dependencies]
 anchor-client = "0.29"
