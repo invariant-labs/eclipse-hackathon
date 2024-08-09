@@ -16,7 +16,7 @@ pub struct Test<'info> {
 }
 
 impl<'info> Test<'info> {
-    pub fn process(&mut self, state_bump: u8) -> Result<()> {
+    pub fn process(&mut self, state_bump: u8) -> ProgramResult {
         let Test {
             payer,
             puppet_program,

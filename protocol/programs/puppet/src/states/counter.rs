@@ -1,5 +1,3 @@
-use crate::size;
-
 use super::DerivedAccountIdentifier;
 use anchor_lang::prelude::*;
 
@@ -8,11 +6,13 @@ impl DerivedAccountIdentifier for Counter {
 }
 
 #[account]
-#[derive(Default, Debug, InitSpace)]
+#[derive(Default, Debug)]
 pub struct Counter {
     pub owner: Pubkey,
     pub counter: u8,
     pub bump: u8,
 }
 
-size!(Counter);
+impl Counter {
+    pub const LEN: usize = 32 + 1 + 1;
+}

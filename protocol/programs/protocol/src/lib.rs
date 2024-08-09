@@ -17,12 +17,12 @@ pub mod protocol {
 
     use super::*;
 
-    pub fn init(ctx: Context<InitCtx>) -> Result<()> {
+    pub fn init(ctx: Context<InitCtx>) -> ProgramResult {
         ctx.accounts.process()?;
         Ok(())
     }
 
-    pub fn test(ctx: Context<Test>, state_bump: u8) -> Result<()> {
+    pub fn test(ctx: Context<Test>, state_bump: u8) -> ProgramResult {
         ctx.accounts.process(state_bump)?;
         Ok(())
     }

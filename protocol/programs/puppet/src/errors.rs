@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use std::convert::TryInto;
 
 // Define errors, custom error code: 300 + idx => 0x12C + 0x${idx}
-#[error_code(offset = 300)]
+#[error]
 pub enum ErrorCode {
     #[msg("[S001] ErrorExample")] //0x12C (300)
     ErrorExample,
