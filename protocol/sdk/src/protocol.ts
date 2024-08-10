@@ -2,16 +2,17 @@ import {
   Connection,
   Keypair,
   PublicKey,
+  SystemProgram,
   Transaction,
   TransactionInstruction,
 } from "@solana/web3.js";
-import { getProgramAddress, Network } from "./network";
+import { getProtocolProgramAddress, Network } from "./network";
 import { IWallet } from "./wallet";
 import { Program } from "@coral-xyz/anchor";
 import { IDL, Protocol as ProtocolProgram } from "./idl/protocol";
-import { ITransaction } from "./types";
-import { SEED } from "./consts";
+import { ITransaction, TestAccounts } from "./types";
 import { signAndSend } from "./utils";
+import { PROTOCOL_STATE_SEED } from "./consts";
 
 export class Protocol {
   public connection: Connection;
@@ -28,13 +29,13 @@ export class Protocol {
     this.connection = connection;
     this.wallet = wallet;
     this.network = network;
-    const programAddress = getProgramAddress(network);
+    const programAddress = getProtocolProgramAddress(network);
     this.program = new Program(IDL, programAddress);
   }
 
   async getProgramAuthority() {
     const [programAuthority, nonce] = PublicKey.findProgramAddressSync(
-      [Buffer.from(SEED)],
+      [Buffer.from(PROTOCOL_STATE_SEED)],
       this.program.programId
     );
 
@@ -65,6 +66,7 @@ export class Protocol {
 
   async initTx(signer: Keypair): Promise<ITransaction> {
     const ix = await this.initIx(signer);
+
     return {
       tx: new Transaction().add(ix),
     };
@@ -73,8 +75,43 @@ export class Protocol {
   async initIx(signer: Keypair): Promise<TransactionInstruction> {
     return await this.program.methods
       .init()
+      .accounts({ payer: signer.publicKey })
+      .instruction();
+  }
+
+  async test(
+    accounts: TestAccounts,
+    stateBump: number,
+    signer: Keypair
+  ): Promise<any> {
+    const { tx } = await this.testTx(accounts, stateBump, signer);
+
+    return await signAndSend(tx, [signer], this.connection);
+  }
+
+  async testTx(
+    accounts: TestAccounts,
+    stateBump: number,
+    signer: Keypair
+  ): Promise<ITransaction> {
+    const ix = await this.testIx(accounts, stateBump, signer);
+
+    return {
+      tx: new Transaction().add(ix),
+    };
+  }
+
+  async testIx(
+    accounts: TestAccounts,
+    stateBump: number,
+    signer: Keypair
+  ): Promise<TransactionInstruction> {
+    return await this.program.methods
+      .test(stateBump)
       .accounts({
         payer: signer.publicKey,
+        systemProgram: SystemProgram.programId,
+        ...accounts,
       })
       .instruction();
   }

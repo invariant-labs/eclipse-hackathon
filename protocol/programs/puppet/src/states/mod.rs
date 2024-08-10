@@ -1,6 +1,6 @@
-mod state;
+mod counter;
 
-pub use state::State;
+pub use counter::Counter;
 
 pub trait DerivedAccountIdentifier {
     const IDENT: &'static [u8];

@@ -7,7 +7,7 @@ pub struct InitCtx<'info> {
 }
 
 impl<'info> InitCtx<'info> {
-    pub fn process(&mut self) -> Result<()> {
+    pub fn process(&mut self) -> ProgramResult {
         Ok(())
     }
 }
