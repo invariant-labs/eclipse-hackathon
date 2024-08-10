@@ -17,8 +17,10 @@ pub mod protocol {
 
     use super::*;
 
-    pub fn init(ctx: Context<InitCtx>) -> ProgramResult {
-        ctx.accounts.process()?;
+    pub fn init(ctx: Context<InitCtx>, bump_authority: u8) -> ProgramResult {
+        let bump = *ctx.bumps.get("state").unwrap();
+
+        ctx.accounts.process(bump, bump_authority)?;
         Ok(())
     }
 
