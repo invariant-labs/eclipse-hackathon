@@ -7,7 +7,11 @@ import {
   sendAndConfirmRawTransaction,
   Transaction,
 } from "@solana/web3.js";
-import { PROTOCOL_STATE_SEED, PUPPET_COUNTER_SEED } from "./consts";
+import {
+  PROTOCOL_AUTHORITY_SEED,
+  PROTOCOL_STATE_SEED,
+  PUPPET_COUNTER_SEED,
+} from "./consts";
 
 export const signAndSend = async (
   tx: Transaction,
@@ -26,6 +30,15 @@ export const signAndSend = async (
     connection,
     rawTx,
     opts ?? AnchorProvider.defaultOptions()
+  );
+};
+
+export const getProgramAuthorityAddressAndBump = async (
+  programId: PublicKey
+): Promise<[PublicKey, number]> => {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from(utils.bytes.utf8.encode(PROTOCOL_AUTHORITY_SEED))],
+    programId
   );
 };
 

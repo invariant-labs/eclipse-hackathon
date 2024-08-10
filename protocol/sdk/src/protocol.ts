@@ -2,6 +2,7 @@ import {
   Connection,
   Keypair,
   PublicKey,
+  SYSVAR_RENT_PUBKEY,
   SystemProgram,
   Transaction,
   TransactionInstruction,
@@ -11,7 +12,11 @@ import { IWallet } from "./wallet";
 import { Program } from "@coral-xyz/anchor";
 import { IDL, Protocol as ProtocolProgram } from "./idl/protocol";
 import { ITransaction, TestAccounts } from "./types";
-import { signAndSend } from "./utils";
+import {
+  getProgramAuthorityAddressAndBump,
+  getProtocolStateAddressAndBump,
+  signAndSend,
+} from "./utils";
 import { PROTOCOL_STATE_SEED } from "./consts";
 
 export class Protocol {
@@ -73,9 +78,22 @@ export class Protocol {
   }
 
   async initIx(signer: Keypair): Promise<TransactionInstruction> {
+    const [programAuthority, programAuthorityBump] =
+      await getProgramAuthorityAddressAndBump(this.program.programId);
+
+    const [state, stateBump] = await getProtocolStateAddressAndBump(
+      this.program.programId
+    );
+
     return await this.program.methods
-      .init()
-      .accounts({ payer: signer.publicKey })
+      .init(programAuthorityBump)
+      .accounts({
+        admin: signer.publicKey,
+        programAuthority,
+        state,
+        rent: SYSVAR_RENT_PUBKEY,
+        systemProgram: SystemProgram.programId,
+      })
       .instruction();
   }
 

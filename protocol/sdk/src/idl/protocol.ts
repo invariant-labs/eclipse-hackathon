@@ -6,12 +6,37 @@ export type Protocol = {
       "name": "init",
       "accounts": [
         {
-          "name": "payer",
+          "name": "state",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "programAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "admin",
           "isMut": true,
           "isSigner": true
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "bumpAuthority",
+          "type": "u8"
+        }
+      ]
     },
     {
       "name": "test",
@@ -52,7 +77,11 @@ export type Protocol = {
         "kind": "struct",
         "fields": [
           {
-            "name": "owner",
+            "name": "admin",
+            "type": "publicKey"
+          },
+          {
+            "name": "programAuthority",
             "type": "publicKey"
           },
           {
@@ -61,6 +90,10 @@ export type Protocol = {
           },
           {
             "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "bumpAuthority",
             "type": "u8"
           }
         ]
@@ -84,12 +117,37 @@ export const IDL: Protocol = {
       "name": "init",
       "accounts": [
         {
-          "name": "payer",
+          "name": "state",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "programAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "admin",
           "isMut": true,
           "isSigner": true
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "bumpAuthority",
+          "type": "u8"
+        }
+      ]
     },
     {
       "name": "test",
@@ -130,7 +188,11 @@ export const IDL: Protocol = {
         "kind": "struct",
         "fields": [
           {
-            "name": "owner",
+            "name": "admin",
+            "type": "publicKey"
+          },
+          {
+            "name": "programAuthority",
             "type": "publicKey"
           },
           {
@@ -139,6 +201,10 @@ export const IDL: Protocol = {
           },
           {
             "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "bumpAuthority",
             "type": "u8"
           }
         ]
