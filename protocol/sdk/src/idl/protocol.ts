@@ -68,6 +68,42 @@ export type Protocol = {
           "type": "u8"
         }
       ]
+    },
+    {
+      "name": "mint",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "to",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -105,6 +141,11 @@ export type Protocol = {
       "code": 6000,
       "name": "ErrorExample",
       "msg": "[S001] ErrorExample"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidAuthority",
+      "msg": "Provided authority is different than expected"
     }
   ]
 };
@@ -179,6 +220,42 @@ export const IDL: Protocol = {
           "type": "u8"
         }
       ]
+    },
+    {
+      "name": "mint",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "to",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -216,6 +293,11 @@ export const IDL: Protocol = {
       "code": 6000,
       "name": "ErrorExample",
       "msg": "[S001] ErrorExample"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidAuthority",
+      "msg": "Provided authority is different than expected"
     }
   ]
 };

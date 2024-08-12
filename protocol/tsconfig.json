@@ -3,7 +3,7 @@
     "types": ["mocha", "chai"],
     "typeRoots": ["./node_modules/@types"],
     "lib": ["es2015", "DOM"],
-    "target": "es6",
+    "target": "ES2022",
     "resolveJsonModule": true,
     "allowJs": true,
     "skipLibCheck": true,
@@ -13,8 +13,12 @@
     "noImplicitAny": false,
     "forceConsistentCasingInFileNames": true,
     "module": "CommonJS",
+    "outDir": "./dist",
+    "rootDir": "./",
     "moduleResolution": "node",
     "isolatedModules": true,
     "noFallthroughCasesInSwitch": true
-  }
+  },
+  "include": ["./**/*"],
+  "exclude": ["node_modules", "dist", "sdk/dist"]
 }

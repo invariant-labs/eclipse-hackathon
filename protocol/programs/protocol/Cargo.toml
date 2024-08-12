@@ -15,7 +15,10 @@ no-log-ix-name = []
 cpi = ["no-entrypoint"]
 default = []
 
+
 [dependencies]
 anchor-lang = "0.29.0"
 bytemuck = "1.16.3"
+anchor-spl = "0.29.0"
 puppet = { path = "../puppet", features = ["cpi"]}
+
