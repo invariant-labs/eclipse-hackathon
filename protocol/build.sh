@@ -9,6 +9,7 @@ echo "$protocol" > target/deploy/protocol-keypair.json
 echo "$puppet" > target/deploy/puppet-keypair.json
 
 # Build the program using Anchor
+npm run prebuild
 anchor build
 
 # Navigate to the SDK directory

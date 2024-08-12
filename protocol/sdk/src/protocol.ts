@@ -9,10 +9,11 @@ import {
 import { getProtocolProgramAddress, Network } from "./network";
 import { IWallet } from "./wallet";
 import { Program } from "@coral-xyz/anchor";
-import { IDL, Protocol as ProtocolProgram } from "./idl/protocol";
+import { Protocol as ProtocolProgram } from "./idl/protocol";
 import { ITransaction, TestAccounts } from "./types";
 import { signAndSend } from "./utils";
 import { PROTOCOL_STATE_SEED } from "./consts";
+import IDL from "./idl/protocol.json";
 
 export class Protocol {
   public connection: Connection;
@@ -29,8 +30,7 @@ export class Protocol {
     this.connection = connection;
     this.wallet = wallet;
     this.network = network;
-    const programAddress = getProtocolProgramAddress(network);
-    this.program = new Program(IDL, programAddress);
+    this.program = new Program(IDL as ProtocolProgram);
   }
 
   async getProgramAuthority() {
@@ -110,6 +110,7 @@ export class Protocol {
       .test(stateBump)
       .accounts({
         payer: signer.publicKey,
+        // @ts-ignore
         systemProgram: SystemProgram.programId,
         ...accounts,
       })

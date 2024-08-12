@@ -1,11 +1,20 @@
-import { AnchorProvider } from "@coral-xyz/anchor";
+import { AnchorProvider, BN } from "@coral-xyz/anchor";
 import { Network } from "../sdk/src/network";
 import { Protocol } from "../sdk/src/protocol";
-import { Keypair } from "@solana/web3.js";
-import { sleep } from "./test-utils";
+import { Keypair, PublicKey } from "@solana/web3.js";
+import {
+  createToken,
+  initMarket,
+  INVARIANT_ADDRESS,
+  sleep,
+} from "./test-utils";
 import { Puppet } from "../sdk/dist/puppet";
 import { getPuppetCounterAddressAndBump } from "../sdk/src/utils";
 import { assert } from "chai";
+import { Market, Pair } from "@invariant-labs/sdk";
+import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { fromFee } from "@invariant-labs/sdk/lib/utils";
+import { FeeTier } from "@invariant-labs/sdk/lib/market";
 
 describe("init", () => {
   const { wallet, connection } = AnchorProvider.local();
@@ -46,5 +55,25 @@ describe("init", () => {
     assert.equal(stateAccount.owner.toString(), owner.publicKey.toString());
     assert.equal(stateAccount.counter, 0);
     assert.equal(stateAccount.bump, bump);
+  });
+
+  it("can deploy invariant", async () => {
+    const market = await Market.build(
+      Network.LOCAL,
+      wallet,
+      connection,
+      new PublicKey(INVARIANT_ADDRESS)
+    );
+
+    const mintAuthority = Keypair.generate();
+    const tokens = await Promise.all([
+      createToken(connection, owner, mintAuthority),
+      createToken(connection, owner, mintAuthority),
+    ]);
+
+    const feeTier: FeeTier = { fee: fromFee(new BN(20)), tickSpacing: 4 };
+    const pair = new Pair(tokens[0].publicKey, tokens[1].publicKey, feeTier);
+
+    await initMarket(market, [pair], owner, 0);
   });
 });

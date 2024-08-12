@@ -5,3 +5,6 @@ members = [
 ]
 
 default-members = ["programs/*"]
+
+[profile.release]
+overflow-checks = true

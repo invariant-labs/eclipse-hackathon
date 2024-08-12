@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "prebuild": "rm -rf ./idls/puppet.json && cp -r ./target/idl/puppet.json ./idls",
     "build:program": "anchor build",
     "build:sdk": "cd sdk && npm run build && cd ..",
     "build:all": "npm run build:program && npm run build:sdk",
@@ -14,9 +15,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@coral-xyz/anchor": "0.29.0",
+    "@coral-xyz/anchor": "0.30.1",
+    "@invariant-labs/sdk": "^0.9.67",
     "@project-serum/serum": "^0.13.65",
-    "@solana/spl-token": "^0.4.3",
+    "@solana/spl-token": "^0.1.8",
     "@solana/web3.js": "^1.91.4"
   },
   "devDependencies": {

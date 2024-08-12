@@ -13,7 +13,7 @@ pub struct CreateCounter<'info> {
 }
 
 impl<'info> CreateCounter<'info> {
-    pub fn process(&mut self, state_bump: u8) -> ProgramResult {
+    pub fn process(&mut self, state_bump: u8) -> Result<()> {
         let CreateCounter { counter, admin, .. } = self;
 
         **counter = Counter {

@@ -8,10 +8,11 @@ import {
 import { getPuppetProgramAddress, Network } from "./network";
 import { IWallet } from "./wallet";
 import { Program } from "@coral-xyz/anchor";
-import { IDL, Puppet as PuppetProgram } from "./idl/puppet";
+import { Puppet as PuppetProgram } from "./idl/puppet";
 import { PUPPET_SEED } from "./consts";
 import { signAndSend } from "./utils";
 import { ITransaction } from "./types";
+import IDL from "./idl/puppet.json";
 
 export class Puppet {
   public connection: Connection;
@@ -28,8 +29,7 @@ export class Puppet {
     this.connection = connection;
     this.wallet = wallet;
     this.network = network;
-    const programAddress = getPuppetProgramAddress(network);
-    this.program = new Program(IDL, programAddress);
+    this.program = new Program(IDL as PuppetProgram);
   }
 
   async getProgramAuthority() {

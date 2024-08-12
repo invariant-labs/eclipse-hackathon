@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "scripts": {
-    "prebuild:protocol": "rm -rf ./src/idl/protocol.ts && cp -r ../target/types/protocol.ts ./src/idl",
-    "prebuild:puppet": "rm -rf ./src/idl/puppet.ts && cp -r ../target/types/puppet.ts ./src/idl",
+    "prebuild:protocol": "rm -rf ./src/idl/protocol.ts && cp -r ../target/types/protocol.ts ./src/idl && rm -rf ./src/idl/protocol.json && cp -r ../target/idl/protocol.json ./src/idl",
+    "prebuild:puppet": "rm -rf ./src/idl/puppet.ts && cp -r ../target/types/puppet.ts ./src/idl && rm -rf ./src/idl/puppet.json && cp -r ../target/idl/puppet.json ./src/idl",
     "prebuild:all": "npm run prebuild:protocol && npm run prebuild:puppet",
     "build": "npm run prebuild:all && npx tsc"
   },
@@ -16,7 +16,7 @@
     "typescript": "^5.5.4"
   },
   "dependencies": {
-    "@coral-xyz/anchor": "^0.29.0",
+    "@coral-xyz/anchor": "^0.30.1",
     "@solana/web3.js": "^1.95.2"
   }
 }

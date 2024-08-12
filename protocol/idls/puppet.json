@@ -1,10 +1,4 @@
-/**
- * Program IDL in camelCase format in order to be used in JS/TS.
- *
- * Note that this is only a type helper and is not the actual IDL. The original
- * IDL can be found at `target/idl/puppet.json`.
- */
-export type Puppet = {
+{
   "address": "8KQzCc22ZqGLPoipqRhYvkQtHJw6nY1NxrrGy8JLz1jC",
   "metadata": {
     "name": "puppet",
@@ -14,7 +8,7 @@ export type Puppet = {
   },
   "instructions": [
     {
-      "name": "createCounter",
+      "name": "create_counter",
       "discriminator": [
         174,
         255,
@@ -58,13 +52,13 @@ export type Puppet = {
           "signer": true
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
         {
-          "name": "stateBump",
+          "name": "state_bump",
           "type": "u8"
         }
       ]
@@ -72,7 +66,7 @@ export type Puppet = {
   ],
   "accounts": [
     {
-      "name": "counter",
+      "name": "Counter",
       "discriminator": [
         255,
         176,
@@ -88,13 +82,13 @@ export type Puppet = {
   "errors": [
     {
       "code": 6000,
-      "name": "errorExample",
+      "name": "ErrorExample",
       "msg": "[S001] ErrorExample"
     }
   ],
   "types": [
     {
-      "name": "counter",
+      "name": "Counter",
       "type": {
         "kind": "struct",
         "fields": [
@@ -114,4 +108,4 @@ export type Puppet = {
       }
     }
   ]
-};
+}

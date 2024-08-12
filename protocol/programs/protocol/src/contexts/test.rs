@@ -1,5 +1,5 @@
+use crate::puppet::{self, cpi::accounts::CreateCounter, program::Puppet};
 use anchor_lang::prelude::*;
-use puppet::{cpi::accounts::CreateCounter, program::Puppet};
 
 #[derive(Accounts)]
 pub struct Test<'info> {
@@ -16,7 +16,7 @@ pub struct Test<'info> {
 }
 
 impl<'info> Test<'info> {
-    pub fn process(&mut self, state_bump: u8) -> ProgramResult {
+    pub fn process(&mut self, state_bump: u8) -> Result<()> {
         let Test {
             payer,
             puppet_program,

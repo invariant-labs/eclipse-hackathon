@@ -12,17 +12,20 @@ mod program_id {
     declare_id!("HTBzkQCWc2sbkn5WmLkPmQKKotaeeWgZ3RSD4Eg3f1MS");
 }
 
+declare_program!(puppet);
+declare_program!(invariant);
+
 #[program]
 pub mod protocol {
 
     use super::*;
 
-    pub fn init(ctx: Context<InitCtx>) -> ProgramResult {
+    pub fn init(ctx: Context<InitCtx>) -> Result<()> {
         ctx.accounts.process()?;
         Ok(())
     }
 
-    pub fn test(ctx: Context<Test>, state_bump: u8) -> ProgramResult {
+    pub fn test(ctx: Context<Test>, state_bump: u8) -> Result<()> {
         ctx.accounts.process(state_bump)?;
         Ok(())
     }
