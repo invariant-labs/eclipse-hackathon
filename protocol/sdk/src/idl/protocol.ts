@@ -74,7 +74,7 @@ export type Protocol = {
       "accounts": [
         {
           "name": "state",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -146,16 +146,6 @@ export type Protocol = {
       "code": 6001,
       "name": "InvalidAuthority",
       "msg": "Provided authority is different than expected"
-    },
-    {
-      "code": 6002,
-      "name": "A",
-      "msg": "A"
-    },
-    {
-      "code": 6003,
-      "name": "B",
-      "msg": "B"
     }
   ]
 };
@@ -236,7 +226,7 @@ export const IDL: Protocol = {
       "accounts": [
         {
           "name": "state",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -308,16 +298,6 @@ export const IDL: Protocol = {
       "code": 6001,
       "name": "InvalidAuthority",
       "msg": "Provided authority is different than expected"
-    },
-    {
-      "code": 6002,
-      "name": "A",
-      "msg": "A"
-    },
-    {
-      "code": 6003,
-      "name": "B",
-      "msg": "B"
     }
   ]
 };

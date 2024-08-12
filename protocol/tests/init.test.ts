@@ -1,8 +1,8 @@
-import { AnchorProvider } from "@coral-xyz/anchor";
+import { AnchorProvider, BN } from "@coral-xyz/anchor";
 import { Network } from "../sdk/src/network";
 import { Protocol } from "../sdk/src/protocol";
 import { Keypair } from "@solana/web3.js";
-import { createMinter, sleep } from "./test-utils";
+import { createTokenMint, sleep } from "./test-utils";
 import { Puppet } from "../sdk/dist/puppet";
 import {
   getProgramAuthorityAddressAndBump,
@@ -63,13 +63,13 @@ describe("init", () => {
     );
     const tokenAmount = 100n;
     const tokenDecimals = 6;
-    const mintAmount = tokenAmount * 10n ** BigInt(tokenDecimals);
+    const mintAmount = new BN(tokenAmount * 10n ** BigInt(tokenDecimals));
 
     const payer = Keypair.generate();
     await connection.requestAirdrop(payer.publicKey, 1e9);
     await sleep(1000);
 
-    const lpTokenMinter = await createMinter(
+    const lpTokenMinter = await createTokenMint(
       connection,
       payer,
       mintAuthority,

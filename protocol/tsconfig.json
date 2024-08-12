@@ -13,8 +13,12 @@
     "noImplicitAny": false,
     "forceConsistentCasingInFileNames": true,
     "module": "CommonJS",
+    "outDir": "./dist",
+    "rootDir": "./",
     "moduleResolution": "node",
     "isolatedModules": true,
     "noFallthroughCasesInSwitch": true
-  }
+  },
+  "include": ["./**/*"],
+  "exclude": ["node_modules", "dist", "sdk/dist"]
 }

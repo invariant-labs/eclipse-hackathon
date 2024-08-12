@@ -133,7 +133,7 @@ export class Protocol {
   async mint(
     tokenMint: PublicKey,
     to: PublicKey,
-    amount: bigint,
+    amount: BN,
     signer: Keypair
   ): Promise<any> {
     const { tx } = await this.mintTx(tokenMint, to, amount);
@@ -143,7 +143,7 @@ export class Protocol {
   async mintTx(
     tokenMint: PublicKey,
     to: PublicKey,
-    amount: bigint
+    amount: BN
   ): Promise<ITransaction> {
     const ix = await this.mintIx(tokenMint, to, amount);
     return {
@@ -154,16 +154,15 @@ export class Protocol {
   async mintIx(
     tokenMint: PublicKey,
     to: PublicKey,
-    amount: bigint
+    amount: BN
   ): Promise<TransactionInstruction> {
     const state = getProtocolStateAddress(this.program.programId);
     const [programAuthority] = getProgramAuthorityAddressAndBump(
       this.program.programId
     );
 
-    const amountBN = new BN(amount);
     return await this.program.methods
-      .mint(amountBN)
+      .mint(amount)
       .accounts({
         state,
         programAuthority,

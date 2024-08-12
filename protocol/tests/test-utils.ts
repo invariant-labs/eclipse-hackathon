@@ -6,11 +6,11 @@ export const sleep = async (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
-export const createMinter = async (
+export const createTokenMint = async (
   connection: Connection,
   payer: Signer,
   mintAuthority: PublicKey,
-  decimals
+  decimals: number
 ) => {
   const token = await createMint(
     connection,

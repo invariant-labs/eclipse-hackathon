@@ -6,7 +6,7 @@ use crate::states::{DerivedAccountIdentifier, State};
 
 #[derive(Accounts)]
 pub struct MintCtx<'info> {
-    #[account(mut,
+    #[account(
         seeds = [State::IDENT],
         bump = state.load()?.bump
     )]

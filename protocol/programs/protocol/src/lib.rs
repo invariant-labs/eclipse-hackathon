@@ -16,8 +16,8 @@ const PROTOCOL_AUTHORITY_SEED: &str = "PROTOCOLAuthority";
 
 #[macro_export]
 macro_rules! get_signer {
-    ($nonce: expr) => {
-        &[&[PROTOCOL_AUTHORITY_SEED.as_bytes(), &[$nonce]]]
+    ($authority_bump: expr) => {
+        &[&[PROTOCOL_AUTHORITY_SEED.as_bytes(), &[$authority_bump]]]
     };
 }
 
@@ -40,7 +40,7 @@ pub mod protocol {
     }
 
     pub fn mint(ctx: Context<MintCtx>, amount: u64) -> ProgramResult {
-        let state = &mut ctx.accounts.state.load_mut()?;
+        let state = &ctx.accounts.state.load()?;
 
         let signer: &[&[&[u8]]] = get_signer!(state.bump_authority);
 
