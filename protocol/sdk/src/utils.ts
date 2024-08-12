@@ -7,7 +7,11 @@ import {
   sendAndConfirmRawTransaction,
   Transaction,
 } from "@solana/web3.js";
-import { STATE_SEED } from "./consts";
+import {
+  PROTOCOL_AUTHORITY_SEED,
+  PROTOCOL_STATE_SEED,
+  PUPPET_COUNTER_SEED,
+} from "./consts";
 
 export const signAndSend = async (
   tx: Transaction,
@@ -29,17 +33,37 @@ export const signAndSend = async (
   );
 };
 
-export const getStateAddressAndBump = async (
+export const getProgramAuthorityAddressAndBump = (
   programId: PublicKey
-): Promise<[PublicKey, number]> => {
-  return await PublicKey.findProgramAddress(
-    [Buffer.from(utils.bytes.utf8.encode(STATE_SEED))],
+): [PublicKey, number] => {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from(utils.bytes.utf8.encode(PROTOCOL_AUTHORITY_SEED))],
     programId
   );
 };
 
-export const getStateAddress = async (
+export const getProtocolStateAddressAndBump = (
   programId: PublicKey
-): Promise<PublicKey> => {
-  return (await getStateAddressAndBump(programId))[0];
+): [PublicKey, number] => {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from(utils.bytes.utf8.encode(PROTOCOL_STATE_SEED))],
+    programId
+  );
+};
+
+export const getProtocolStateAddress = (programId: PublicKey): PublicKey => {
+  return getProtocolStateAddressAndBump(programId)[0];
+};
+
+export const getPuppetCounterAddressAndBump = (
+  programId: PublicKey
+): [PublicKey, number] => {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from(utils.bytes.utf8.encode(PUPPET_COUNTER_SEED))],
+    programId
+  );
+};
+
+export const getPuppetCounterAddress = (programId: PublicKey): PublicKey => {
+  return getPuppetCounterAddressAndBump(programId)[0];
 };

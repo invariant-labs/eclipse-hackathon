@@ -6,12 +6,104 @@ export type Protocol = {
       "name": "init",
       "accounts": [
         {
+          "name": "state",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "programAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "admin",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "bumpAuthority",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "test",
+      "accounts": [
+        {
           "name": "payer",
           "isMut": true,
           "isSigner": true
+        },
+        {
+          "name": "puppetProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "counter",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "stateBump",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "mint",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "to",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -21,11 +113,23 @@ export type Protocol = {
         "kind": "struct",
         "fields": [
           {
-            "name": "owner",
+            "name": "admin",
             "type": "publicKey"
           },
           {
+            "name": "programAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "counter",
+            "type": "u8"
+          },
+          {
             "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "bumpAuthority",
             "type": "u8"
           }
         ]
@@ -37,6 +141,11 @@ export type Protocol = {
       "code": 6000,
       "name": "ErrorExample",
       "msg": "[S001] ErrorExample"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidAuthority",
+      "msg": "Provided authority is different than expected"
     }
   ]
 };
@@ -49,12 +158,104 @@ export const IDL: Protocol = {
       "name": "init",
       "accounts": [
         {
+          "name": "state",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "programAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "admin",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "bumpAuthority",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "test",
+      "accounts": [
+        {
           "name": "payer",
           "isMut": true,
           "isSigner": true
+        },
+        {
+          "name": "puppetProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "counter",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "stateBump",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "mint",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "to",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -64,11 +265,23 @@ export const IDL: Protocol = {
         "kind": "struct",
         "fields": [
           {
-            "name": "owner",
+            "name": "admin",
             "type": "publicKey"
           },
           {
+            "name": "programAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "counter",
+            "type": "u8"
+          },
+          {
             "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "bumpAuthority",
             "type": "u8"
           }
         ]
@@ -80,6 +293,11 @@ export const IDL: Protocol = {
       "code": 6000,
       "name": "ErrorExample",
       "msg": "[S001] ErrorExample"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidAuthority",
+      "msg": "Provided authority is different than expected"
     }
   ]
 };
