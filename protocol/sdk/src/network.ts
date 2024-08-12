@@ -1,7 +1,8 @@
 export enum Network {
-  LOCAL,
-  DEV,
-  MAIN,
+  LOCAL = 0,
+  DEV = 1,
+  TEST = 2,
+  MAIN = 3,
 }
 
 export const getProtocolProgramAddress = (network: Network): string => {

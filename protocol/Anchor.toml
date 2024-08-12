@@ -7,6 +7,7 @@ skip-lint = false
 [programs.localnet]
 protocol = "HTBzkQCWc2sbkn5WmLkPmQKKotaeeWgZ3RSD4Eg3f1MS"
 puppet = "8KQzCc22ZqGLPoipqRhYvkQtHJw6nY1NxrrGy8JLz1jC"
+invariant = "CsT21LCRqBfh4SCcNZXtWjRZ6xvYKvdpEBaytCVmWnVJ"
 
 [registry]
 url = "https://anchor.projectserum.com"
