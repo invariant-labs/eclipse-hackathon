@@ -6,16 +6,11 @@ import SnackbarProvider from '@components/Snackbar'
 import { theme } from '@static/theme'
 import { ThemeProvider } from '@mui/material/styles'
 import Notifier from '@containers/Notifier'
-import { PersistGate } from 'redux-persist/integration/react'
-import { persistStore } from 'redux-persist'
 
 function App() {
-  const persistor = persistStore(store)
-
   return (
     <>
       <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
         <ThemeProvider theme={theme}>
           <SnackbarProvider maxSnack={99}>
             <>
@@ -24,7 +19,6 @@ function App() {
             </>
           </SnackbarProvider>
         </ThemeProvider>
-        </PersistGate>
       </Provider>
     </>
   )

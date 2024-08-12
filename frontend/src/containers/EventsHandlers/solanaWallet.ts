@@ -29,9 +29,6 @@ const SolanaWalletEvents = () => {
     connectEvents()
   }, [dispatch, publicKey, networkStatus])
 
-  // Solana Tokens
-
-  // TODO refactor
   const tokensAccounts = useSelector(accounts)
   const walletStat = useSelector(walletStatus)
   const [initializedAccount, setInitializedAccount] = useState<Set<string>>(new Set())

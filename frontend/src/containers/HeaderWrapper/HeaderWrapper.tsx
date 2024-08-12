@@ -8,6 +8,8 @@ import React, { useEffect, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useLocation } from 'react-router-dom'
 import { network, rpcAddress } from '@store/selectors/connection'
+import { actions as snackbarsActions } from '@store/reducers/snackbars'
+import { getSolanaWallet } from '@utils/web3/wallet'
 
 export const HeaderWrapper: React.FC = () => {
   const dispatch = useDispatch()
@@ -17,26 +19,24 @@ export const HeaderWrapper: React.FC = () => {
   const currentRpc = useSelector(rpcAddress)
   const location = useLocation()
 
-
   useEffect(() => {
-    nightlyConnectAdapter.addListener('connect', () => {
-      dispatch(walletActions.connect())
-    })
+    const fetchWallet = async () => {
+      const wallet = await getSolanaWallet()
 
-    if (nightlyConnectAdapter.connected) {
-      dispatch(walletActions.connect())
+      await nightlyConnectAdapter.canEagerConnect().then(
+        async canEagerConnect => {
+          if (canEagerConnect) {
+            await openWalletSelectorModal()
+            dispatch(walletActions.connect(true))
+          }
+        },
+        error => {
+          console.log(error)
+        }
+      )
     }
 
-    nightlyConnectAdapter.canEagerConnect().then(
-      async canEagerConnect => {
-        if (canEagerConnect) {
-          await nightlyConnectAdapter.connect()
-        }
-      },
-      error => {
-        console.log(error)
-      }
-    )
+    fetchWallet()
   }, [])
 
   const defaultTestnetRPC = useMemo(() => {
@@ -48,7 +48,6 @@ export const HeaderWrapper: React.FC = () => {
 
     return lastRPC === null ? RPC.TEST : lastRPC
   }, [])
-
 
   return (
     <Header
@@ -62,7 +61,10 @@ export const HeaderWrapper: React.FC = () => {
           dispatch(actions.setNetwork({ network, rpcAddress, rpcName }))
         }
       }}
-      onConnectWallet={openWalletSelectorModal}
+      onConnectWallet={async () => {
+        await openWalletSelectorModal()
+        dispatch(walletActions.connect(false))
+      }}
       landing={location.pathname.substring(1)}
       walletConnected={walletStatus === Status.Initialized}
       onDisconnectWallet={() => {
@@ -72,7 +74,20 @@ export const HeaderWrapper: React.FC = () => {
       typeOfNetwork={currentNetwork}
       rpc={currentRpc}
       defaultTestnetRPC={defaultTestnetRPC}
+      onCopyAddress={() => {
+        navigator.clipboard.writeText(walletAddress.toString())
 
+        dispatch(
+          snackbarsActions.add({
+            message: 'Wallet address copied.',
+            variant: 'success',
+            persist: false
+          })
+        )
+      }}
+      onChangeWallet={() => {
+        dispatch(walletActions.reconnect())
+      }}
     />
   )
 }
