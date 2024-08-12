@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
 pub struct CreateCounter<'info> {
-    #[account(init, space = Counter::LEN + 8, seeds = [Counter::IDENT], bump, payer = admin)]
+    #[account(init, space = Counter::LEN, seeds = [Counter::IDENT], bump, payer = admin)]
     pub counter: Account<'info, Counter>,
 
     #[account(mut)]
@@ -13,7 +13,7 @@ pub struct CreateCounter<'info> {
 }
 
 impl<'info> CreateCounter<'info> {
-    pub fn process(&mut self, state_bump: u8) -> ProgramResult {
+    pub fn process(&mut self, state_bump: u8) -> Result<()> {
         let CreateCounter { counter, admin, .. } = self;
 
         **counter = Counter {

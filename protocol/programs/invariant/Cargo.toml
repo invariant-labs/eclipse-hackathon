@@ -1,0 +1,29 @@
+[package]
+name = "invariant"
+version = "0.1.0"
+description = "Created with Anchor"
+edition = "2018"
+license = "Apache-2.0"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "invariant"
+doctest = false
+
+[features]
+no-entrypoint = []
+no-idl = []
+cpi = ["no-entrypoint"]
+default = ["none"]
+jupiter = []
+none = []
+all = []
+
+[dependencies]
+decimal = { path = "decimal" }
+anchor-lang = "0.29.0"
+anchor-spl = "0.29.0"
+integer-sqrt = "0.1.5"
+uint = "0.9.1"
+num-traits = "0.2.14"
+bytemuck = "1.16.0"
