@@ -3,5 +3,6 @@
 members = [
   "programs/*",
 ]
+resolver = "2"
 
 default-members = ["programs/*"]

@@ -1,6 +1,6 @@
 use crate::ErrorCode::*;
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, MintTo, TokenAccount};
+use anchor_spl::token::{MintTo, Token, TokenAccount};
 
 use crate::states::{DerivedAccountIdentifier, State};
 
@@ -12,6 +12,7 @@ pub struct MintCtx<'info> {
     )]
     pub state: AccountLoader<'info, State>,
 
+    /// CHECK: pretty much only cached from the state account
     #[account(constraint = &state.load()?.program_authority == program_authority.key @ InvalidAuthority)]
     pub program_authority: AccountInfo<'info>,
     #[account(mut)]
@@ -20,8 +21,7 @@ pub struct MintCtx<'info> {
         constraint = &to.mint == token_mint.to_account_info().key
     )]
     pub to: Account<'info, TokenAccount>,
-    #[account(address = token::ID)]
-    pub token_program: AccountInfo<'info>,
+    pub token_program: Program<'info, Token>,
 }
 
 impl<'info> MintCtx<'info> {

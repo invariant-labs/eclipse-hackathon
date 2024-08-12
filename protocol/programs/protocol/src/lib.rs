@@ -28,18 +28,18 @@ pub mod protocol {
 
     use super::*;
 
-    pub fn init(ctx: Context<InitCtx>, bump_authority: u8) -> ProgramResult {
-        let bump = *ctx.bumps.get("state").unwrap();
+    pub fn init(ctx: Context<InitCtx>, bump_authority: u8) -> Result<()> {
+        let bump = ctx.bumps.state;
         ctx.accounts.process(bump, bump_authority)?;
         Ok(())
     }
 
-    pub fn test(ctx: Context<Test>, state_bump: u8) -> ProgramResult {
+    pub fn test(ctx: Context<Test>, state_bump: u8) -> Result<()> {
         ctx.accounts.process(state_bump)?;
         Ok(())
     }
 
-    pub fn mint(ctx: Context<MintCtx>, amount: u64) -> ProgramResult {
+    pub fn mint(ctx: Context<MintCtx>, amount: u64) -> Result<()> {
         let state = &ctx.accounts.state.load()?;
 
         let signer: &[&[&[u8]]] = get_signer!(state.bump_authority);

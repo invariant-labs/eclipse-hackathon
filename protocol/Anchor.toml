@@ -16,7 +16,7 @@ cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [workspace]
-members = ["programs/protocol", "programs/puppet"]
+members = ["programs/protocol", "programs/puppet", "programs/invariant"]
 
 [scripts]
 test = "ts-mocha -p ./tsconfig.json -t 1000000"

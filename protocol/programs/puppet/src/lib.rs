@@ -17,7 +17,7 @@ pub mod puppet {
 
     use super::*;
 
-    pub fn create_counter(ctx: Context<CreateCounter>, state_bump: u8) -> ProgramResult {
+    pub fn create_counter(ctx: Context<CreateCounter>, state_bump: u8) -> Result<()> {
         ctx.accounts.process(state_bump)?;
         Ok(())
     }
