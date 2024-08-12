@@ -4,44 +4,20 @@ import { keySelectors, AnyProps } from './helpers'
 
 const store = (s: AnyProps) => s[poolsSliceName] as IPoolsStore
 
-export const {
-  pools,
-  poolKeys,
-  tokens,
-  poolTicks,
-  isLoadingLatestPoolsForTransaction,
-  tickMaps,
-  nearestPoolTicksForPair,
-  isLoadingTicksAndTickMaps,
-  isLoadingPoolKeys
-} = keySelectors(store, [
-  'pools',
-  'poolKeys',
+export const { tokens, isLoadingLatestPoolsForTransaction } = keySelectors(store, [
   'tokens',
-  'poolTicks',
-  'isLoadingLatestPoolsForTransaction',
-  'tickMaps',
-  'nearestPoolTicksForPair',
-  'isLoadingTicksAndTickMaps',
-  'isLoadingPoolKeys'
+  'isLoadingLatestPoolsForTransaction'
 ])
 
-export const poolsArraySortedByFees = createSelector(pools, allPools =>
-  Object.values(allPools).sort((a, b) => Number(a.poolKey.feeTier.fee - b.poolKey.feeTier.fee))
-)
+// export const poolsArraySortedByFees = createSelector(pools, allPools =>
+//   Object.values(allPools).sort((a, b) => Number(a.poolKey.feeTier.fee - b.poolKey.feeTier.fee))
+// )
 
 export const hasTokens = createSelector(tokens, allTokens => !!Object.values(allTokens).length)
 
 export const poolsSelectors = {
-  pools,
-  poolKeys,
   tokens,
-  poolTicks,
-  isLoadingLatestPoolsForTransaction,
-  tickMaps,
-  nearestPoolTicksForPair,
-  isLoadingTicksAndTickMaps,
-  isLoadingPoolKeys
+  isLoadingLatestPoolsForTransaction
 }
 
 export default poolsSelectors
