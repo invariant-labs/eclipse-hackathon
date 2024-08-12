@@ -172,4 +172,66 @@ export class Protocol {
       })
       .instruction();
   }
+
+  async deposit(
+    tokenMint: PublicKey,
+    reserve: PublicKey,
+    userBalance: PublicKey,
+    amount: BN,
+    payer: Keypair
+  ): Promise<any> {
+    const { tx } = await this.depositTx(
+      tokenMint,
+      reserve,
+      userBalance,
+      amount,
+      payer.publicKey
+    );
+    return await signAndSend(tx, [payer], this.connection);
+  }
+
+  async depositTx(
+    tokenMint: PublicKey,
+    reserve: PublicKey,
+    userBalance: PublicKey,
+    amount: BN,
+    payer: PublicKey
+  ): Promise<ITransaction> {
+    const ix = await this.depositIx(
+      tokenMint,
+      reserve,
+      userBalance,
+      amount,
+      payer
+    );
+    return {
+      tx: new Transaction().add(ix),
+    };
+  }
+
+  async depositIx(
+    tokenMint: PublicKey,
+    reserve: PublicKey,
+    userBalance: PublicKey,
+    amount: BN,
+    payer: PublicKey
+  ): Promise<TransactionInstruction> {
+    const state = getProtocolStateAddress(this.program.programId);
+    const [programAuthority] = getProgramAuthorityAddressAndBump(
+      this.program.programId
+    );
+
+    return await this.program.methods
+      .deposit(amount)
+      .accounts({
+        state,
+        programAuthority,
+        tokenMint,
+        reserve,
+        userBalance,
+        owner: payer,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .instruction();
+  }
 }

@@ -66,7 +66,7 @@ describe("init", () => {
     const mintAmount = new BN(tokenAmount * 10n ** BigInt(tokenDecimals));
 
     const payer = Keypair.generate();
-    await connection.requestAirdrop(payer.publicKey, 1e9);
+    await connection.requestAirdrop(payer.publicKey, 1e14);
     await sleep(1000);
 
     const lpTokenMinter = await createTokenMint(
@@ -103,6 +103,79 @@ describe("init", () => {
         lpTokenAccount.address
       );
       assert.equal(lpTokenAccountInfo.amount, mintAmount);
+    }
+  });
+  it("deposit works", async () => {
+    const protocol = await Protocol.build(Network.LOCAL, wallet, connection);
+    protocol.init(owner);
+
+    const [programAuthority] = getProgramAuthorityAddressAndBump(
+      protocol.program.programId
+    );
+    const tokenAmount = 100n;
+    const tokenDecimals = 6;
+    const mintAmount = new BN(tokenAmount * 10n ** BigInt(tokenDecimals));
+    const depositAmount = mintAmount.div(new BN(4));
+
+    const payer = Keypair.generate();
+    await connection.requestAirdrop(payer.publicKey, 1e14);
+    await sleep(1000);
+
+    const lpTokenMinter = await createTokenMint(
+      connection,
+      payer,
+      programAuthority,
+      tokenDecimals
+    );
+    const lpTokenAccount = await getOrCreateAssociatedTokenAccount(
+      connection,
+      payer,
+      lpTokenMinter,
+      payer.publicKey
+    );
+
+    await protocol.mint(
+      lpTokenMinter,
+      lpTokenAccount.address,
+      mintAmount,
+      payer
+    );
+
+    {
+      const lpTokenAccountInfo = await getAccount(
+        connection,
+        lpTokenAccount.address
+      );
+      assert.equal(lpTokenAccountInfo.amount, mintAmount);
+    }
+
+    const lpTokenReserve = await getOrCreateAssociatedTokenAccount(
+      connection,
+      payer,
+      lpTokenMinter,
+      programAuthority,
+      true
+    );
+
+    await protocol.deposit(
+      lpTokenMinter,
+      lpTokenReserve.address,
+      lpTokenAccount.address,
+      depositAmount,
+      payer
+    );
+    {
+      const lpTokenAccountInfo = await getAccount(
+        connection,
+        lpTokenAccount.address
+      );
+      const lpTokenReserveInfo = await getAccount(
+        connection,
+        lpTokenReserve.address
+      );
+
+      assert.equal(lpTokenAccountInfo.amount, mintAmount.sub(depositAmount));
+      assert.equal(lpTokenReserveInfo.amount, depositAmount);
     }
   });
 });

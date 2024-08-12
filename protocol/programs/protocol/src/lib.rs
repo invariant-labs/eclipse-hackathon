@@ -45,7 +45,13 @@ pub mod protocol {
         let signer: &[&[&[u8]]] = get_signer!(state.bump_authority);
 
         // Mint the ??? token
-        token::mint_to(ctx.accounts.mint_ctx().with_signer(signer), amount)?;
+        token::mint_to(ctx.accounts.mint_cctx().with_signer(signer), amount)?;
+        Ok(())
+    }
+
+    pub fn deposit(ctx: Context<DepositCtx>, amount: u64) -> Result<()> {
+        // Deposit the ??? token
+        token::transfer(ctx.accounts.deposit_cctx(), amount)?;
         Ok(())
     }
 }

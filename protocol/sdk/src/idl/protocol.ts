@@ -104,6 +104,52 @@ export type Protocol = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "deposit",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserve",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userBalance",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -146,6 +192,16 @@ export type Protocol = {
       "code": 6001,
       "name": "InvalidAuthority",
       "msg": "Provided authority is different than expected"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidMint",
+      "msg": "Provided mint account is different than expected"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidOwner",
+      "msg": "Provided owner account is different than expected"
     }
   ]
 };
@@ -256,6 +312,52 @@ export const IDL: Protocol = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "deposit",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserve",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userBalance",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -298,6 +400,16 @@ export const IDL: Protocol = {
       "code": 6001,
       "name": "InvalidAuthority",
       "msg": "Provided authority is different than expected"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidMint",
+      "msg": "Provided mint account is different than expected"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidOwner",
+      "msg": "Provided owner account is different than expected"
     }
   ]
 };
