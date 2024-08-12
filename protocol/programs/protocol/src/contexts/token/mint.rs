@@ -25,7 +25,7 @@ pub struct MintCtx<'info> {
 }
 
 impl<'info> MintCtx<'info> {
-    pub fn mint_cctx(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
+    pub fn mint_ctx(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
         CpiContext::new(
             self.token_program.to_account_info(),
             MintTo {

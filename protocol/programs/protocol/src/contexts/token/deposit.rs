@@ -35,7 +35,7 @@ pub struct DepositCtx<'info> {
 }
 
 impl<'info> DepositCtx<'info> {
-    pub fn deposit_cctx(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+    pub fn deposit_ctx(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
         CpiContext::new(
             self.token_program.to_account_info(),
             Transfer {
