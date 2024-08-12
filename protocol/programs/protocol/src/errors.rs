@@ -6,6 +6,12 @@ use std::convert::TryInto;
 pub enum ErrorCode {
     #[msg("[S001] ErrorExample")] //0x12C (300)
     ErrorExample,
+    #[msg("Provided authority is different than expected")]
+    InvalidAuthority = 1, // 301
+    #[msg("A")]
+    A = 2, // 301
+    #[msg("B")]
+    B = 3, // 301
 }
 
 impl TryInto<ErrorCode> for u32 {

@@ -33,41 +33,37 @@ export const signAndSend = async (
   );
 };
 
-export const getProgramAuthorityAddressAndBump = async (
+export const getProgramAuthorityAddressAndBump = (
   programId: PublicKey
-): Promise<[PublicKey, number]> => {
+): [PublicKey, number] => {
   return PublicKey.findProgramAddressSync(
     [Buffer.from(utils.bytes.utf8.encode(PROTOCOL_AUTHORITY_SEED))],
     programId
   );
 };
 
-export const getProtocolStateAddressAndBump = async (
+export const getProtocolStateAddressAndBump = (
   programId: PublicKey
-): Promise<[PublicKey, number]> => {
-  return await PublicKey.findProgramAddress(
+): [PublicKey, number] => {
+  return PublicKey.findProgramAddressSync(
     [Buffer.from(utils.bytes.utf8.encode(PROTOCOL_STATE_SEED))],
     programId
   );
 };
 
-export const getProtocolStateAddress = async (
-  programId: PublicKey
-): Promise<PublicKey> => {
-  return (await getProtocolStateAddressAndBump(programId))[0];
+export const getProtocolStateAddress = (programId: PublicKey): PublicKey => {
+  return getProtocolStateAddressAndBump(programId)[0];
 };
 
-export const getPuppetCounterAddressAndBump = async (
+export const getPuppetCounterAddressAndBump = (
   programId: PublicKey
-): Promise<[PublicKey, number]> => {
-  return await PublicKey.findProgramAddress(
+): [PublicKey, number] => {
+  return PublicKey.findProgramAddressSync(
     [Buffer.from(utils.bytes.utf8.encode(PUPPET_COUNTER_SEED))],
     programId
   );
 };
 
-export const getPuppetCounterAddress = async (
-  programId: PublicKey
-): Promise<PublicKey> => {
-  return (await getPuppetCounterAddressAndBump(programId))[0];
+export const getPuppetCounterAddress = (programId: PublicKey): PublicKey => {
+  return getPuppetCounterAddressAndBump(programId)[0];
 };
