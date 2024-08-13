@@ -22,6 +22,7 @@ pub struct InvokeCreatePositionCtx<'info> {
     #[account(mut)]
     pub pool: UncheckedAccount<'info>,
     /// CHECK:
+    #[account(mut)]
     pub position_list: UncheckedAccount<'info>,
     /// CHECK:
     #[account(mut)]
@@ -42,8 +43,10 @@ pub struct InvokeCreatePositionCtx<'info> {
     /// CHECK:
     pub token_y: UncheckedAccount<'info>,
     /// CHECK:
+    #[account(mut)]
     pub account_x: UncheckedAccount<'info>,
     /// CHECK:
+    #[account(mut)]
     pub account_y: UncheckedAccount<'info>,
     /// CHECK:
     #[account(mut)]
@@ -66,9 +69,9 @@ impl<'info> InvokeCreatePositionCtx<'info> {
         &mut self,
         _lower_tick_index: i32,
         _upper_tick_index: i32,
-        liquidity_delta: Liquidity,
-        slippage_limit_lower: Price,
-        slippage_limit_upper: Price,
+        liquidity_delta: u128,
+        slippage_limit_lower: u128,
+        slippage_limit_upper: u128,
     ) -> Result<()> {
         let InvokeCreatePositionCtx {
             invariant_program,
@@ -118,15 +121,19 @@ impl<'info> InvokeCreatePositionCtx<'info> {
             rent: rent.to_account_info(),
             system_program: system_program.to_account_info(),
         };
-        let ctx = CpiContext::new(program, accounts).with_signer(owner);
+        let ctx = CpiContext::new(program, accounts);
 
         invariant::cpi::create_position(
             ctx,
             _lower_tick_index,
             _upper_tick_index,
-            liquidity_delta,
-            slippage_limit_lower,
-            slippage_limit_upper,
+            invariant::decimals::Liquidity { v: liquidity_delta },
+            invariant::decimals::Price {
+                v: slippage_limit_lower,
+            },
+            invariant::decimals::Price {
+                v: slippage_limit_upper,
+            },
         )?;
 
         Ok(())

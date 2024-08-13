@@ -1,5 +1,4 @@
 mod contexts;
-pub mod decimals;
 mod errors;
 pub mod states;
 
@@ -81,9 +80,9 @@ pub mod protocol {
         ctx: Context<InvokeCreatePositionCtx>,
         _lower_tick_index: i32,
         _upper_tick_index: i32,
-        liquidity_delta: Liquidity,
-        slippage_limit_lower: Price,
-        slippage_limit_upper: Price,
+        liquidity_delta: u128,
+        slippage_limit_lower: u128,
+        slippage_limit_upper: u128,
     ) -> Result<()> {
         ctx.accounts.process(
             _lower_tick_index,

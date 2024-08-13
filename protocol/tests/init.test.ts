@@ -33,8 +33,6 @@ describe("init", () => {
 
   let protocol: Protocol;
   let market: Market;
-  let tokenX: PublicKey;
-  let tokenY: PublicKey;
   const feeTier: FeeTier = {
     fee: fromFee(new BN(600)),
     tickSpacing: 10,
@@ -66,13 +64,11 @@ describe("init", () => {
       INVARIANT_ADDRESS
     );
 
-    const tokens = await Promise.all([
+    const [token0, token1] = await Promise.all([
       createTokenMint(connection, owner, mintAuthority.publicKey, 6),
       createTokenMint(connection, owner, mintAuthority.publicKey, 6),
     ]);
-    tokenX = tokens[0];
-    tokenY = tokens[1];
-    pair = new Pair(tokenX, tokenY, feeTier);
+    pair = new Pair(token0, token1, feeTier);
 
     await initMarket(market, [pair], owner, initTick);
     await market.createPositionList(owner.publicKey, owner);
@@ -96,20 +92,20 @@ describe("init", () => {
     const userTokenXAccount = await getOrCreateAssociatedTokenAccount(
       connection,
       owner,
-      tokenX,
+      pair.tokenX,
       owner.publicKey
     );
     const userTokenYAccount = await getOrCreateAssociatedTokenAccount(
       connection,
       owner,
-      tokenY,
+      pair.tokenY,
       owner.publicKey
     );
 
     await mintTo(
       connection,
       owner,
-      tokenX,
+      pair.tokenX,
       userTokenXAccount.address,
       mintAuthority,
       xOwnerAmount
@@ -117,7 +113,7 @@ describe("init", () => {
     await mintTo(
       connection,
       owner,
-      tokenY,
+      pair.tokenY,
       userTokenYAccount.address,
       mintAuthority,
       yOwnerAmount
@@ -167,13 +163,13 @@ describe("init", () => {
     const userTokenXAccount = await getOrCreateAssociatedTokenAccount(
       connection,
       owner,
-      tokenX,
+      pair.tokenX,
       owner.publicKey
     );
     const userTokenYAccount = await getOrCreateAssociatedTokenAccount(
       connection,
       owner,
-      tokenY,
+      pair.tokenY,
       owner.publicKey
     );
 
@@ -216,8 +212,8 @@ describe("init", () => {
         lowerTick: lowerTickAddress,
         upperTick: upperTickAddress,
         position: positionAddress,
-        tokenX,
-        tokenY,
+        tokenX: pair.tokenX,
+        tokenY: pair.tokenY,
         owner: owner.publicKey,
       },
       lowerTick,
@@ -238,35 +234,17 @@ describe("init", () => {
     const userTokenXAccount = await getOrCreateAssociatedTokenAccount(
       connection,
       owner,
-      tokenX,
+      pair.tokenX,
       owner.publicKey
     );
     const userTokenYAccount = await getOrCreateAssociatedTokenAccount(
       connection,
       owner,
-      tokenY,
+      pair.tokenY,
       owner.publicKey
     );
 
-    const xOwnerAmount = 1e10;
-    const yOwnerAmount = 1e10;
-
-    await mintTo(
-      connection,
-      owner,
-      tokenX,
-      userTokenXAccount.address,
-      mintAuthority,
-      xOwnerAmount
-    );
-    await mintTo(
-      connection,
-      owner,
-      tokenY,
-      userTokenYAccount.address,
-      mintAuthority,
-      yOwnerAmount
-    );
+    const positionId = 1;
 
     const { address: stateAddress } = await market.getStateAddress();
     const poolAddress = await pair.getAddress(INVARIANT_ADDRESS);
@@ -274,15 +252,15 @@ describe("init", () => {
       await market.getPositionListAddress(owner.publicKey);
     const { positionAddress } = await market.getPositionAddress(
       owner.publicKey,
-      0
+      positionId
     );
     const { tickAddress: lowerTickAddress } = await market.getTickAddress(
       pair,
-      -10
+      lowerTick
     );
     const { tickAddress: upperTickAddress } = await market.getTickAddress(
       pair,
-      10
+      upperTick
     );
     const { tokenXReserve, tokenYReserve, tickmap } = await market.getPool(
       pair
@@ -290,33 +268,10 @@ describe("init", () => {
     const tokenXProgram = await getTokenProgramAddress(connection, pair.tokenX);
     const tokenYProgram = await getTokenProgramAddress(connection, pair.tokenY);
 
-    const lowerTick = -10;
-    const upperTick = 10;
-    const liquidityDelta = { v: LIQUIDITY_DENOMINATOR.muln(10_000) };
-    const slippageLimitLower = { v: new BN(0) };
-    const slippageLimitUpper = { v: new BN(2n ** 128n - 1n) };
+    const liquidityDelta = LIQUIDITY_DENOMINATOR.muln(10_000);
+    const slippageLimitLower = new BN(0);
+    const slippageLimitUpper = new BN(2n ** 128n - 1n);
 
-    console.log(
-      INVARIANT_ADDRESS.toString(),
-      stateAddress.toString(),
-      positionAddress.toString(),
-      poolAddress.toString(),
-      positionListAddress.toString(),
-      owner.publicKey.toString(),
-      owner.publicKey.toString(),
-      lowerTickAddress.toString(),
-      upperTickAddress.toString(),
-      tickmap.toString(),
-      tokenX.toString(),
-      tokenY.toString(),
-      userTokenXAccount.address.toString(),
-      userTokenYAccount.address.toString(),
-      tokenXReserve.toString(),
-      tokenYReserve.toString(),
-      market.programAuthority.toString(),
-      tokenXProgram.toString(),
-      tokenYProgram.toString()
-    );
     await protocol.invokeCreatePosition(
       {
         invariantProgram: INVARIANT_ADDRESS,
@@ -329,8 +284,8 @@ describe("init", () => {
         lowerTick: lowerTickAddress,
         upperTick: upperTickAddress,
         tickmap,
-        tokenX,
-        tokenY,
+        tokenX: pair.tokenX,
+        tokenY: pair.tokenY,
         accountX: userTokenXAccount.address,
         accountY: userTokenYAccount.address,
         reserveX: tokenXReserve,
@@ -346,5 +301,8 @@ describe("init", () => {
       slippageLimitUpper,
       owner
     );
+
+    const position = await market.getPosition(owner.publicKey, positionId);
+    assert.ok(position);
   });
 });

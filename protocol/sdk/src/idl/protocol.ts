@@ -301,7 +301,7 @@ export type Protocol = {
         },
         {
           "name": "positionList",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -341,12 +341,12 @@ export type Protocol = {
         },
         {
           "name": "accountX",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "accountY",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -396,21 +396,15 @@ export type Protocol = {
         },
         {
           "name": "liquidityDelta",
-          "type": {
-            "defined": "Liquidity"
-          }
+          "type": "u128"
         },
         {
           "name": "slippageLimitLower",
-          "type": {
-            "defined": "Price"
-          }
+          "type": "u128"
         },
         {
           "name": "slippageLimitUpper",
-          "type": {
-            "defined": "Price"
-          }
+          "type": "u128"
         }
       ]
     }
@@ -440,32 +434,6 @@ export type Protocol = {
           {
             "name": "bumpAuthority",
             "type": "u8"
-          }
-        ]
-      }
-    }
-  ],
-  "types": [
-    {
-      "name": "Price",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "v",
-            "type": "u128"
-          }
-        ]
-      }
-    },
-    {
-      "name": "Liquidity",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "v",
-            "type": "u128"
           }
         ]
       }
@@ -798,7 +766,7 @@ export const IDL: Protocol = {
         },
         {
           "name": "positionList",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -838,12 +806,12 @@ export const IDL: Protocol = {
         },
         {
           "name": "accountX",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "accountY",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -893,21 +861,15 @@ export const IDL: Protocol = {
         },
         {
           "name": "liquidityDelta",
-          "type": {
-            "defined": "Liquidity"
-          }
+          "type": "u128"
         },
         {
           "name": "slippageLimitLower",
-          "type": {
-            "defined": "Price"
-          }
+          "type": "u128"
         },
         {
           "name": "slippageLimitUpper",
-          "type": {
-            "defined": "Price"
-          }
+          "type": "u128"
         }
       ]
     }
@@ -937,32 +899,6 @@ export const IDL: Protocol = {
           {
             "name": "bumpAuthority",
             "type": "u8"
-          }
-        ]
-      }
-    }
-  ],
-  "types": [
-    {
-      "name": "Price",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "v",
-            "type": "u128"
-          }
-        ]
-      }
-    },
-    {
-      "name": "Liquidity",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "v",
-            "type": "u128"
           }
         ]
       }
