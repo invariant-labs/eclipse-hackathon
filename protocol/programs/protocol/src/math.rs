@@ -181,7 +181,7 @@ pub fn get_liquidity_by_x_sqrt_price(
         return Err(err!("Upper Sqrt Price < Current Sqrt Price"));
     }
 
-    if current_sqrt_price < lower_sqrt_price {
+    if lower_sqrt_price > current_sqrt_price {
         return Err(err!("Lower Sqrt Price > Current Sqrt Price"));
     }
 
