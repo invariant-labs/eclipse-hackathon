@@ -1,7 +1,8 @@
 #!/bin/bash
 
 e2e_tests=(
-    "init" 
+    "init"
+    "token"
 )
 
 # currenty, there is no unit tests 

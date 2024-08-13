@@ -9,21 +9,13 @@ import {
   sleep,
 } from "./test-utils";
 import { Puppet } from "../sdk/dist/puppet";
-import {
-  getProgramAuthorityAddressAndBump,
-  getPuppetCounterAddressAndBump,
-} from "../sdk/src/utils";
+import { getPuppetCounterAddressAndBump } from "../sdk/src/utils";
 import { assert } from "chai";
-import {
-  getAccount,
-  getOrCreateAssociatedTokenAccount,
-  mintTo,
-} from "@solana/spl-token";
+import { getOrCreateAssociatedTokenAccount, mintTo } from "@solana/spl-token";
 import { calculatePriceSqrt, Pair } from "@invariant-labs/sdk-eclipse";
 import {
   fromFee,
   LIQUIDITY_DENOMINATOR,
-  tou64,
 } from "@invariant-labs/sdk-eclipse/lib/utils";
 import {
   CreateTick,
@@ -40,6 +32,10 @@ describe("init", () => {
 
   before(async () => {
     await Promise.all([connection.requestAirdrop(owner.publicKey, 1e14)]);
+    await Promise.all([connection.requestAirdrop(wallet.publicKey, 1e14)]);
+    await Promise.all([
+      connection.requestAirdrop(mintAuthority.publicKey, 1e14),
+    ]);
     await Promise.all([connection.requestAirdrop(wallet.publicKey, 1e14)]);
     await Promise.all([
       connection.requestAirdrop(mintAuthority.publicKey, 1e14),
@@ -84,62 +80,6 @@ describe("init", () => {
     assert.equal(stateAccount.owner?.toString(), owner.publicKey.toString());
     assert.equal(stateAccount.counter, 0);
     assert.equal(stateAccount.bump, bump);
-  });
-
-  it("mint works", async () => {
-    const protocol = await Protocol.build(
-      Network.LOCAL,
-      walletAnchor,
-      connection
-    );
-    protocol.init(owner);
-
-    const [mintAuthority] = getProgramAuthorityAddressAndBump(
-      protocol.program.programId
-    );
-    const tokenAmount = 100n;
-    const tokenDecimals = 6;
-    const mintAmount = new BN(tokenAmount * 10n ** BigInt(tokenDecimals));
-
-    const payer = Keypair.generate();
-    await connection.requestAirdrop(payer.publicKey, 1e9);
-    await sleep(1000);
-
-    const lpTokenMinter = await createTokenMint(
-      connection,
-      payer,
-      mintAuthority,
-      tokenDecimals
-    );
-    const lpTokenAccount = await getOrCreateAssociatedTokenAccount(
-      connection,
-      payer,
-      lpTokenMinter,
-      payer.publicKey
-    );
-
-    {
-      const lpTokenAccountInfo = await getAccount(
-        connection,
-        lpTokenAccount.address
-      );
-      assert.equal(lpTokenAccountInfo.amount, 0n);
-    }
-
-    await protocol.mint(
-      lpTokenMinter,
-      lpTokenAccount.address,
-      mintAmount,
-      payer
-    );
-
-    {
-      const lpTokenAccountInfo = await getAccount(
-        connection,
-        lpTokenAccount.address
-      );
-      assert.equal(lpTokenAccountInfo.amount, mintAmount);
-    }
   });
 
   it("invariant cpi works", async () => {

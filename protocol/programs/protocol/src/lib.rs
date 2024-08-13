@@ -49,6 +49,12 @@ pub mod protocol {
         Ok(())
     }
 
+    pub fn deposit(ctx: Context<DepositCtx>, amount: u64) -> Result<()> {
+        // Deposit the ??? token
+        token::transfer(ctx.accounts.deposit_ctx(), amount)?;
+        Ok(())
+    }
+
     pub fn invoke_update_seconds_per_liquidity(
         ctx: Context<InvokeUpdateSecondsPerLiquidityCtx>,
         lower_tick_index: i32,

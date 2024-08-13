@@ -18,7 +18,7 @@ pub struct MintCtx<'info> {
     #[account(mut)]
     pub token_mint: Account<'info, anchor_spl::token::Mint>,
     #[account(mut,
-        constraint = &to.mint == token_mint.to_account_info().key
+        constraint = to.mint == token_mint.key()
     )]
     pub to: Account<'info, TokenAccount>,
     pub token_program: Program<'info, Token>,
