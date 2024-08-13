@@ -34,28 +34,6 @@ export const signAndSend = async (
   );
 };
 
-export const getProgramAuthorityAddressAndBump = (
-  programId: PublicKey
-): [PublicKey, number] => {
-  return PublicKey.findProgramAddressSync(
-    [Buffer.from(utils.bytes.utf8.encode(PROTOCOL_AUTHORITY_SEED))],
-    programId
-  );
-};
-
-export const getProtocolStateAddressAndBump = (
-  programId: PublicKey
-): [PublicKey, number] => {
-  return PublicKey.findProgramAddressSync(
-    [Buffer.from(utils.bytes.utf8.encode(PROTOCOL_STATE_SEED))],
-    programId
-  );
-};
-
-export const getProtocolStateAddress = (programId: PublicKey): PublicKey => {
-  return getProtocolStateAddressAndBump(programId)[0];
-};
-
 export const getPuppetCounterAddressAndBump = (
   programId: PublicKey
 ): [PublicKey, number] => {
