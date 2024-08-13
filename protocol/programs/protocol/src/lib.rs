@@ -1,10 +1,12 @@
 mod contexts;
+pub mod decimals;
 mod errors;
 pub mod states;
 
 use anchor_lang::prelude::*;
 pub use contexts::*;
 pub use errors::ErrorCode;
+pub use invariant::decimals::*;
 pub use program_id::*;
 
 mod program_id {
@@ -72,6 +74,24 @@ pub mod protocol {
     ) -> Result<()> {
         ctx.accounts
             .process(lower_tick_index, upper_tick_index, index)?;
+        Ok(())
+    }
+
+    pub fn invoke_create_position(
+        ctx: Context<InvokeCreatePositionCtx>,
+        _lower_tick_index: i32,
+        _upper_tick_index: i32,
+        liquidity_delta: Liquidity,
+        slippage_limit_lower: Price,
+        slippage_limit_upper: Price,
+    ) -> Result<()> {
+        ctx.accounts.process(
+            _lower_tick_index,
+            _upper_tick_index,
+            liquidity_delta,
+            slippage_limit_lower,
+            slippage_limit_upper,
+        )?;
         Ok(())
     }
 }
