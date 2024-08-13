@@ -9,3 +9,14 @@ export interface TestAccounts {
   puppetProgram: PublicKey;
   counter: PublicKey;
 }
+
+export interface InvokeUpdateSecondsPerLiquidityAccounts {
+  invariantProgram: PublicKey;
+  pool: PublicKey;
+  lowerTick: PublicKey;
+  upperTick: PublicKey;
+  position: PublicKey;
+  tokenX: PublicKey;
+  tokenY: PublicKey;
+  owner: PublicKey;
+}

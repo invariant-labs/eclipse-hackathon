@@ -6,7 +6,7 @@ import { Box, Button, CardMedia, Grid, IconButton, useMediaQuery } from '@mui/ma
 import icons from '@static/icons'
 import Hamburger from '@static/svg/Hamburger.svg'
 import { theme } from '@static/theme'
-import { NetworkType, RPC,  } from '@store/consts/static'
+import { NetworkType, RPC } from '@store/consts/static'
 import { blurContent, unblurContent } from '@utils/uiUtils'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
@@ -29,6 +29,8 @@ export interface IHeader {
   onFaucet?: () => void
   onDisconnectWallet: () => void
   defaultTestnetRPC: string
+  onCopyAddress: () => void
+  onChangeWallet: () => void
 }
 
 export const Header: React.FC<IHeader> = ({
@@ -42,6 +44,8 @@ export const Header: React.FC<IHeader> = ({
   onFaucet,
   onDisconnectWallet,
   defaultTestnetRPC,
+  onCopyAddress,
+  onChangeWallet
 }) => {
   const { classes } = useStyles()
   const buttonStyles = useButtonStyles()
@@ -78,7 +82,6 @@ export const Header: React.FC<IHeader> = ({
       rpcName: 'Eclipse EU'
     }
   ]
-
 
   return (
     <Grid container>
@@ -154,11 +157,11 @@ export const Header: React.FC<IHeader> = ({
                 </Button>
               </Box>
             ) : null}
-            {typeOfNetwork ===  NetworkType.TESTNET ? (
+            {/* {typeOfNetwork === NetworkType.TESTNET ? (
               <Box sx={{ display: { xs: 'none', md: 'block' } }}>
                 <SelectRPCButton rpc={rpc} networks={devnetRPCs} onSelect={onNetworkSelect} />
               </Box>
-            ) : null}
+            ) : null} */}
             <SelectNetworkButton
               name={typeOfNetwork}
               networks={[
@@ -190,6 +193,8 @@ export const Header: React.FC<IHeader> = ({
             startIcon={
               walletConnected ? <DotIcon className={classes.connectedWalletIcon} /> : undefined
             }
+            onCopyAddress={onCopyAddress}
+            onChangeWallet={onChangeWallet}
           />
         </Grid>
 
@@ -226,9 +231,8 @@ export const Header: React.FC<IHeader> = ({
                   }
                 : undefined
             }
-
           />
-          {typeOfNetwork === NetworkType.TESTNET ? (
+          {/* {typeOfNetwork === NetworkType.TESTNET ? (
             <SelectTestnetRPC
               networks={devnetRPCs}
               open={testnetRpcsOpen}
@@ -240,7 +244,7 @@ export const Header: React.FC<IHeader> = ({
               }}
               activeRPC={rpc}
             />
-          ) : null}
+          ) : null} */}
         </Grid>
       </Grid>
     </Grid>

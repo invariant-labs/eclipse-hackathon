@@ -11,7 +11,11 @@ import { getProtocolProgramAddress, Network } from "./network";
 import { IWallet } from "./wallet";
 import { BN, Program } from "@coral-xyz/anchor";
 import { IDL, Protocol as ProtocolProgram } from "./idl/protocol";
-import { ITransaction, TestAccounts } from "./types";
+import {
+  InvokeUpdateSecondsPerLiquidityAccounts,
+  ITransaction,
+  TestAccounts,
+} from "./types";
 import {
   getProgramAuthorityAddressAndBump,
   getProtocolStateAddress,
@@ -231,6 +235,61 @@ export class Protocol {
         userBalance,
         owner: payer,
         tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .instruction();
+  }
+
+  async invokeUpdateSecondsPerLiquidity(
+    accounts: InvokeUpdateSecondsPerLiquidityAccounts,
+    lowerTickIndex: number,
+    upperTickIndex: number,
+    index: number,
+    signer: Keypair
+  ): Promise<any> {
+    const { tx } = await this.invokeUpdateSecondsPerLiquidityTx(
+      accounts,
+      lowerTickIndex,
+      upperTickIndex,
+      index,
+      signer
+    );
+
+    return await signAndSend(tx, [signer], this.connection);
+  }
+
+  async invokeUpdateSecondsPerLiquidityTx(
+    accounts: InvokeUpdateSecondsPerLiquidityAccounts,
+    lowerTickIndex: number,
+    upperTickIndex: number,
+    index: number,
+    signer: Keypair
+  ): Promise<ITransaction> {
+    const ix = await this.invokeUpdateSecondsPerLiquidityIx(
+      accounts,
+      lowerTickIndex,
+      upperTickIndex,
+      index,
+      signer
+    );
+
+    return {
+      tx: new Transaction().add(ix),
+    };
+  }
+
+  async invokeUpdateSecondsPerLiquidityIx(
+    accounts: InvokeUpdateSecondsPerLiquidityAccounts,
+    lowerTickIndex: number,
+    upperTickIndex: number,
+    index: number,
+    signer: Keypair
+  ): Promise<TransactionInstruction> {
+    return await this.program.methods
+      .invokeUpdateSecondsPerLiquidity(lowerTickIndex, upperTickIndex, index)
+      .accounts({
+        signer: signer.publicKey,
+        systemProgram: SystemProgram.programId,
+        ...accounts,
       })
       .instruction();
   }

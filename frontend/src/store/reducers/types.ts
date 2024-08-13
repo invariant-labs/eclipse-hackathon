@@ -1,7 +1,7 @@
-import { AnyAction, ActionCreator } from 'redux'
+import { UnknownAction, ActionCreator } from 'redux'
 
 interface ActionsBasicType {
-  [k: string]: ActionCreator<AnyAction>
+  [k: string]: ActionCreator<UnknownAction>
 }
 
 export type PayloadType<actions extends ActionsBasicType> = {
