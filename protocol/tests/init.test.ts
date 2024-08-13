@@ -1,7 +1,7 @@
 import { AnchorProvider, BN } from "@coral-xyz/anchor";
 import { Network } from "../sdk/src/network";
 import { Protocol } from "../sdk/src/protocol";
-import { Keypair } from "@solana/web3.js";
+import { Keypair, PublicKey } from "@solana/web3.js";
 import {
   createTokenMint,
   initMarket,
@@ -15,6 +15,7 @@ import { getOrCreateAssociatedTokenAccount, mintTo } from "@solana/spl-token";
 import { calculatePriceSqrt, Pair } from "@invariant-labs/sdk-eclipse";
 import {
   fromFee,
+  getTokenProgramAddress,
   LIQUIDITY_DENOMINATOR,
 } from "@invariant-labs/sdk-eclipse/lib/utils";
 import {
@@ -30,6 +31,17 @@ describe("init", () => {
   const wallet = Keypair.generate();
   const mintAuthority = Keypair.generate();
 
+  let protocol: Protocol;
+  let market: Market;
+  const feeTier: FeeTier = {
+    fee: fromFee(new BN(600)),
+    tickSpacing: 10,
+  };
+  let pair: Pair;
+  const lowerTick = -10;
+  const upperTick = 10;
+  const initTick = 0;
+
   before(async () => {
     await Promise.all([connection.requestAirdrop(owner.publicKey, 1e14)]);
     await Promise.all([connection.requestAirdrop(wallet.publicKey, 1e14)]);
@@ -40,7 +52,72 @@ describe("init", () => {
     await Promise.all([
       connection.requestAirdrop(mintAuthority.publicKey, 1e14),
     ]);
+
     await sleep(1000);
+
+    protocol = await Protocol.build(Network.LOCAL, walletAnchor, connection);
+
+    market = await Market.build(
+      Network.LOCAL,
+      walletAnchor,
+      connection,
+      INVARIANT_ADDRESS
+    );
+
+    const [token0, token1] = await Promise.all([
+      createTokenMint(connection, owner, mintAuthority.publicKey, 6),
+      createTokenMint(connection, owner, mintAuthority.publicKey, 6),
+    ]);
+    pair = new Pair(token0, token1, feeTier);
+
+    await initMarket(market, [pair], owner, initTick);
+    await market.createPositionList(owner.publicKey, owner);
+
+    const lowerTickVars: CreateTick = {
+      pair,
+      index: lowerTick,
+      payer: owner.publicKey,
+    };
+    const upperTickVars: CreateTick = {
+      pair,
+      index: upperTick,
+      payer: owner.publicKey,
+    };
+    await market.createTick(lowerTickVars, owner);
+    await market.createTick(upperTickVars, owner);
+
+    const xOwnerAmount = 1e10;
+    const yOwnerAmount = 1e10;
+
+    const userTokenXAccount = await getOrCreateAssociatedTokenAccount(
+      connection,
+      owner,
+      pair.tokenX,
+      owner.publicKey
+    );
+    const userTokenYAccount = await getOrCreateAssociatedTokenAccount(
+      connection,
+      owner,
+      pair.tokenY,
+      owner.publicKey
+    );
+
+    await mintTo(
+      connection,
+      owner,
+      pair.tokenX,
+      userTokenXAccount.address,
+      mintAuthority,
+      xOwnerAmount
+    );
+    await mintTo(
+      connection,
+      owner,
+      pair.tokenY,
+      userTokenYAccount.address,
+      mintAuthority,
+      yOwnerAmount
+    );
   });
 
   it("init works", async () => {
@@ -82,75 +159,18 @@ describe("init", () => {
     assert.equal(stateAccount.bump, bump);
   });
 
-  it("invariant cpi works", async () => {
-    const market = await Market.build(
-      Network.LOCAL,
-      walletAnchor,
-      connection,
-      INVARIANT_ADDRESS
-    );
-
-    const [tokenX, tokenY] = await Promise.all([
-      createTokenMint(connection, owner, mintAuthority.publicKey, 6),
-      createTokenMint(connection, owner, mintAuthority.publicKey, 6),
-    ]);
-
-    const feeTier: FeeTier = {
-      fee: fromFee(new BN(600)),
-      tickSpacing: 10,
-    };
-    const pair = new Pair(tokenX, tokenY, feeTier);
-
-    const initTick = 0;
-    await initMarket(market, [pair], owner, initTick);
-    await market.createPositionList(owner.publicKey, owner);
-
-    const lowerTick = -10;
-    const upperTick = 10;
-    const lowerTickVars: CreateTick = {
-      pair,
-      index: lowerTick,
-      payer: owner.publicKey,
-    };
-    const upperTickVars: CreateTick = {
-      pair,
-      index: upperTick,
-      payer: owner.publicKey,
-    };
-    await market.createTick(lowerTickVars, owner);
-    await market.createTick(upperTickVars, owner);
-
+  it("invariant cpi update seconds per liquidity works", async () => {
     const userTokenXAccount = await getOrCreateAssociatedTokenAccount(
       connection,
       owner,
-      tokenX,
+      pair.tokenX,
       owner.publicKey
     );
     const userTokenYAccount = await getOrCreateAssociatedTokenAccount(
       connection,
       owner,
-      tokenY,
+      pair.tokenY,
       owner.publicKey
-    );
-
-    const xOwnerAmount = 1e10;
-    const yOwnerAmount = 1e10;
-
-    await mintTo(
-      connection,
-      owner,
-      tokenX,
-      userTokenXAccount.address,
-      mintAuthority,
-      xOwnerAmount
-    );
-    await mintTo(
-      connection,
-      owner,
-      tokenY,
-      userTokenYAccount.address,
-      mintAuthority,
-      yOwnerAmount
     );
 
     const liquidityDelta = { v: LIQUIDITY_DENOMINATOR.muln(10_000) };
@@ -166,12 +186,6 @@ describe("init", () => {
       slippage: { v: new BN(0) },
     };
     await market.initPosition(position, owner);
-
-    const protocol = await Protocol.build(
-      Network.LOCAL,
-      walletAnchor,
-      connection
-    );
 
     const poolAddress = await pair.getAddress(INVARIANT_ADDRESS);
     const { positionAddress } = await market.getPositionAddress(
@@ -198,8 +212,8 @@ describe("init", () => {
         lowerTick: lowerTickAddress,
         upperTick: upperTickAddress,
         position: positionAddress,
-        tokenX,
-        tokenY,
+        tokenX: pair.tokenX,
+        tokenY: pair.tokenY,
         owner: owner.publicKey,
       },
       lowerTick,
@@ -214,5 +228,81 @@ describe("init", () => {
         positionBefore.secondsPerLiquidityInside.v
       )
     );
+  });
+
+  it("invariant cpi create position works", async () => {
+    const userTokenXAccount = await getOrCreateAssociatedTokenAccount(
+      connection,
+      owner,
+      pair.tokenX,
+      owner.publicKey
+    );
+    const userTokenYAccount = await getOrCreateAssociatedTokenAccount(
+      connection,
+      owner,
+      pair.tokenY,
+      owner.publicKey
+    );
+
+    const positionId = 1;
+
+    const { address: stateAddress } = await market.getStateAddress();
+    const poolAddress = await pair.getAddress(INVARIANT_ADDRESS);
+    const { positionListAddress: positionListAddress } =
+      await market.getPositionListAddress(owner.publicKey);
+    const { positionAddress } = await market.getPositionAddress(
+      owner.publicKey,
+      positionId
+    );
+    const { tickAddress: lowerTickAddress } = await market.getTickAddress(
+      pair,
+      lowerTick
+    );
+    const { tickAddress: upperTickAddress } = await market.getTickAddress(
+      pair,
+      upperTick
+    );
+    const { tokenXReserve, tokenYReserve, tickmap } = await market.getPool(
+      pair
+    );
+    const tokenXProgram = await getTokenProgramAddress(connection, pair.tokenX);
+    const tokenYProgram = await getTokenProgramAddress(connection, pair.tokenY);
+
+    const liquidityDelta = LIQUIDITY_DENOMINATOR.muln(10_000);
+    const slippageLimitLower = new BN(0);
+    const slippageLimitUpper = new BN(2n ** 128n - 1n);
+
+    await protocol.invokeCreatePosition(
+      {
+        invariantProgram: INVARIANT_ADDRESS,
+        state: stateAddress,
+        position: positionAddress,
+        pool: poolAddress,
+        positionList: positionListAddress,
+        payer: owner.publicKey,
+        owner: owner.publicKey,
+        lowerTick: lowerTickAddress,
+        upperTick: upperTickAddress,
+        tickmap,
+        tokenX: pair.tokenX,
+        tokenY: pair.tokenY,
+        accountX: userTokenXAccount.address,
+        accountY: userTokenYAccount.address,
+        reserveX: tokenXReserve,
+        reserveY: tokenYReserve,
+        programAuthority: market.programAuthority,
+        tokenXProgram,
+        tokenYProgram,
+      },
+      lowerTick,
+      upperTick,
+      liquidityDelta,
+      slippageLimitLower,
+      slippageLimitUpper,
+      owner
+    );
+
+    const position = await market.getPosition(owner.publicKey, positionId);
+    assert.ok(position);
   });
 });

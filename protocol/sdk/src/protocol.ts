@@ -13,6 +13,7 @@ import { IWallet } from "./wallet";
 import { BN, Program } from "@coral-xyz/anchor";
 import { IDL, Protocol as ProtocolProgram } from "./idl/protocol";
 import {
+  invokeCreatePosition,
   InvokeUpdateSecondsPerLiquidityAccounts,
   ITransaction,
   TestAccounts,
@@ -25,6 +26,7 @@ import {
 } from "./utils";
 import { PROTOCOL_STATE_SEED } from "./consts";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { Decimal } from "@invariant-labs/sdk-eclipse/lib/market";
 
 export class Protocol {
   public connection: Connection;
@@ -349,6 +351,77 @@ export class Protocol {
   ): Promise<TransactionInstruction> {
     return await this.program.methods
       .invokeUpdateSecondsPerLiquidity(lowerTickIndex, upperTickIndex, index)
+      .accounts({
+        signer: signer.publicKey,
+        systemProgram: SystemProgram.programId,
+        ...accounts,
+      })
+      .instruction();
+  }
+
+  async invokeCreatePosition(
+    accounts: invokeCreatePosition,
+    _lower_tick_index: number,
+    _upper_tick_index: number,
+    liquidity_delta: Decimal,
+    slippage_limit_lower: Decimal,
+    slippage_limit_upper: Decimal,
+    signer: Keypair
+  ): Promise<TransactionSignature> {
+    const { tx } = await this.invokeCreatePositionTx(
+      accounts,
+      _lower_tick_index,
+      _upper_tick_index,
+      liquidity_delta,
+      slippage_limit_lower,
+      slippage_limit_upper,
+      signer
+    );
+
+    return await signAndSend(tx, [signer], this.connection);
+  }
+
+  async invokeCreatePositionTx(
+    accounts: invokeCreatePosition,
+    _lower_tick_index: number,
+    _upper_tick_index: number,
+    liquidity_delta: Decimal,
+    slippage_limit_lower: Decimal,
+    slippage_limit_upper: Decimal,
+    signer: Keypair
+  ): Promise<ITransaction> {
+    const ix = await this.invokeCreatePositionIx(
+      accounts,
+      _lower_tick_index,
+      _upper_tick_index,
+      liquidity_delta,
+      slippage_limit_lower,
+      slippage_limit_upper,
+      signer
+    );
+
+    return {
+      tx: new Transaction().add(ix),
+    };
+  }
+
+  async invokeCreatePositionIx(
+    accounts: invokeCreatePosition,
+    _lower_tick_index: number,
+    _upper_tick_index: number,
+    liquidity_delta: Decimal,
+    slippage_limit_lower: Decimal,
+    slippage_limit_upper: Decimal,
+    signer: Keypair
+  ): Promise<TransactionInstruction> {
+    return await this.program.methods
+      .invokeCreatePosition(
+        _lower_tick_index,
+        _upper_tick_index,
+        liquidity_delta,
+        slippage_limit_lower,
+        slippage_limit_upper
+      )
       .accounts({
         signer: signer.publicKey,
         systemProgram: SystemProgram.programId,
