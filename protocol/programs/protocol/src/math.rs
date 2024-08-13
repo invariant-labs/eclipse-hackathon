@@ -614,7 +614,7 @@ fn compute_lp_share_change(
         )
     };
 
-    if transferred_x.v == 0 && transferred_y.v == 0 {
+    if transferred_x == TokenAmount::new(0) && transferred_y == TokenAmount::new(0) {
         Err(err!("Liquidity delta too small"))?
     }
 

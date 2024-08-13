@@ -47,13 +47,8 @@ pub struct FixedPoint {
 
 // legacy not serializable may implement later
 #[decimal(0)]
-#[zero_copy]
-#[derive(
-    Default, std::fmt::Debug, PartialEq, Eq, PartialOrd, Ord, AnchorSerialize, AnchorDeserialize,
-)]
-pub struct TokenAmount {
-    pub v: u64,
-}
+#[derive(Default, std::fmt::Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+pub struct TokenAmount(pub u64);
 
 impl FeeGrowth {
     pub fn unchecked_add(self, other: FeeGrowth) -> FeeGrowth {
