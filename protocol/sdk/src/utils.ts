@@ -6,6 +6,7 @@ import {
   PublicKey,
   sendAndConfirmRawTransaction,
   Transaction,
+  TransactionSignature,
 } from "@solana/web3.js";
 import {
   PROTOCOL_AUTHORITY_SEED,
@@ -18,7 +19,7 @@ export const signAndSend = async (
   signers: Keypair[],
   connection: Connection,
   opts?: ConfirmOptions
-) => {
+): Promise<TransactionSignature> => {
   tx.setSigners(...signers.map((s) => s.publicKey));
   const blockhash = await connection.getRecentBlockhash(
     opts?.commitment ?? AnchorProvider.defaultOptions().commitment

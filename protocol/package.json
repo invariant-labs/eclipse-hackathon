@@ -8,13 +8,15 @@
     "build:sdk": "cd sdk && npm run build && cd ..",
     "build:all": "npm run build:program && npm run build:sdk",
     "test": "npm run build:all && npx ts-mocha -p tsconfig.json tests/**/*.ts",
-    "test:init": "npm run build:all && anchor test --skip-build tests/init.test.ts"
+    "test:init": "anchor test --skip-build tests/init.test.ts",
+    "test:token": "anchor test --skip-build tests/token.test.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@coral-xyz/anchor": "0.29.0",
+    "@invariant-labs/sdk-eclipse": "^0.0.12",
     "@project-serum/serum": "^0.13.65",
     "@solana/spl-token": "^0.4.3",
     "@solana/web3.js": "^1.91.4"

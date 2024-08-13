@@ -104,6 +104,172 @@ export type Protocol = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "deposit",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserve",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userBalance",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "withdraw",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserve",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userBalance",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "invokeUpdateSecondsPerLiquidity",
+      "accounts": [
+        {
+          "name": "invariantProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "pool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lowerTick",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "upperTick",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "position",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenX",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenY",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "signer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "lowerTickIndex",
+          "type": "i32"
+        },
+        {
+          "name": "upperTickIndex",
+          "type": "i32"
+        },
+        {
+          "name": "index",
+          "type": "i32"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -146,6 +312,16 @@ export type Protocol = {
       "code": 6001,
       "name": "InvalidAuthority",
       "msg": "Provided authority is different than expected"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidMint",
+      "msg": "Provided mint account is different than expected"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidOwner",
+      "msg": "Provided owner account is different than expected"
     }
   ]
 };
@@ -256,6 +432,172 @@ export const IDL: Protocol = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "deposit",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserve",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userBalance",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "withdraw",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserve",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userBalance",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "invokeUpdateSecondsPerLiquidity",
+      "accounts": [
+        {
+          "name": "invariantProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "pool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lowerTick",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "upperTick",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "position",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenX",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenY",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "signer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "lowerTickIndex",
+          "type": "i32"
+        },
+        {
+          "name": "upperTickIndex",
+          "type": "i32"
+        },
+        {
+          "name": "index",
+          "type": "i32"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -298,6 +640,16 @@ export const IDL: Protocol = {
       "code": 6001,
       "name": "InvalidAuthority",
       "msg": "Provided authority is different than expected"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidMint",
+      "msg": "Provided mint account is different than expected"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidOwner",
+      "msg": "Provided owner account is different than expected"
     }
   ]
 };

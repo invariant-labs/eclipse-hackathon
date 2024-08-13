@@ -7,7 +7,11 @@ pub enum ErrorCode {
     #[msg("[S001] ErrorExample")] //0x12C (300)
     ErrorExample,
     #[msg("Provided authority is different than expected")]
-    InvalidAuthority = 1, // 301
+    InvalidAuthority = 1, //0x12D (301)
+    #[msg("Provided mint account is different than expected")]
+    InvalidMint = 2, //0x12E (302)
+    #[msg("Provided owner account is different than expected")]
+    InvalidOwner = 3, //0x12F (303)
 }
 
 impl TryInto<ErrorCode> for u32 {

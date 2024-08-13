@@ -90,11 +90,13 @@ const solanaWalletSlice = createSlice({
       state.accounts[action.payload.programId].balance = action.payload.balance
       return state
     },
-    // Triggers rescan for tokens that we control
+    connect(state, _action: PayloadAction<boolean>) {
+      return state
+    },
     rescanTokens() {},
     airdrop() {},
-    connect() {},
-    disconnect() {}
+    disconnect() {},
+    reconnect() {}
   }
 })
 interface IsetTokenBalance {

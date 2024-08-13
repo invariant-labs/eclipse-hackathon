@@ -1502,6 +1502,7 @@ dependencies = [
  "anchor-spl",
  "bytemuck",
  "decimal",
+ "invariant",
  "puppet",
 ]
 

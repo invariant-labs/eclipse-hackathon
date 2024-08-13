@@ -8,15 +8,22 @@ export const nightlyConnectAdapter: NightlyConnectAdapter = NightlyConnectAdapte
       icon: 'https://invariant.app/favicon-192x192.png'
     },
     url: 'https://nc2.nightly.app'
+  },
+  {
+    initOnConnect: true
   }
 )
 
-export const openWalletSelectorModal = async () => {
+export const openWalletSelectorModal = async (isChangeWallet?: boolean) => {
   try {
+    if (isChangeWallet) {
+      await nightlyConnectAdapter.disconnect()
+      await nightlyConnectAdapter.connect()
+      return
+    }
     if (nightlyConnectAdapter.connected) {
       return
     }
-
     await nightlyConnectAdapter.connect()
   } catch (error) {
     console.log(error)

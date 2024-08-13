@@ -51,4 +51,30 @@ pub mod protocol {
         token::mint_to(ctx.accounts.mint_ctx().with_signer(signer), amount)?;
         Ok(())
     }
+
+    pub fn deposit(ctx: Context<DepositCtx>, amount: u64) -> Result<()> {
+        // Deposit the ??? token
+        token::transfer(ctx.accounts.deposit_ctx(), amount)?;
+        Ok(())
+    }
+
+    pub fn withdraw(ctx: Context<WithdrawCtx>, amount: u64) -> Result<()> {
+        let state = &ctx.accounts.state.load()?;
+        let signer: &[&[&[u8]]] = get_signer!(state.bump_authority);
+
+        // Withdraw the ??? token
+        token::transfer(ctx.accounts.withdraw_ctx().with_signer(signer), amount)?;
+        Ok(())
+    }
+
+    pub fn invoke_update_seconds_per_liquidity(
+        ctx: Context<InvokeUpdateSecondsPerLiquidityCtx>,
+        lower_tick_index: i32,
+        upper_tick_index: i32,
+        index: i32,
+    ) -> Result<()> {
+        ctx.accounts
+            .process(lower_tick_index, upper_tick_index, index)?;
+        Ok(())
+    }
 }
