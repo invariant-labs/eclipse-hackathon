@@ -36,6 +36,10 @@ describe("init", () => {
     await Promise.all([
       connection.requestAirdrop(mintAuthority.publicKey, 1e14),
     ]);
+    await Promise.all([connection.requestAirdrop(wallet.publicKey, 1e14)]);
+    await Promise.all([
+      connection.requestAirdrop(mintAuthority.publicKey, 1e14),
+    ]);
     await sleep(1000);
   });
 
