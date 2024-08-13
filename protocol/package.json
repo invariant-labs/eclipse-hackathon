@@ -9,7 +9,8 @@
     "build:all": "npm run build:program && npm run build:sdk",
     "test": "npm run build:all && npx ts-mocha -p tsconfig.json tests/**/*.ts",
     "test:init": "anchor test --skip-build tests/init.test.ts",
-    "test:token": "anchor test --skip-build tests/token.test.ts"
+    "test:token": "anchor test --skip-build tests/token.test.ts",
+    "test:invoke": "anchor test --skip-build tests/invoke.test.ts"
   },
   "keywords": [],
   "author": "",
