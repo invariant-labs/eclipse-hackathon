@@ -14,6 +14,7 @@ import { BN, Program } from "@coral-xyz/anchor";
 import { IDL, Protocol as ProtocolProgram } from "./idl/protocol";
 import {
   invokeCreatePosition,
+  InvokeClosePositionAccounts,
   InvokeUpdateSecondsPerLiquidityAccounts,
   ITransaction,
   TestAccounts,
@@ -427,6 +428,53 @@ export class Protocol {
         systemProgram: SystemProgram.programId,
         ...accounts,
       })
+      .instruction();
+  }
+
+  async invokeClosePosition(
+    accounts: InvokeClosePositionAccounts,
+    index: number,
+    lowerTickIndex: number,
+    upperTickIndex: number,
+    signer: Keypair
+  ): Promise<TransactionSignature> {
+    const { tx } = await this.invokeClosePositionTx(
+      accounts,
+      index,
+      lowerTickIndex,
+      upperTickIndex
+    );
+
+    return await signAndSend(tx, [signer], this.connection);
+  }
+
+  async invokeClosePositionTx(
+    accounts: InvokeClosePositionAccounts,
+    index: number,
+    lowerTickIndex: number,
+    upperTickIndex: number
+  ): Promise<ITransaction> {
+    const ix = await this.invokeClosePositionIx(
+      accounts,
+      index,
+      lowerTickIndex,
+      upperTickIndex
+    );
+
+    return {
+      tx: new Transaction().add(ix),
+    };
+  }
+
+  async invokeClosePositionIx(
+    accounts: InvokeClosePositionAccounts,
+    index: number,
+    lowerTickIndex: number,
+    upperTickIndex: number
+  ): Promise<TransactionInstruction> {
+    return await this.program.methods
+      .invokeClosePosition(index, lowerTickIndex, upperTickIndex)
+      .accounts(accounts)
       .instruction();
   }
 }

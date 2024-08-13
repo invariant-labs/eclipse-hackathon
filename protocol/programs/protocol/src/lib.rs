@@ -93,4 +93,15 @@ pub mod protocol {
         )?;
         Ok(())
     }
+
+    pub fn invoke_close_position(
+        ctx: Context<InvokeClosePositionCtx>,
+        index: u32,
+        lower_tick_index: i32,
+        upper_tick_index: i32,
+    ) -> Result<()> {
+        ctx.accounts
+            .process(index, lower_tick_index, upper_tick_index)?;
+        Ok(())
+    }
 }
