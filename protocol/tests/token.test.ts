@@ -1,7 +1,7 @@
 import { AnchorProvider, BN } from "@coral-xyz/anchor";
 import { Network } from "../sdk/src/network";
 import { Protocol } from "../sdk/src/protocol";
-import { Keypair, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+import { Keypair, PublicKey } from "@solana/web3.js";
 import { createTokenMint, sleep } from "./test-utils";
 import { getProgramAuthorityAddressAndBump } from "../sdk/src/utils";
 import { assert } from "chai";
@@ -22,6 +22,7 @@ describe("token", () => {
   const tokenDecimals = 6;
   const mintAmount = new BN(tokenAmount * 10n ** BigInt(tokenDecimals));
   const depositAmount = mintAmount.div(new BN(4));
+  const withdrawAmount = depositAmount.div(new BN(5));
 
   before(async () => {
     await Promise.all([
@@ -45,7 +46,7 @@ describe("token", () => {
     );
   });
 
-  it("mint works", async () => {
+  it("mint", async () => {
     const lpTokenAccount = await getOrCreateAssociatedTokenAccount(
       connection,
       payer,
@@ -76,7 +77,7 @@ describe("token", () => {
       assert.equal(lpTokenAccountInfo.amount, mintAmount);
     }
   });
-  it("deposit works", async () => {
+  it("deposit", async () => {
     const [programAuthority] = getProgramAuthorityAddressAndBump(
       protocol.program.programId
     );
@@ -123,6 +124,61 @@ describe("token", () => {
 
       assert.equal(lpTokenAccountInfo.amount, mintAmount.sub(depositAmount));
       assert.equal(lpTokenReserveInfo.amount, depositAmount);
+    }
+  });
+  it("withdraw", async () => {
+    const [programAuthority] = getProgramAuthorityAddressAndBump(
+      protocol.program.programId
+    );
+
+    const lpTokenAccount = await getOrCreateAssociatedTokenAccount(
+      connection,
+      payer,
+      lpTokenMinter,
+      payer.publicKey
+    );
+
+    {
+      const lpTokenAccountInfo = await getAccount(
+        connection,
+        lpTokenAccount.address
+      );
+      assert.equal(lpTokenAccountInfo.amount, mintAmount.sub(depositAmount));
+    }
+
+    const lpTokenReserve = await getOrCreateAssociatedTokenAccount(
+      connection,
+      payer,
+      lpTokenMinter,
+      programAuthority,
+      true
+    );
+
+    await protocol.withdraw(
+      lpTokenMinter,
+      lpTokenReserve.address,
+      lpTokenAccount.address,
+      withdrawAmount,
+      payer
+    );
+    {
+      const lpTokenAccountInfo = await getAccount(
+        connection,
+        lpTokenAccount.address
+      );
+      const lpTokenReserveInfo = await getAccount(
+        connection,
+        lpTokenReserve.address
+      );
+
+      assert.equal(
+        lpTokenAccountInfo.amount,
+        mintAmount.sub(depositAmount).add(withdrawAmount)
+      );
+      assert.equal(
+        lpTokenReserveInfo.amount,
+        depositAmount.sub(withdrawAmount)
+      );
     }
   });
 });

@@ -55,6 +55,15 @@ pub mod protocol {
         Ok(())
     }
 
+    pub fn withdraw(ctx: Context<WithdrawCtx>, amount: u64) -> Result<()> {
+        let state = &ctx.accounts.state.load()?;
+        let signer: &[&[&[u8]]] = get_signer!(state.bump_authority);
+
+        // Withdraw the ??? token
+        token::transfer(ctx.accounts.withdraw_ctx().with_signer(signer), amount)?;
+        Ok(())
+    }
+
     pub fn invoke_update_seconds_per_liquidity(
         ctx: Context<InvokeUpdateSecondsPerLiquidityCtx>,
         lower_tick_index: i32,

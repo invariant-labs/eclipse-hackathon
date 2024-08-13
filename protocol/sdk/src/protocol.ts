@@ -6,6 +6,7 @@ import {
   SystemProgram,
   Transaction,
   TransactionInstruction,
+  TransactionSignature,
 } from "@solana/web3.js";
 import { getProtocolProgramAddress, Network } from "./network";
 import { IWallet } from "./wallet";
@@ -65,7 +66,7 @@ export class Protocol {
     return instance;
   }
 
-  async init(signer: Keypair): Promise<any> {
+  async init(signer: Keypair): Promise<TransactionSignature> {
     const { tx } = await this.initTx(signer);
 
     return await signAndSend(tx, [signer], this.connection);
@@ -101,7 +102,7 @@ export class Protocol {
     accounts: TestAccounts,
     stateBump: number,
     signer: Keypair
-  ): Promise<any> {
+  ): Promise<TransactionSignature> {
     const { tx } = await this.testTx(accounts, stateBump, signer);
 
     return await signAndSend(tx, [signer], this.connection);
@@ -139,7 +140,7 @@ export class Protocol {
     to: PublicKey,
     amount: BN,
     signer: Keypair
-  ): Promise<any> {
+  ): Promise<TransactionSignature> {
     const { tx } = await this.mintTx(tokenMint, to, amount);
     return await signAndSend(tx, [signer], this.connection);
   }
@@ -183,7 +184,7 @@ export class Protocol {
     userBalance: PublicKey,
     amount: BN,
     payer: Keypair
-  ): Promise<any> {
+  ): Promise<TransactionSignature> {
     const { tx } = await this.depositTx(
       tokenMint,
       reserve,
@@ -239,13 +240,75 @@ export class Protocol {
       .instruction();
   }
 
+  async withdraw(
+    tokenMint: PublicKey,
+    reserve: PublicKey,
+    userBalance: PublicKey,
+    amount: BN,
+    payer: Keypair
+  ): Promise<TransactionSignature> {
+    const { tx } = await this.withdrawTx(
+      tokenMint,
+      reserve,
+      userBalance,
+      amount,
+      payer.publicKey
+    );
+    return await signAndSend(tx, [payer], this.connection);
+  }
+
+  async withdrawTx(
+    tokenMint: PublicKey,
+    reserve: PublicKey,
+    userBalance: PublicKey,
+    amount: BN,
+    owner: PublicKey
+  ): Promise<ITransaction> {
+    const ix = await this.withdrawIx(
+      tokenMint,
+      reserve,
+      userBalance,
+      amount,
+      owner
+    );
+    return {
+      tx: new Transaction().add(ix),
+    };
+  }
+
+  async withdrawIx(
+    tokenMint: PublicKey,
+    reserve: PublicKey,
+    userBalance: PublicKey,
+    amount: BN,
+    owner: PublicKey
+  ): Promise<TransactionInstruction> {
+    const state = getProtocolStateAddress(this.program.programId);
+    const [programAuthority] = getProgramAuthorityAddressAndBump(
+      this.program.programId
+    );
+
+    return await this.program.methods
+      .withdraw(amount)
+      .accounts({
+        state,
+        programAuthority,
+        tokenMint,
+        reserve,
+        userBalance,
+        owner,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .instruction();
+  }
+
   async invokeUpdateSecondsPerLiquidity(
     accounts: InvokeUpdateSecondsPerLiquidityAccounts,
     lowerTickIndex: number,
     upperTickIndex: number,
     index: number,
     signer: Keypair
-  ): Promise<any> {
+  ): Promise<TransactionSignature> {
     const { tx } = await this.invokeUpdateSecondsPerLiquidityTx(
       accounts,
       lowerTickIndex,
