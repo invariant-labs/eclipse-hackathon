@@ -225,7 +225,7 @@ pub fn get_liquidity_by_y_sqrt_price(
     current_sqrt_price: Price,
     rounding_up: bool,
 ) -> TrackableResult<SingleTokenLiquidity> {
-    if current_sqrt_price <= lower_sqrt_price {
+    if current_sqrt_price < lower_sqrt_price {
         return Err(err!("Current Sqrt Price < Lower Sqrt Price"));
     }
 
