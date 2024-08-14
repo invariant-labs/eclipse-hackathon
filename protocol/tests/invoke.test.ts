@@ -160,6 +160,9 @@ describe("invariant cpi", () => {
 
     await protocol.invokeUpdateSecondsPerLiquidity(
       {
+        lowerTickIndex: lowerTick,
+        upperTickIndex: upperTick,
+        index: initTick,
         invariantProgram: INVARIANT_ADDRESS,
         pool: poolAddress,
         lowerTick: lowerTickAddress,
@@ -169,9 +172,6 @@ describe("invariant cpi", () => {
         tokenY: pair.tokenY,
         owner: owner.publicKey,
       },
-      lowerTick,
-      upperTick,
-      initTick,
       owner
     );
 
@@ -227,6 +227,11 @@ describe("invariant cpi", () => {
 
     await protocol.invokeCreatePosition(
       {
+        lowerTickIndex: lowerTick,
+        upperTickIndex: upperTick,
+        liquidityDelta,
+        slippageLimitLower,
+        slippageLimitUpper,
         invariantProgram: INVARIANT_ADDRESS,
         state: stateAddress,
         position: positionAddress,
@@ -247,11 +252,6 @@ describe("invariant cpi", () => {
         tokenXProgram,
         tokenYProgram,
       },
-      lowerTick,
-      upperTick,
-      liquidityDelta,
-      slippageLimitLower,
-      slippageLimitUpper,
       owner
     );
 
@@ -302,6 +302,9 @@ describe("invariant cpi", () => {
 
     await protocol.invokeClosePosition(
       {
+        index: positionId,
+        lowerTickIndex: lowerTick,
+        upperTickIndex: upperTick,
         invariantProgram: INVARIANT_ADDRESS,
         invariantState: stateAddress,
         removedPosition: positionAddress,
@@ -322,9 +325,6 @@ describe("invariant cpi", () => {
         tokenXProgram,
         tokenYProgram,
       },
-      positionId,
-      lowerTick,
-      upperTick,
       owner
     );
 

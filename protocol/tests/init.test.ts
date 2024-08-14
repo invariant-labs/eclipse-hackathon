@@ -27,7 +27,7 @@ describe("init", () => {
       connection
     );
 
-    await protocol.init(owner);
+    await protocol.init({}, owner);
   });
 
   it("cpi works", async () => {
@@ -46,8 +46,8 @@ describe("init", () => {
       {
         puppetProgram: puppet.program.programId,
         counter: puppetCounterAddress,
+        stateBump: bump,
       },
-      bump,
       owner
     );
 

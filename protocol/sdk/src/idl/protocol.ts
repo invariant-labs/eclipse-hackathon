@@ -237,11 +237,6 @@ export type Protocol = {
         },
         {
           "name": "owner",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "signer",
           "isMut": true,
           "isSigner": true
         },
@@ -280,7 +275,7 @@ export type Protocol = {
           "isSigner": false
         },
         {
-          "name": "signer",
+          "name": "owner",
           "isMut": true,
           "isSigner": true
         },
@@ -302,16 +297,6 @@ export type Protocol = {
         {
           "name": "positionList",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "owner",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -816,11 +801,6 @@ export const IDL: Protocol = {
         },
         {
           "name": "owner",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "signer",
           "isMut": true,
           "isSigner": true
         },
@@ -859,7 +839,7 @@ export const IDL: Protocol = {
           "isSigner": false
         },
         {
-          "name": "signer",
+          "name": "owner",
           "isMut": true,
           "isSigner": true
         },
@@ -881,16 +861,6 @@ export const IDL: Protocol = {
         {
           "name": "positionList",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "owner",
-          "isMut": false,
           "isSigner": false
         },
         {
