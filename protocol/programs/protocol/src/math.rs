@@ -540,30 +540,22 @@ pub fn liquidity_to_lp_token_amount(
     }
 
     if rounding_up {
-        let nominator = U192::from(liquidity_delta.get())
-            .checked_mul(U192::from(lp_token_supply.get()))
-            .ok_or(err!(TrackableError::MUL))?;
-
-        let should_round_up = nominator
-            .checked_rem(U192::from(current_liquidity.get()))
-            .unwrap()
-            != U192::from(0);
-
         let mut amount = TokenAmount::new(
             U192::from(liquidity_delta.get())
                 .checked_mul(U192::from(lp_token_supply.get()))
                 .ok_or(err!(TrackableError::MUL))?
+                .checked_add(U192::from(
+                    current_liquidity
+                        .get()
+                        .checked_sub(1)
+                        .ok_or(err!(TrackableError::SUB))?,
+                ))
+                .ok_or(err!(TrackableError::ADD))?
                 .checked_div(U192::from(current_liquidity.get()))
                 .ok_or(err!(TrackableError::DIV))?
                 .try_into()
                 .map_err(|_| err!("Conversion to LpToken failed"))?,
         );
-
-        if should_round_up {
-            amount = amount
-                .checked_add(TokenAmount(1))
-                .map_err(|_| err!(TrackableError::ADD))?;
-        }
 
         return Ok(amount);
     }
