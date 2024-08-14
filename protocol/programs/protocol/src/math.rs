@@ -230,24 +230,7 @@ pub fn get_liquidity_by_y_sqrt_price(
     }
 
     if upper_sqrt_price <= current_sqrt_price {
-        let sqrt_price_diff = upper_sqrt_price
-            .checked_sub(lower_sqrt_price)
-            .map_err(|_| err!("Underflow while calculating sqrt price difference"))?;
-        let liquidity = Liquidity::new(
-            (U192::from(y.get())
-                .checked_mul(U192::from(Price::from_integer(1).get()))
-                .ok_or_else(|| err!(TrackableError::MUL))?
-                .checked_mul(U192::from(Liquidity::from_integer(1).get()))
-                .ok_or_else(|| err!(TrackableError::MUL))?
-                .checked_div(U192::from(sqrt_price_diff.get()))
-                .ok_or_else(|| err!(TrackableError::DIV))?)
-            .try_into()
-            .map_err(|_| err!("Overflow while calculating liquidity"))?,
-        );
-        return Ok(SingleTokenLiquidity {
-            l: liquidity,
-            amount: TokenAmount::new(0),
-        });
+        return Err(err!("Upper Sqrt Price < Lower Sqrt Price"));
     }
 
     let sqrt_price_diff = current_sqrt_price
