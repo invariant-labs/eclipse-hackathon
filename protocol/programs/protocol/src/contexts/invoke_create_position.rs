@@ -12,7 +12,7 @@ use invariant::{cpi::accounts::CreatePosition, decimals::*, program::Invariant};
 pub struct InvokeCreatePositionCtx<'info> {
     pub invariant_program: Program<'info, Invariant>,
     #[account(mut)]
-    pub signer: Signer<'info>,
+    pub owner: Signer<'info>,
     /// CHECK:
     pub state: UncheckedAccount<'info>,
     /// CHECK:
@@ -24,11 +24,6 @@ pub struct InvokeCreatePositionCtx<'info> {
     /// CHECK:
     #[account(mut)]
     pub position_list: UncheckedAccount<'info>,
-    /// CHECK:
-    #[account(mut)]
-    pub payer: UncheckedAccount<'info>,
-    /// CHECK:
-    pub owner: UncheckedAccount<'info>,
     /// CHECK:
     #[account(mut)]
     pub lower_tick: UncheckedAccount<'info>,
@@ -79,7 +74,6 @@ impl<'info> InvokeCreatePositionCtx<'info> {
             position,
             pool,
             position_list,
-            payer,
             owner,
             lower_tick,
             upper_tick,
@@ -104,7 +98,7 @@ impl<'info> InvokeCreatePositionCtx<'info> {
             position: position.to_account_info(),
             pool: pool.to_account_info(),
             position_list: position_list.to_account_info(),
-            payer: payer.to_account_info(),
+            payer: owner.to_account_info(),
             owner: owner.to_account_info(),
             lower_tick: lower_tick.to_account_info(),
             upper_tick: upper_tick.to_account_info(),

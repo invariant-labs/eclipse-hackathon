@@ -27,7 +27,7 @@ describe("init", () => {
       connection
     );
 
-    await protocol.init({ signer: owner });
+    await protocol.init({}, owner);
   });
 
   it("cpi works", async () => {
@@ -42,12 +42,14 @@ describe("init", () => {
       puppet.program.programId
     );
 
-    await protocol.test({
-      puppetProgram: puppet.program.programId,
-      counter: puppetCounterAddress,
-      stateBump: bump,
-      signer: owner,
-    });
+    await protocol.test(
+      {
+        puppetProgram: puppet.program.programId,
+        counter: puppetCounterAddress,
+        stateBump: bump,
+      },
+      owner
+    );
 
     const stateAccount = await puppet.program.account.counter.fetch(
       puppetCounterAddress

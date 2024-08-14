@@ -158,20 +158,22 @@ describe("invariant cpi", () => {
 
     await sleep(1000);
 
-    await protocol.invokeUpdateSecondsPerLiquidity({
-      lowerTickIndex: lowerTick,
-      upperTickIndex: upperTick,
-      index: initTick,
-      signer: owner,
-      invariantProgram: INVARIANT_ADDRESS,
-      pool: poolAddress,
-      lowerTick: lowerTickAddress,
-      upperTick: upperTickAddress,
-      position: positionAddress,
-      tokenX: pair.tokenX,
-      tokenY: pair.tokenY,
-      owner: owner.publicKey,
-    });
+    await protocol.invokeUpdateSecondsPerLiquidity(
+      {
+        lowerTickIndex: lowerTick,
+        upperTickIndex: upperTick,
+        index: initTick,
+        invariantProgram: INVARIANT_ADDRESS,
+        pool: poolAddress,
+        lowerTick: lowerTickAddress,
+        upperTick: upperTickAddress,
+        position: positionAddress,
+        tokenX: pair.tokenX,
+        tokenY: pair.tokenY,
+        owner: owner.publicKey,
+      },
+      owner
+    );
 
     const positionAfter = await market.getPosition(owner.publicKey, 0);
     assert.ok(
@@ -223,33 +225,35 @@ describe("invariant cpi", () => {
     const slippageLimitLower = new BN(0);
     const slippageLimitUpper = new BN(2n ** 128n - 1n);
 
-    await protocol.invokeCreatePosition({
-      lowerTickIndex: lowerTick,
-      upperTickIndex: upperTick,
-      liquidityDelta,
-      slippageLimitLower,
-      slippageLimitUpper,
-      signer: owner,
-      invariantProgram: INVARIANT_ADDRESS,
-      state: stateAddress,
-      position: positionAddress,
-      pool: poolAddress,
-      positionList: positionListAddress,
-      payer: owner.publicKey,
-      owner: owner.publicKey,
-      lowerTick: lowerTickAddress,
-      upperTick: upperTickAddress,
-      tickmap,
-      tokenX: pair.tokenX,
-      tokenY: pair.tokenY,
-      accountX: userTokenXAccount.address,
-      accountY: userTokenYAccount.address,
-      reserveX: tokenXReserve,
-      reserveY: tokenYReserve,
-      programAuthority: market.programAuthority,
-      tokenXProgram,
-      tokenYProgram,
-    });
+    await protocol.invokeCreatePosition(
+      {
+        lowerTickIndex: lowerTick,
+        upperTickIndex: upperTick,
+        liquidityDelta,
+        slippageLimitLower,
+        slippageLimitUpper,
+        invariantProgram: INVARIANT_ADDRESS,
+        state: stateAddress,
+        position: positionAddress,
+        pool: poolAddress,
+        positionList: positionListAddress,
+        payer: owner.publicKey,
+        owner: owner.publicKey,
+        lowerTick: lowerTickAddress,
+        upperTick: upperTickAddress,
+        tickmap,
+        tokenX: pair.tokenX,
+        tokenY: pair.tokenY,
+        accountX: userTokenXAccount.address,
+        accountY: userTokenYAccount.address,
+        reserveX: tokenXReserve,
+        reserveY: tokenYReserve,
+        programAuthority: market.programAuthority,
+        tokenXProgram,
+        tokenYProgram,
+      },
+      owner
+    );
 
     const position = await market.getPosition(owner.publicKey, positionId);
     assert.ok(position);
@@ -296,31 +300,33 @@ describe("invariant cpi", () => {
     const tokenXProgram = await getTokenProgramAddress(connection, pair.tokenX);
     const tokenYProgram = await getTokenProgramAddress(connection, pair.tokenY);
 
-    await protocol.invokeClosePosition({
-      index: positionId,
-      lowerTickIndex: lowerTick,
-      upperTickIndex: upperTick,
-      signer: owner,
-      invariantProgram: INVARIANT_ADDRESS,
-      invariantState: stateAddress,
-      removedPosition: positionAddress,
-      lastPosition: lastPositionAddress,
-      pool: poolAddress,
-      positionList: positionListAddress,
-      owner: owner.publicKey,
-      lowerTick: lowerTickAddress,
-      upperTick: upperTickAddress,
-      tickmap,
-      tokenX: pair.tokenX,
-      tokenY: pair.tokenY,
-      accountX: userTokenXAccount.address,
-      accountY: userTokenYAccount.address,
-      reserveX: tokenXReserve,
-      reserveY: tokenYReserve,
-      invariantProgramAuthority: market.programAuthority,
-      tokenXProgram,
-      tokenYProgram,
-    });
+    await protocol.invokeClosePosition(
+      {
+        index: positionId,
+        lowerTickIndex: lowerTick,
+        upperTickIndex: upperTick,
+        invariantProgram: INVARIANT_ADDRESS,
+        invariantState: stateAddress,
+        removedPosition: positionAddress,
+        lastPosition: lastPositionAddress,
+        pool: poolAddress,
+        positionList: positionListAddress,
+        owner: owner.publicKey,
+        lowerTick: lowerTickAddress,
+        upperTick: upperTickAddress,
+        tickmap,
+        tokenX: pair.tokenX,
+        tokenY: pair.tokenY,
+        accountX: userTokenXAccount.address,
+        accountY: userTokenYAccount.address,
+        reserveX: tokenXReserve,
+        reserveY: tokenYReserve,
+        invariantProgramAuthority: market.programAuthority,
+        tokenXProgram,
+        tokenYProgram,
+      },
+      owner
+    );
 
     const position = await market.getPosition(owner.publicKey, positionId);
     assert.ok(position);

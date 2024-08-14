@@ -31,9 +31,9 @@ describe("token", () => {
     await sleep(10000);
 
     protocol = await Protocol.build(Network.LOCAL, wallet, connection);
-    await protocol.init({ signer: owner });
+    await protocol.init({}, owner);
 
-    const [mintAuthority] = protocol.getProgramAuthorityAddressAndBump();
+    const mintAuthority = protocol.programAuthority;
 
     lpTokenMinter = await createTokenMint(
       connection,
@@ -59,12 +59,14 @@ describe("token", () => {
       assert.equal(lpTokenAccountInfo.amount, 0n);
     }
 
-    await protocol.mint({
-      tokenMint: lpTokenMinter,
-      to: lpTokenAccount.address,
-      amount: mintAmount,
-      signer: payer,
-    });
+    await protocol.mint(
+      {
+        tokenMint: lpTokenMinter,
+        to: lpTokenAccount.address,
+        amount: mintAmount,
+      },
+      payer
+    );
 
     {
       const lpTokenAccountInfo = await getAccount(
@@ -75,7 +77,7 @@ describe("token", () => {
     }
   });
   it("deposit", async () => {
-    const [programAuthority] = protocol.getProgramAuthorityAddressAndBump();
+    const programAuthority = protocol.programAuthority;
 
     const lpTokenAccount = await getOrCreateAssociatedTokenAccount(
       connection,
@@ -100,13 +102,16 @@ describe("token", () => {
       true
     );
 
-    await protocol.deposit({
-      tokenMint: lpTokenMinter,
-      reserve: lpTokenReserve.address,
-      userBalance: lpTokenAccount.address,
-      amount: depositAmount,
-      payer,
-    });
+    await protocol.deposit(
+      {
+        tokenMint: lpTokenMinter,
+        reserve: lpTokenReserve.address,
+        userBalance: lpTokenAccount.address,
+        amount: depositAmount,
+        owner: payer.publicKey,
+      },
+      payer
+    );
     {
       const lpTokenAccountInfo = await getAccount(
         connection,
@@ -122,7 +127,7 @@ describe("token", () => {
     }
   });
   it("withdraw", async () => {
-    const [programAuthority] = protocol.getProgramAuthorityAddressAndBump();
+    const programAuthority = protocol.programAuthority;
 
     const lpTokenAccount = await getOrCreateAssociatedTokenAccount(
       connection,
@@ -147,13 +152,16 @@ describe("token", () => {
       true
     );
 
-    await protocol.withdraw({
-      tokenMint: lpTokenMinter,
-      reserve: lpTokenReserve.address,
-      userBalance: lpTokenAccount.address,
-      amount: withdrawAmount,
-      payer,
-    });
+    await protocol.withdraw(
+      {
+        tokenMint: lpTokenMinter,
+        reserve: lpTokenReserve.address,
+        userBalance: lpTokenAccount.address,
+        amount: withdrawAmount,
+        owner: payer.publicKey,
+      },
+      payer
+    );
     {
       const lpTokenAccountInfo = await getAccount(
         connection,

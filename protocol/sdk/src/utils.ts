@@ -8,11 +8,7 @@ import {
   Transaction,
   TransactionSignature,
 } from "@solana/web3.js";
-import {
-  PROTOCOL_AUTHORITY_SEED,
-  PROTOCOL_STATE_SEED,
-  PUPPET_COUNTER_SEED,
-} from "./consts";
+import { PUPPET_COUNTER_SEED } from "./consts";
 
 export const signAndSend = async (
   tx: Transaction,

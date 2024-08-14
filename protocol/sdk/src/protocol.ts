@@ -10,34 +10,29 @@ import {
 } from "@solana/web3.js";
 import { getProtocolProgramAddress, Network } from "./network";
 import { IWallet } from "./wallet";
-import { BN, MethodsNamespace, Program, utils } from "@coral-xyz/anchor";
+import { Program, utils } from "@coral-xyz/anchor";
 import { IDL, Protocol as ProtocolProgram } from "./idl/protocol";
-import {
-  DepositParams,
-  InitParams,
-  invokeCreatePosition,
-  InvokeClosePositionAccounts,
-  InvokeUpdateSecondsPerLiquidityParams,
-  ITransaction,
-  MintParams,
-  TestParams,
-  WithdrawParams,
-  InvokeCreatePositionParams,
-  InvokeClosePositionParams,
-} from "./types";
 import { signAndSend } from "./utils";
 import { PROTOCOL_AUTHORITY_SEED, PROTOCOL_STATE_SEED } from "./consts";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { Decimal } from "@invariant-labs/sdk-eclipse/lib/market";
-import { MethodsFn } from "@coral-xyz/anchor/dist/cjs/program/namespace/types";
+import {
+  IDeposit,
+  IInit,
+  IInvokeClosePosition,
+  IInvokeCreatePosition,
+  IInvokeUpdateSecondsPerLiquidity,
+  IMint,
+  ITest,
+  IWithdraw,
+} from "./types";
 
 export class Protocol {
   public connection: Connection;
   public wallet: IWallet;
   public network: Network;
   public program: Program<ProtocolProgram>;
-  public stateAddressAndBump: [PublicKey, number];
-  public programAuthorityAddressAndBump: [PublicKey, number];
+  public stateAddress: PublicKey;
+  public programAuthority: PublicKey;
 
   private constructor(
     network: Network,
@@ -49,14 +44,8 @@ export class Protocol {
     this.network = network;
     const programAddress = getProtocolProgramAddress(network);
     this.program = new Program(IDL, programAddress);
-    this.stateAddressAndBump = PublicKey.findProgramAddressSync(
-      [Buffer.from(utils.bytes.utf8.encode(PROTOCOL_STATE_SEED))],
-      this.program.programId
-    );
-    this.programAuthorityAddressAndBump = PublicKey.findProgramAddressSync(
-      [Buffer.from(utils.bytes.utf8.encode(PROTOCOL_AUTHORITY_SEED))],
-      this.program.programId
-    );
+    [this.stateAddress] = this.getProtocolStateAddressAndBump();
+    [this.programAuthority] = this.getProgramAuthorityAddressAndBump();
   }
 
   public static async build(
@@ -65,24 +54,21 @@ export class Protocol {
     connection: Connection
   ): Promise<Protocol> {
     const instance = new Protocol(network, wallet, connection);
-
     return instance;
   }
 
   getProtocolStateAddressAndBump(): [PublicKey, number] {
-    return this.stateAddressAndBump;
-  }
-
-  getProtocolStateAddress(): PublicKey {
-    return this.stateAddressAndBump[0];
+    return PublicKey.findProgramAddressSync(
+      [Buffer.from(utils.bytes.utf8.encode(PROTOCOL_STATE_SEED))],
+      this.program.programId
+    );
   }
 
   getProgramAuthorityAddressAndBump(): [PublicKey, number] {
-    return this.programAuthorityAddressAndBump;
-  }
-
-  getProgramAuthorityAddress() {
-    return this.programAuthorityAddressAndBump[0];
+    return PublicKey.findProgramAddressSync(
+      [Buffer.from(utils.bytes.utf8.encode(PROTOCOL_AUTHORITY_SEED))],
+      this.program.programId
+    );
   }
 
   async sendTx(ix: TransactionInstruction[], signers: Keypair[]) {
@@ -90,151 +76,126 @@ export class Protocol {
     return await signAndSend(tx, signers, this.connection);
   }
 
-  async init(params: InitParams): Promise<TransactionSignature> {
-    const ix = await this.initIx(params);
-    return await this.sendTx([ix], [params.signer]);
+  async init(params: IInit, signer: Keypair): Promise<TransactionSignature> {
+    const ix = await this.initIx({ admin: signer.publicKey, ...params });
+    return await this.sendTx([ix], [signer]);
   }
 
-  async initIx({ signer }: InitParams): Promise<TransactionInstruction> {
-    const [programAuthority, programAuthorityBump] =
-      this.getProgramAuthorityAddressAndBump();
-    const [state] = this.getProtocolStateAddressAndBump();
-
+  async initIx({ admin }: IInit): Promise<TransactionInstruction> {
+    const [, programAuthorityBump] = this.getProgramAuthorityAddressAndBump();
     return await this.program.methods
       .init(programAuthorityBump)
       .accounts({
-        admin: signer.publicKey,
-        programAuthority,
-        state,
+        admin,
+        programAuthority: this.programAuthority,
+        state: this.stateAddress,
         rent: SYSVAR_RENT_PUBKEY,
         systemProgram: SystemProgram.programId,
       })
       .instruction();
   }
 
-  async test(params: TestParams): Promise<TransactionSignature> {
-    const ix = await this.testIx(params);
-    return await this.sendTx([ix], [params.signer]);
+  async test(params: ITest, signer: Keypair): Promise<TransactionSignature> {
+    const ix = await this.testIx({ payer: signer.publicKey, ...params });
+    return await this.sendTx([ix], [signer]);
   }
 
   async testIx({
     stateBump,
-    signer,
-    puppetProgram,
-    counter,
-  }: TestParams): Promise<TransactionInstruction> {
+    ...accounts
+  }: ITest): Promise<TransactionInstruction> {
     return await this.program.methods
       .test(stateBump)
       .accounts({
-        payer: signer.publicKey,
         systemProgram: SystemProgram.programId,
-        puppetProgram,
-        counter,
+        ...accounts,
       })
       .instruction();
   }
 
-  async mint(params: MintParams): Promise<TransactionSignature> {
+  async mint(params: IMint, signer: Keypair): Promise<TransactionSignature> {
     const ix = await this.mintIx(params);
-    return await this.sendTx([ix], [params.signer]);
+    return await this.sendTx([ix], [signer]);
   }
 
   async mintIx({
     amount,
-    tokenMint,
-    to,
-  }: MintParams): Promise<TransactionInstruction> {
-    const state = this.getProtocolStateAddress();
-    const [programAuthority] = this.getProgramAuthorityAddressAndBump();
-
+    ...accounts
+  }: IMint): Promise<TransactionInstruction> {
     return await this.program.methods
       .mint(amount)
       .accounts({
-        state,
-        programAuthority,
-        tokenMint,
-        to,
+        state: this.stateAddress,
+        programAuthority: this.programAuthority,
         tokenProgram: TOKEN_PROGRAM_ID,
+        ...accounts,
       })
       .instruction();
   }
 
-  async deposit(params: DepositParams): Promise<TransactionSignature> {
+  async deposit(
+    params: IDeposit,
+    signer: Keypair
+  ): Promise<TransactionSignature> {
     const ix = await this.depositIx(params);
-    return await this.sendTx([ix], [params.payer]);
+    return await this.sendTx([ix], [signer]);
   }
 
   async depositIx({
     amount,
-    tokenMint,
-    reserve,
-    userBalance,
-    payer,
-  }: DepositParams): Promise<TransactionInstruction> {
-    const state = this.getProtocolStateAddress();
-    const [programAuthority] = this.getProgramAuthorityAddressAndBump();
-
+    ...accounts
+  }: IDeposit): Promise<TransactionInstruction> {
     return await this.program.methods
       .deposit(amount)
       .accounts({
-        state,
-        programAuthority,
-        tokenMint,
-        reserve,
-        userBalance,
-        owner: payer.publicKey,
+        state: this.stateAddress,
+        programAuthority: this.programAuthority,
         tokenProgram: TOKEN_PROGRAM_ID,
+        ...accounts,
       })
       .instruction();
   }
 
-  async withdraw(params: WithdrawParams): Promise<TransactionSignature> {
+  async withdraw(
+    params: IWithdraw,
+    signer: Keypair
+  ): Promise<TransactionSignature> {
     const ix = await this.withdrawIx(params);
-    return await this.sendTx([ix], [params.payer]);
+    return await this.sendTx([ix], [signer]);
   }
 
   async withdrawIx({
     amount,
-    tokenMint,
-    reserve,
-    userBalance,
-    payer,
-  }: WithdrawParams): Promise<TransactionInstruction> {
-    const state = this.getProtocolStateAddress();
-    const [programAuthority] = this.getProgramAuthorityAddressAndBump();
-
+    ...accounts
+  }: IWithdraw): Promise<TransactionInstruction> {
     return await this.program.methods
       .withdraw(amount)
       .accounts({
-        state,
-        programAuthority,
-        tokenMint,
-        reserve,
-        userBalance,
-        owner: payer.publicKey,
+        state: this.stateAddress,
+        programAuthority: this.programAuthority,
         tokenProgram: TOKEN_PROGRAM_ID,
+        ...accounts,
       })
       .instruction();
   }
 
   async invokeUpdateSecondsPerLiquidity(
-    params: InvokeUpdateSecondsPerLiquidityParams
+    params: IInvokeUpdateSecondsPerLiquidity,
+    signer: Keypair
   ): Promise<TransactionSignature> {
     const ix = await this.invokeUpdateSecondsPerLiquidityIx(params);
-    return await this.sendTx([ix], [params.signer]);
+    return await this.sendTx([ix], [signer]);
   }
 
   async invokeUpdateSecondsPerLiquidityIx({
     lowerTickIndex,
     upperTickIndex,
     index,
-    signer,
     ...accounts
-  }: InvokeUpdateSecondsPerLiquidityParams): Promise<TransactionInstruction> {
+  }: IInvokeUpdateSecondsPerLiquidity): Promise<TransactionInstruction> {
     return await this.program.methods
       .invokeUpdateSecondsPerLiquidity(lowerTickIndex, upperTickIndex, index)
       .accounts({
-        signer: signer.publicKey,
         systemProgram: SystemProgram.programId,
         ...accounts,
       })
@@ -242,10 +203,11 @@ export class Protocol {
   }
 
   async invokeCreatePosition(
-    params: InvokeCreatePositionParams
+    params: IInvokeCreatePosition,
+    signer: Keypair
   ): Promise<TransactionSignature> {
     const ix = await this.invokeCreatePositionIx(params);
-    return await this.sendTx([ix], [params.signer]);
+    return await this.sendTx([ix], [signer]);
   }
 
   async invokeCreatePositionIx({
@@ -254,9 +216,8 @@ export class Protocol {
     liquidityDelta,
     slippageLimitLower,
     slippageLimitUpper,
-    signer,
     ...accounts
-  }: InvokeCreatePositionParams): Promise<TransactionInstruction> {
+  }: IInvokeCreatePosition): Promise<TransactionInstruction> {
     return await this.program.methods
       .invokeCreatePosition(
         lowerTickIndex,
@@ -266,7 +227,6 @@ export class Protocol {
         slippageLimitUpper
       )
       .accounts({
-        signer: signer.publicKey,
         systemProgram: SystemProgram.programId,
         ...accounts,
       })
@@ -274,11 +234,11 @@ export class Protocol {
   }
 
   async invokeClosePosition(
-    params: InvokeClosePositionParams
+    params: IInvokeClosePosition,
+    signer: Keypair
   ): Promise<TransactionSignature> {
     const ix = await this.invokeClosePositionIx(params);
-
-    return await this.sendTx([ix], [params.signer]);
+    return await this.sendTx([ix], [signer]);
   }
 
   async invokeClosePositionIx({
@@ -286,7 +246,7 @@ export class Protocol {
     lowerTickIndex,
     upperTickIndex,
     ...accounts
-  }: InvokeClosePositionParams): Promise<TransactionInstruction> {
+  }: IInvokeClosePosition): Promise<TransactionInstruction> {
     return await this.program.methods
       .invokeClosePosition(index, lowerTickIndex, upperTickIndex)
       .accounts(accounts)
