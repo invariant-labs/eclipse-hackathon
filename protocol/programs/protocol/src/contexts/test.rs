@@ -32,8 +32,6 @@ impl<'info> Test<'info> {
         };
         let ctx = CpiContext::new(program, accounts);
 
-        puppet::cpi::create_counter(ctx, state_bump)?;
-
-        Ok(())
+        puppet::cpi::create_counter(ctx, state_bump)
     }
 }

@@ -1,14 +1,7 @@
 use anchor_lang::prelude::*;
-use invariant::{cpi::accounts::CreatePosition, decimals::*, program::Invariant};
+use invariant::{cpi::accounts::CreatePosition, program::Invariant};
 
 #[derive(Accounts)]
-#[instruction(
-    _lower_tick_index: i32,
-    _upper_tick_index: i32,
-    liquidity_delta: Liquidity,
-    slippage_limit_lower: Price,
-    slippage_limit_upper: Price
-)]
 pub struct InvokeCreatePositionCtx<'info> {
     pub invariant_program: Program<'info, Invariant>,
     #[account(mut)]
@@ -62,8 +55,8 @@ pub struct InvokeCreatePositionCtx<'info> {
 impl<'info> InvokeCreatePositionCtx<'info> {
     pub fn process(
         &mut self,
-        _lower_tick_index: i32,
-        _upper_tick_index: i32,
+        lower_tick_index: i32,
+        upper_tick_index: i32,
         liquidity_delta: u128,
         slippage_limit_lower: u128,
         slippage_limit_upper: u128,
@@ -119,8 +112,8 @@ impl<'info> InvokeCreatePositionCtx<'info> {
 
         invariant::cpi::create_position(
             ctx,
-            _lower_tick_index,
-            _upper_tick_index,
+            lower_tick_index,
+            upper_tick_index,
             invariant::decimals::Liquidity { v: liquidity_delta },
             invariant::decimals::Price {
                 v: slippage_limit_lower,
@@ -128,8 +121,6 @@ impl<'info> InvokeCreatePositionCtx<'info> {
             invariant::decimals::Price {
                 v: slippage_limit_upper,
             },
-        )?;
-
-        Ok(())
+        )
     }
 }
