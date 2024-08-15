@@ -6,6 +6,7 @@ import {
   createTokenMint,
   initMarket,
   INVARIANT_ADDRESS,
+  requestAirdrop,
   sleep,
 } from "./test-utils";
 import { assert } from "chai";
@@ -43,11 +44,11 @@ describe("invariant cpi", () => {
   before(async () => {
     let giveSOL = [owner.publicKey, mintAuthority.publicKey, wallet.publicKey];
     await Promise.all(
-      giveSOL.map((account) => connection.requestAirdrop(account, 1e14))
+      giveSOL.map((account) => requestAirdrop(connection, account, 1e14))
     );
-    await sleep(1000);
 
     protocol = await Protocol.build(Network.LOCAL, walletAnchor, connection);
+    protocol.init(owner);
 
     market = await Market.build(
       Network.LOCAL,
@@ -170,7 +171,6 @@ describe("invariant cpi", () => {
         position: positionAddress,
         tokenX: pair.tokenX,
         tokenY: pair.tokenY,
-        owner: owner.publicKey,
       },
       owner
     );
@@ -237,8 +237,6 @@ describe("invariant cpi", () => {
         position: positionAddress,
         pool: poolAddress,
         positionList: positionListAddress,
-        payer: owner.publicKey,
-        owner: owner.publicKey,
         lowerTick: lowerTickAddress,
         upperTick: upperTickAddress,
         tickmap,
@@ -311,7 +309,6 @@ describe("invariant cpi", () => {
         lastPosition: lastPositionAddress,
         pool: poolAddress,
         positionList: positionListAddress,
-        owner: owner.publicKey,
         lowerTick: lowerTickAddress,
         upperTick: upperTickAddress,
         tickmap,

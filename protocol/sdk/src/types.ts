@@ -6,12 +6,7 @@ export interface ITransaction {
   signers?: Keypair[];
 }
 
-export interface IInit {
-  admin?: PublicKey;
-}
-
 export interface ITest {
-  payer?: PublicKey;
   puppetProgram: PublicKey;
   counter: PublicKey;
   stateBump: number;
@@ -28,7 +23,6 @@ export interface IDeposit {
   reserve: PublicKey;
   userBalance: PublicKey;
   amount: BN;
-  owner: PublicKey;
 }
 
 export interface IWithdraw {
@@ -36,7 +30,6 @@ export interface IWithdraw {
   reserve: PublicKey;
   userBalance: PublicKey;
   amount: BN;
-  owner: PublicKey;
 }
 
 export interface IInvokeUpdateSecondsPerLiquidity {
@@ -50,7 +43,6 @@ export interface IInvokeUpdateSecondsPerLiquidity {
   position: PublicKey;
   tokenX: PublicKey;
   tokenY: PublicKey;
-  owner: PublicKey;
 }
 
 export interface IInvokeCreatePosition {
@@ -64,8 +56,6 @@ export interface IInvokeCreatePosition {
   position: PublicKey;
   pool: PublicKey;
   positionList: PublicKey;
-  payer: PublicKey;
-  owner: PublicKey;
   lowerTick: PublicKey;
   upperTick: PublicKey;
   tickmap: PublicKey;
@@ -86,7 +76,6 @@ export interface IInvokeClosePosition {
   upperTickIndex: number;
   invariantState: PublicKey;
   invariantProgramAuthority: PublicKey;
-  owner: PublicKey;
   removedPosition: PublicKey;
   positionList: PublicKey;
   lastPosition: PublicKey;
