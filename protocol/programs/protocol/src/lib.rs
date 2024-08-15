@@ -58,15 +58,15 @@ pub mod protocol {
 
     pub fn invoke_create_position(
         ctx: Context<InvokeCreatePositionCtx>,
-        _lower_tick_index: i32,
-        _upper_tick_index: i32,
+        lower_tick_index: i32,
+        upper_tick_index: i32,
         liquidity_delta: u128,
         slippage_limit_lower: u128,
         slippage_limit_upper: u128,
     ) -> Result<()> {
         ctx.accounts.process(
-            _lower_tick_index,
-            _upper_tick_index,
+            lower_tick_index,
+            upper_tick_index,
             liquidity_delta,
             slippage_limit_lower,
             slippage_limit_upper,
@@ -81,5 +81,9 @@ pub mod protocol {
     ) -> Result<()> {
         ctx.accounts
             .process(index, lower_tick_index, upper_tick_index)
+    }
+
+    pub fn reopen_position(ctx: Context<ReopenPositionCtx>, index: u32) -> Result<()> {
+        ctx.accounts.process(index)
     }
 }

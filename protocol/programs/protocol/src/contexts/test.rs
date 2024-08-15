@@ -15,7 +15,7 @@ pub struct Test<'info> {
     pub system_program: Program<'info, System>,
 }
 
-impl<'info> Test<'info> {
+impl Test<'_> {
     pub fn process(&mut self, state_bump: u8) -> Result<()> {
         let Test {
             payer,

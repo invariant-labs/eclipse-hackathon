@@ -257,6 +257,76 @@ describe("invariant cpi", () => {
     assert.ok(position);
   });
 
+  it("close and re-open position in one Ix", async () => {
+    const userTokenXAccount = await getOrCreateAssociatedTokenAccount(
+      connection,
+      owner,
+      pair.tokenX,
+      owner.publicKey
+    );
+    const userTokenYAccount = await getOrCreateAssociatedTokenAccount(
+      connection,
+      owner,
+      pair.tokenY,
+      owner.publicKey
+    );
+
+    const positionId = 0;
+    const lastPositionId = 1;
+
+    const { address: stateAddress } = await market.getStateAddress();
+    const poolAddress = await pair.getAddress(INVARIANT_ADDRESS);
+    const { positionListAddress: positionListAddress } =
+      await market.getPositionListAddress(owner.publicKey);
+    const { positionAddress } = await market.getPositionAddress(
+      owner.publicKey,
+      positionId
+    );
+    const { positionAddress: lastPositionAddress } =
+      await market.getPositionAddress(owner.publicKey, lastPositionId);
+    const { tickAddress: lowerTickAddress } = await market.getTickAddress(
+      pair,
+      lowerTick
+    );
+    const { tickAddress: upperTickAddress } = await market.getTickAddress(
+      pair,
+      upperTick
+    );
+    const { tokenXReserve, tokenYReserve, tickmap } = await market.getPool(
+      pair
+    );
+    const tokenXProgram = await getTokenProgramAddress(connection, pair.tokenX);
+    const tokenYProgram = await getTokenProgramAddress(connection, pair.tokenY);
+
+    await protocol.reopenPosition(
+      {
+        index: positionId,
+        invariantProgram: INVARIANT_ADDRESS,
+        invariantState: stateAddress,
+        position: positionAddress,
+        lastPosition: lastPositionAddress,
+        pool: poolAddress,
+        positionList: positionListAddress,
+        lowerTick: lowerTickAddress,
+        upperTick: upperTickAddress,
+        tickmap,
+        tokenX: pair.tokenX,
+        tokenY: pair.tokenY,
+        accountX: userTokenXAccount.address,
+        accountY: userTokenYAccount.address,
+        reserveX: tokenXReserve,
+        reserveY: tokenYReserve,
+        invariantProgramAuthority: market.programAuthority,
+        tokenXProgram,
+        tokenYProgram,
+      },
+      owner
+    );
+
+    const position = await market.getPosition(owner.publicKey, positionId);
+    assert.ok(position);
+  });
+
   it("close position", async () => {
     const userTokenXAccount = await getOrCreateAssociatedTokenAccount(
       connection,

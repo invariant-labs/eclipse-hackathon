@@ -24,7 +24,7 @@ pub struct InvokeUpdateSecondsPerLiquidityCtx<'info> {
     pub system_program: Program<'info, System>,
 }
 
-impl<'info> InvokeUpdateSecondsPerLiquidityCtx<'info> {
+impl InvokeUpdateSecondsPerLiquidityCtx<'_> {
     pub fn process(
         &mut self,
         lower_tick_index: i32,
