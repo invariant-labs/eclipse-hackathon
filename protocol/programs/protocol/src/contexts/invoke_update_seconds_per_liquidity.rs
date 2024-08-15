@@ -59,13 +59,6 @@ impl<'info> InvokeUpdateSecondsPerLiquidityCtx<'info> {
         };
         let ctx = CpiContext::new(program, accounts);
 
-        invariant::cpi::update_seconds_per_liquidity(
-            ctx,
-            lower_tick_index,
-            upper_tick_index,
-            index,
-        )?;
-
-        Ok(())
+        invariant::cpi::update_seconds_per_liquidity(ctx, lower_tick_index, upper_tick_index, index)
     }
 }

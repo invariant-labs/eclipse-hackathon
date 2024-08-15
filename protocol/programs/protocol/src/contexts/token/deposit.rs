@@ -1,6 +1,6 @@
 use crate::ErrorCode::*;
 use anchor_lang::prelude::*;
-use anchor_spl::token::{Token, TokenAccount, Transfer};
+use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 
 use crate::states::{DerivedAccountIdentifier, State};
 
@@ -44,5 +44,11 @@ impl<'info> DepositCtx<'info> {
                 authority: self.owner.to_account_info(),
             },
         )
+    }
+}
+
+impl DepositCtx<'_> {
+    pub fn process(&self, amount: u64) -> Result<()> {
+        token::transfer(self.deposit_ctx(), amount)
     }
 }

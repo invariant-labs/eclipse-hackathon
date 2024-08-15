@@ -53,7 +53,7 @@ pub struct InvokeClosePositionCtx<'info> {
     pub invariant_program: Program<'info, Invariant>,
 }
 
-impl<'info> InvokeClosePositionCtx<'info> {
+impl InvokeClosePositionCtx<'_> {
     pub fn process(&self, index: u32, lower_tick_index: i32, upper_tick_index: i32) -> Result<()> {
         let InvokeClosePositionCtx {
             invariant_state,
@@ -99,7 +99,6 @@ impl<'info> InvokeClosePositionCtx<'info> {
             token_y_program: token_y_program.to_account_info(),
         };
         let ctx = CpiContext::new(program, accounts);
-        invariant::cpi::remove_position(ctx, index, lower_tick_index, upper_tick_index)?;
-        Ok(())
+        invariant::cpi::remove_position(ctx, index, lower_tick_index, upper_tick_index)
     }
 }
