@@ -1,11 +1,13 @@
 import { AnchorProvider, utils } from "@coral-xyz/anchor";
 import {
   BlockheightBasedTransactionConfirmationStrategy,
+  ComputeBudgetProgram,
   ConfirmOptions,
   Connection,
   Keypair,
   PublicKey,
   Transaction,
+  TransactionInstruction,
   TransactionSignature,
 } from "@solana/web3.js";
 import { PUPPET_COUNTER_SEED } from "./consts";
@@ -35,6 +37,12 @@ export const signAndSend = async (
   await connection.confirmTransaction(confirmStrategy);
 
   return signature;
+};
+
+export const computeUnitsInstruction = (
+  units: number
+): TransactionInstruction => {
+  return ComputeBudgetProgram.setComputeUnitLimit({ units });
 };
 
 export const getPuppetCounterAddressAndBump = (

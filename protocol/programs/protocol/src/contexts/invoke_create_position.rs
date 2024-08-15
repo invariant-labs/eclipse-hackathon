@@ -52,7 +52,7 @@ pub struct InvokeCreatePositionCtx<'info> {
     pub system_program: Program<'info, System>,
 }
 
-impl<'info> InvokeCreatePositionCtx<'info> {
+impl InvokeCreatePositionCtx<'_> {
     pub fn process(
         &mut self,
         lower_tick_index: i32,

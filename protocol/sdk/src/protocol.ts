@@ -12,7 +12,7 @@ import { getProtocolProgramAddress, Network } from "./network";
 import { IWallet } from "./wallet";
 import { Program, utils } from "@coral-xyz/anchor";
 import { IDL, Protocol as ProtocolProgram } from "./idl/protocol";
-import { signAndSend } from "./utils";
+import { computeUnitsInstruction, signAndSend } from "./utils";
 import { PROTOCOL_AUTHORITY_SEED, PROTOCOL_STATE_SEED } from "./consts";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
@@ -21,6 +21,7 @@ import {
   IInvokeCreatePosition,
   IInvokeUpdateSecondsPerLiquidity,
   IMint,
+  IReopenPosition,
   ITest,
   IWithdraw,
 } from "./types";
@@ -270,6 +271,30 @@ export class Protocol {
     return await this.program.methods
       .invokeClosePosition(index, lowerTickIndex, upperTickIndex)
       .accounts({ owner, ...accounts })
+      .instruction();
+  }
+
+  async reopenPosition(
+    params: IReopenPosition,
+    signer: Keypair
+  ): Promise<TransactionSignature> {
+    const setCuIx = computeUnitsInstruction(1_400_000);
+    const ix = await this.reopenPositionIx(params, signer);
+    return await this.sendTx([setCuIx, ix], [signer]);
+  }
+
+  async reopenPositionIx(
+    { index, ...accounts }: IReopenPosition,
+    signer?: Keypair
+  ): Promise<TransactionInstruction> {
+    const owner = signer?.publicKey ?? this.wallet.publicKey;
+    return await this.program.methods
+      .reopenPosition(index)
+      .accounts({
+        systemProgram: SystemProgram.programId,
+        owner,
+        ...accounts,
+      })
       .instruction();
   }
 }

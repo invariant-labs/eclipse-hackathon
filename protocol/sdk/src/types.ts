@@ -93,3 +93,27 @@ export interface IInvokeClosePosition {
   tokenYProgram: PublicKey;
   invariantProgram: PublicKey;
 }
+
+export interface IReopenPosition {
+  // params
+  index: number;
+  // accounts
+  invariantProgram: PublicKey;
+  invariantState: PublicKey;
+  position: PublicKey;
+  lastPosition: PublicKey;
+  pool: PublicKey;
+  positionList: PublicKey;
+  lowerTick: PublicKey;
+  upperTick: PublicKey;
+  tickmap: PublicKey;
+  tokenX: PublicKey;
+  tokenY: PublicKey;
+  accountX: PublicKey;
+  accountY: PublicKey;
+  reserveX: PublicKey;
+  reserveY: PublicKey;
+  invariantProgramAuthority: PublicKey;
+  tokenXProgram: PublicKey;
+  tokenYProgram: PublicKey;
+}
