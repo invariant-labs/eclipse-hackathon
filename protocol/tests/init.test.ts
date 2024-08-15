@@ -2,7 +2,7 @@ import { AnchorProvider } from "@coral-xyz/anchor";
 import { Network } from "../sdk/src/network";
 import { Protocol } from "../sdk/src/protocol";
 import { Keypair } from "@solana/web3.js";
-import { sleep } from "./test-utils";
+import { requestAirdrop } from "./test-utils";
 import { Puppet } from "../sdk/dist/puppet";
 import { getPuppetCounterAddressAndBump } from "../sdk/src/utils";
 import { assert } from "chai";
@@ -14,8 +14,7 @@ describe("init", () => {
   let protocol: Protocol;
 
   before(async () => {
-    await connection.requestAirdrop(owner.publicKey, 1e14);
-    await sleep(1000);
+    await requestAirdrop(connection, owner.publicKey, 1e14);
 
     protocol = await Protocol.build(Network.LOCAL, walletAnchor, connection);
   });
@@ -27,7 +26,7 @@ describe("init", () => {
       connection
     );
 
-    await protocol.init({}, owner);
+    await protocol.init(owner);
   });
 
   it("cpi works", async () => {

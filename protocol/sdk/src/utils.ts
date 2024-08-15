@@ -1,10 +1,10 @@
 import { AnchorProvider, utils } from "@coral-xyz/anchor";
 import {
+  BlockheightBasedTransactionConfirmationStrategy,
   ConfirmOptions,
   Connection,
   Keypair,
   PublicKey,
-  sendAndConfirmRawTransaction,
   Transaction,
   TransactionSignature,
 } from "@solana/web3.js";
@@ -16,18 +16,25 @@ export const signAndSend = async (
   connection: Connection,
   opts?: ConfirmOptions
 ): Promise<TransactionSignature> => {
-  tx.setSigners(...signers.map((s) => s.publicKey));
-  const blockhash = await connection.getRecentBlockhash(
+  tx.feePayer ??= signers[0].publicKey;
+  const latestBlockhash = await connection.getLatestBlockhash(
     opts?.commitment ?? AnchorProvider.defaultOptions().commitment
   );
-  tx.recentBlockhash = blockhash.blockhash;
+  tx.recentBlockhash = latestBlockhash.blockhash;
   tx.partialSign(...signers);
-  const rawTx = tx.serialize();
-  return await sendAndConfirmRawTransaction(
-    connection,
-    rawTx,
+  const signature = await connection.sendRawTransaction(
+    tx.serialize(),
     opts ?? AnchorProvider.defaultOptions()
   );
+
+  const confirmStrategy: BlockheightBasedTransactionConfirmationStrategy = {
+    blockhash: latestBlockhash.blockhash,
+    lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+    signature,
+  };
+  await connection.confirmTransaction(confirmStrategy);
+
+  return signature;
 };
 
 export const getPuppetCounterAddressAndBump = (

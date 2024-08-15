@@ -2,7 +2,7 @@ import { AnchorProvider, BN } from "@coral-xyz/anchor";
 import { Network } from "../sdk/src/network";
 import { Protocol } from "../sdk/src/protocol";
 import { Keypair, PublicKey } from "@solana/web3.js";
-import { createTokenMint, sleep } from "./test-utils";
+import { createTokenMint, requestAirdrop } from "./test-utils";
 import { assert } from "chai";
 import {
   getAccount,
@@ -25,13 +25,12 @@ describe("token", () => {
 
   before(async () => {
     await Promise.all([
-      connection.requestAirdrop(owner.publicKey, 1e14),
-      await connection.requestAirdrop(payer.publicKey, 1e9),
+      requestAirdrop(connection, owner.publicKey, 1e14),
+      requestAirdrop(connection, payer.publicKey, 1e9),
     ]);
-    await sleep(10000);
 
     protocol = await Protocol.build(Network.LOCAL, wallet, connection);
-    await protocol.init({}, owner);
+    await protocol.init(owner);
 
     const mintAuthority = protocol.programAuthority;
 
@@ -108,7 +107,6 @@ describe("token", () => {
         reserve: lpTokenReserve.address,
         userBalance: lpTokenAccount.address,
         amount: depositAmount,
-        owner: payer.publicKey,
       },
       payer
     );
@@ -158,7 +156,6 @@ describe("token", () => {
         reserve: lpTokenReserve.address,
         userBalance: lpTokenAccount.address,
         amount: withdrawAmount,
-        owner: payer.publicKey,
       },
       payer
     );

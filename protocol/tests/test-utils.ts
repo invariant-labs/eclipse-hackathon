@@ -1,4 +1,10 @@
-import { Connection, Keypair, PublicKey, Signer } from "@solana/web3.js";
+import {
+  BlockheightBasedTransactionConfirmationStrategy,
+  Connection,
+  Keypair,
+  PublicKey,
+  Signer,
+} from "@solana/web3.js";
 import { createMint } from "@solana/spl-token";
 import { TokenInstructions } from "@project-serum/serum";
 import { assert } from "chai";
@@ -16,6 +22,22 @@ import {
 export const INVARIANT_ADDRESS = new PublicKey(
   "CsT21LCRqBfh4SCcNZXtWjRZ6xvYKvdpEBaytCVmWnVJ"
 );
+
+export const requestAirdrop = async (
+  connection: Connection,
+  to: PublicKey,
+  amount: number
+) => {
+  const signature = await connection.requestAirdrop(to, amount);
+  const latestBlockhash = await connection.getLatestBlockhash();
+  const confirmStrategy: BlockheightBasedTransactionConfirmationStrategy = {
+    blockhash: latestBlockhash.blockhash,
+    lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+    signature,
+  };
+
+  await connection.confirmTransaction(confirmStrategy);
+};
 
 export const sleep = async (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
