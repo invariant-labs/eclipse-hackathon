@@ -1,5 +1,4 @@
 import RoutesModal from '@components/Modals/RoutesModal'
-import SelectTestnetRPC from '@components/Modals/SelectDevnetRPC/SelectDevnetRPC'
 import NavbarButton from '@components/Navbar/Button'
 import DotIcon from '@mui/icons-material/FiberManualRecordRounded'
 import { Box, Button, CardMedia, Grid, IconButton, useMediaQuery } from '@mui/material'
@@ -12,7 +11,6 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import ChangeWalletButton from './HeaderButton/ChangeWalletButton'
 import SelectNetworkButton from './HeaderButton/SelectNetworkButton'
-import SelectRPCButton from './HeaderButton/SelectRPCButton'
 import useButtonStyles from './HeaderButton/style'
 import useStyles from './style'
 import { PublicKey } from '@solana/web3.js'
@@ -56,8 +54,8 @@ export const Header: React.FC<IHeader> = ({
   const routes = ['exchange', 'liquidity', 'statistics']
 
   const otherRoutesToHighlight: Record<string, RegExp[]> = {
-    liquidity: [/^newPosition\/*/, /^position\/*/],
-    exchange: [/^exchange\/*/]
+    liquidity: [/^\/?liquidity(\/(add|remove)(\/[^\/]*)*)?$/],
+    exchange: [/^\/?exchange\/.*$/]
   }
 
   const [activePath, setActive] = useState('exchange')

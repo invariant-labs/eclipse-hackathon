@@ -54,23 +54,21 @@ export interface SwapToken {
   isUnknown?: boolean
   coingeckoId?: string
 }
-
-// export const swapTokens = createSelector(
-//   accounts,
-//   tokens,
-//   balance,
-//   (allAccounts, tokens, ethBalance) => {
-//     return Object.values(tokens).map(token => ({
-//       ...token,
-//       assetAddress: token.address,
-//       balance:
-//         token.address.toString() === WRAPPED_ETH_ADDRESS
-//           ? ethBalance
-//           : allAccounts[token.address.toString()]?.balance ?? new BN(0)
-//     }))
-//   }
-// )
-
+export const swapTokens = createSelector(
+  accounts,
+  tokens,
+  balance,
+  (allAccounts, tokens, ethBalance) => {
+    return Object.values(tokens).map(token => ({
+      ...token,
+      assetAddress: token.address,
+      balance:
+        token.address.toString() === WRAPPED_ETH_ADDRESS
+          ? ethBalance
+          : (allAccounts[token.address.toString()]?.balance ?? new BN(0))
+    }))
+  }
+)
 // export const swapTokensDict = createSelector(
 //   accounts,
 //   tokens,

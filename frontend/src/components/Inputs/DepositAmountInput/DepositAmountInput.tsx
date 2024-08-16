@@ -1,8 +1,9 @@
 import { Button, Grid, Input, Tooltip, Typography } from '@mui/material'
 import loadingAnimation from '@static/gif/loading.gif'
-import { formatNumber, getScaleFromString } from '@utils/utils'
+import { formatNumbers, getScaleFromString, showPrefix } from '@utils/utils'
 import React, { CSSProperties, useRef } from 'react'
 import useStyles from './style'
+import { FormatNumberThreshold } from '@store/consts/types'
 
 interface IProps {
   setValue: (value: string) => void
@@ -16,12 +17,11 @@ interface IProps {
   blockerInfo?: string
   decimalsLimit: number
   onBlur?: () => void
-  percentageChange?: number
   tokenPrice?: number
   balanceValue?: string
   disabled?: boolean
   priceLoading?: boolean
-  isBalanceLoading: boolean
+  showEstimatedValue?: boolean
 }
 
 export const DepositAmountInput: React.FC<IProps> = ({
@@ -40,7 +40,7 @@ export const DepositAmountInput: React.FC<IProps> = ({
   balanceValue,
   disabled = false,
   priceLoading = false,
-  isBalanceLoading
+  showEstimatedValue = true
 }) => {
   const { classes } = useStyles({ isSelected: !!currency })
 
@@ -86,6 +86,66 @@ export const DepositAmountInput: React.FC<IProps> = ({
   }
 
   const usdBalance = tokenPrice && balanceValue ? tokenPrice * +balanceValue : 0
+
+  const thresholds: FormatNumberThreshold[] = [
+    {
+      value: 10,
+      decimals: decimalsLimit
+    },
+    {
+      value: 100,
+      decimals: 4
+    },
+    {
+      value: 1000,
+      decimals: 2
+    },
+    {
+      value: 10000,
+      decimals: 1
+    },
+    {
+      value: 1000000,
+      decimals: 2,
+      divider: 1000
+    },
+    {
+      value: 1000000000,
+      decimals: 2,
+      divider: 1000000
+    },
+    {
+      value: Infinity,
+      decimals: 2,
+      divider: 1000000000
+    }
+  ]
+
+  const usdThresholds: FormatNumberThreshold[] = [
+    {
+      value: 1000,
+      decimals: 2
+    },
+    {
+      value: 10000,
+      decimals: 1
+    },
+    {
+      value: 1000000,
+      decimals: 2,
+      divider: 1000
+    },
+    {
+      value: 1000000000,
+      decimals: 2,
+      divider: 1000000
+    },
+    {
+      value: Infinity,
+      decimals: 2,
+      divider: 1000000000
+    }
+  ]
 
   return (
     <Grid container className={classes.wrapper} style={style}>
@@ -142,14 +202,13 @@ export const DepositAmountInput: React.FC<IProps> = ({
             onClick={onMaxClick}>
             <Typography className={classes.caption2}>
               Balance:{' '}
-              {isBalanceLoading ? (
-                <img src={loadingAnimation} className={classes.loadingBalance} alt='loading' />
-              ) : balanceValue ? (
-                formatNumber(balanceValue || 0)
-              ) : (
-                <span style={{ marginLeft: '8px' }}>-</span>
-              )}{' '}
-              {currency}
+              {currency
+                ? `${
+                    balanceValue
+                      ? formatNumbers(thresholds)(balanceValue) + showPrefix(Number(balanceValue))
+                      : '0'
+                  } ${currency}`
+                : '- -'}
             </Typography>
             <Button
               className={
@@ -160,12 +219,12 @@ export const DepositAmountInput: React.FC<IProps> = ({
             </Button>
           </Grid>
           <Grid className={classes.percentages} container alignItems='center' wrap='nowrap'>
-            {currency ? (
+            {currency && showEstimatedValue ? (
               priceLoading ? (
                 <img src={loadingAnimation} className={classes.loading} alt='loading' />
               ) : tokenPrice ? (
                 <Typography className={classes.caption2}>
-                  ~${formatNumber(usdBalance.toFixed(2))}
+                  ~${formatNumbers(usdThresholds)(usdBalance.toString()) + showPrefix(usdBalance)}
                 </Typography>
               ) : (
                 <Tooltip

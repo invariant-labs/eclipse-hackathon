@@ -64,19 +64,16 @@ const useStyles = makeStyles()((theme: Theme) => {
       gap: 8,
       flexWrap: 'nowrap',
       alignItems: 'center',
+      flex: '1 1 0%',
       [theme.breakpoints.up(1600)]: {
         flex: '1 1 0%'
       },
 
-      [theme.breakpoints.up('lg')]: {
+      [theme.breakpoints.only('lg')]: {
         minWidth: 350
       },
 
-      [theme.breakpoints.only('md')]: {
-        minWidth: 350
-      },
-
-      [theme.breakpoints.down('md')]: {
+      [theme.breakpoints.down('lg')]: {
         marginLeft: 0,
         justifyContent: 'center'
       },
@@ -132,7 +129,7 @@ const useStyles = makeStyles()((theme: Theme) => {
     leftSide: {
       width: 'auto',
 
-      [theme.breakpoints.up(1600)]: {
+      [theme.breakpoints.up('lg')]: {
         flex: '1 1 0%'
       }
     }
