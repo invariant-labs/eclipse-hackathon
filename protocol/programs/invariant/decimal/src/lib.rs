@@ -1,7 +1,7 @@
 mod traits;
 mod uint;
 
-pub use crate::uint::U256;
+pub use crate::uint::{U256, U192};
 
 pub use decimal_core::decimal;
 pub use num_traits;
