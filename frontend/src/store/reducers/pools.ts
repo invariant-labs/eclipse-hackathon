@@ -14,7 +14,7 @@ export interface IPoolsStore {
   //   nearestPoolTicksForPair: { [key in string]: Tick[] }
   isLoadingLatestPoolsForTransaction: boolean
   //   tickMaps: { [key in string]: Tickmap }
-  volumeRanges: Record<string, Range[]>
+  // volumeRanges: Record<string, Range[]>
 }
 
 // export interface UpdatePool {
@@ -55,9 +55,9 @@ export const defaultState: IPoolsStore = {
   //   pools: {},
   //   poolTicks: {},
   //   nearestPoolTicksForPair: {},
-  isLoadingLatestPoolsForTransaction: false,
+  isLoadingLatestPoolsForTransaction: false
   //   tickMaps: {},
-  volumeRanges: {}
+  // volumeRanges: {}
 }
 
 export interface PairTokens {

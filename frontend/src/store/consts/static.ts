@@ -1,6 +1,40 @@
 import { BN } from '@project-serum/anchor'
 import { PublicKey } from '@solana/web3.js'
+import { FormatNumberThreshold, PrefixConfig } from './types'
+export interface FeeTier {
+  fee: BN
+  tickSpacing?: number
+}
+export const DECIMAL = 12
+export const FEE_DECIMAL = 5
+export const FEE_OFFSET = new BN(10).pow(new BN(DECIMAL - FEE_DECIMAL))
+export const fromFee = (fee: BN): BN => {
+  // e.g fee - BN(1) -> 0.001%
+  return fee.mul(FEE_OFFSET)
+}
 
+//TODO replace mocked fee tiers
+export const FEE_TIERS: FeeTier[] = [
+  // { fee: fromFee(new BN(1)), tickSpacing: 1 },
+  // { fee: fromFee(new BN(3)), tickSpacing: 1 },
+  // { fee: fromFee(new BN(5)), tickSpacing: 1 },
+  { fee: fromFee(new BN(10)), tickSpacing: 1 },
+  { fee: fromFee(new BN(20)), tickSpacing: 5 },
+  { fee: fromFee(new BN(50)), tickSpacing: 5 },
+  { fee: fromFee(new BN(100)), tickSpacing: 5 },
+  { fee: fromFee(new BN(200)), tickSpacing: 5 },
+  { fee: fromFee(new BN(300)), tickSpacing: 5 },
+  { fee: fromFee(new BN(500)), tickSpacing: 5 },
+  { fee: fromFee(new BN(1000)), tickSpacing: 5 }
+  // { fee: fromFee(new BN(3000)), tickSpacing: 5 },
+  // { fee: fromFee(new BN(5000)), tickSpacing: 5 },
+  // { fee: fromFee(new BN(10000)), tickSpacing: 5 },
+  // { fee: fromFee(new BN(25000)), tickSpacing: 5 },
+  // { fee: fromFee(new BN(50000)), tickSpacing: 5 }
+]
+
+//TODO replace mocked decimal
+export const LPTokenDecimals = 6
 export enum RPC {
   TEST = 'https://testnet.dev2.eclipsenetwork.xyz',
   MAIN = 'https://staging-rpc-eu.dev2.eclipsenetwork.xyz',
@@ -83,35 +117,6 @@ export const WETH_TEST: Token = {
   logoURI:
     'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/2FPyTwcZLUg1MDrwsyoP4D6s1tM7hAkHYRjkNb5w6Pxk/logo.png',
   coingeckoId: 'ethereum'
-}
-
-export const MOON_TEST: Token = {
-  symbol: 'MOON',
-  address: new PublicKey('JChWwuoqpXZZn6WjSCssjaozj4u65qNgvGFsV6eJ2g8S'),
-  decimals: 5,
-  name: 'Moon Inu',
-  logoURI: 'https://raw.githubusercontent.com/moon-meme/assets/main/Moon.png',
-  coingeckoId: ''
-}
-
-export const EBGR_TEST: Token = {
-  symbol: 'EBGR',
-  address: new PublicKey('EBGR1Nb8k3ihiwFuRvXXuxotSKbX7FQWwuzfJEVE9wx9'),
-  decimals: 9,
-  name: 'eBeggars',
-  logoURI:
-    'https://orange-raw-gibbon-956.mypinata.cloud/ipfs/Qmb1yojLQjv5dNjQ3TrAjKvf42XxQJqpLm2nRyzeuz9iGV',
-  coingeckoId: ''
-}
-
-export const ECEGG_TEST: Token = {
-  symbol: 'ECEGG',
-  address: new PublicKey('ECEGG4YDbBevPsq5KfL8Vyk6kptY1jhsoeaiG8RMXZ7C'),
-  decimals: 9,
-  name: 'Eclipse Egg',
-  logoURI:
-    'https://orange-raw-gibbon-956.mypinata.cloud/ipfs/QmNx9coi2RwBcAmBxkVC45qtjh6zqZeWCzWgxfg8JMsH7R',
-  coingeckoId: ''
 }
 
 export enum Network {
@@ -242,4 +247,52 @@ export const airdropQuantities: Record<NetworkType, number[]> = {
   Mainnet: [],
   Testnet: [10 * 10 ** USDC_TEST.decimals, 0.00025 * 10 ** BTC_TEST.decimals],
   Localnet: []
+}
+
+export const defaultThresholds: FormatNumberThreshold[] = [
+  {
+    value: 10,
+    decimals: 4
+  },
+  {
+    value: 1000,
+    decimals: 2
+  },
+  {
+    value: 10000,
+    decimals: 1
+  },
+  {
+    value: 1000000,
+    decimals: 2,
+    divider: 1000
+  },
+  {
+    value: 1000000000,
+    decimals: 2,
+    divider: 1000000
+  },
+  {
+    value: Infinity,
+    decimals: 2,
+    divider: 1000000000
+  }
+]
+
+export const defaultPrefixConfig: PrefixConfig = {
+  B: 1000000000,
+  M: 1000000,
+  K: 10000
+}
+
+export const ALL_FEE_TIERS_DATA = FEE_TIERS.map((tier, index) => ({
+  tier,
+  primaryIndex: index
+}))
+
+export const addressTickerMap: { [key: string]: string } = {
+  WETH: 'So11111111111111111111111111111111111111112',
+  BTC: '3JXmQAzBPU66dkVQufSE1ChBMRAdCHp6T7ZMBKAwhmWw',
+  USDC: '5W3bmyYDww6p5XRZnCR6m2c75st6XyCxW1TgGS3wTq7S',
+  ETH: 'So11111111111111111111111111111111111111112'
 }

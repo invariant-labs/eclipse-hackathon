@@ -14,7 +14,7 @@ const SolanaWalletEvents = () => {
   const dispatch = useDispatch()
   const publicKey = useSelector(address)
   const networkStatus = useSelector(status)
-  // Solana Main Wallet
+
   React.useEffect(() => {
     const connection = getCurrentSolanaConnection()
     if (!publicKey || !connection || networkStatus !== Status.Initialized) {
@@ -23,7 +23,6 @@ const SolanaWalletEvents = () => {
     const connectEvents = () => {
       connection.onAccountChange(new PublicKey(publicKey), (accountInfo: AccountInfo<Buffer>) => {
         dispatch(actions.setBalance(new BN(accountInfo.lamports)))
-        // console.log(accountInfo)
       })
     }
     connectEvents()

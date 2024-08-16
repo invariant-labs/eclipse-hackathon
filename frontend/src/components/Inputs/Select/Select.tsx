@@ -7,18 +7,19 @@ import { Button } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import SelectTokenModal from '@components/Modals/SelectModals/SelectTokenModal/SelectTokenModal'
 import { SwapToken } from '@store/selectors/wallet'
+import { PublicKey } from '@solana/web3.js'
 
 export interface ISelectModal {
   name?: string
   current: SwapToken | null
   centered?: boolean
-  tokens: Record<string, SwapToken>
-  onSelect: (address: string) => void
+  tokens: SwapToken[]
+  onSelect: (index: number) => void
   className?: string
   hideBalancesInModal?: boolean
   handleAddToken: (address: string) => void
   sliceName?: boolean
-  commonTokens: string[]
+  commonTokens: PublicKey[]
   initialHideUnknownTokensValue: boolean
   onHideUnknownTokensChange: (val: boolean) => void
 }

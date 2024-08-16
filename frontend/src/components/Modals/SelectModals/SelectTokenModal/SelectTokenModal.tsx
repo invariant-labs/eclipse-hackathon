@@ -18,20 +18,23 @@ import {
   Typography,
   useMediaQuery
 } from '@mui/material'
-import { formatNumber, printBigint } from '@utils/utils'
+
 import { SwapToken } from '@store/selectors/wallet'
 import Scrollbars from 'rc-scrollbars'
 import icons from '@static/icons'
 import { TooltipHover } from '@components/TooltipHover/TooltipHover'
+import { PublicKey } from '@solana/web3.js'
+import { formatNumbers, printBN, showPrefix } from '@utils/utils'
+import { FormatNumberThreshold } from '@store/consts/types'
 
 export interface ISelectTokenModal {
-  tokens: Record<string, SwapToken>
-  commonTokens: string[]
+  tokens: SwapToken[]
+  commonTokens: PublicKey[]
   open: boolean
   handleClose: () => void
   anchorEl: HTMLButtonElement | null
   centered?: boolean
-  onSelect: (address: string) => void
+  onSelect: (index: number) => void
   hideBalances?: boolean
   handleAddToken: (address: string) => void
   initialHideUnknownTokensValue: boolean
@@ -78,70 +81,61 @@ export const SelectTokenModal: React.FC<ISelectTokenModal> = ({
   const outerRef = useRef<HTMLElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const commonTokensList = useMemo(() => {
-    const commonTokensList: SwapToken[] = []
+  const tokensWithIndexes = useMemo(
+    () =>
+      tokens.map((token, index) => ({
+        ...token,
+        index,
+        strAddress: token.assetAddress.toString()
+      })),
+    [tokens]
+  )
 
-    commonTokens.forEach(assetAddress => {
-      const token = tokens[assetAddress.toString()]
-
-      if (token) {
-        commonTokensList.push({ ...token, assetAddress })
-      }
-    })
-
-    return commonTokensList
-  }, [tokens, commonTokens])
+  const commonTokensList = useMemo(
+    () =>
+      tokensWithIndexes.filter(
+        ({ assetAddress }) => commonTokens.findIndex(key => key.equals(assetAddress)) !== -1
+      ),
+    [tokensWithIndexes, commonTokens]
+  )
 
   const filteredTokens = useMemo(() => {
-    if (!open) {
-      return []
-    }
-
-    const filteredTokens: SwapToken[] = []
-    for (const [assetAddress, token] of Object.entries(tokens)) {
-      if (
+    const list = tokensWithIndexes.filter(token => {
+      return (
         token.symbol.toLowerCase().includes(value.toLowerCase()) ||
         token.name.toLowerCase().includes(value.toLowerCase()) ||
-        assetAddress.includes(value)
-      ) {
-        if (hideUnknown && token.isUnknown) {
-          continue
-        }
+        token.strAddress.includes(value)
+      )
+    })
 
-        filteredTokens.push({ ...token, assetAddress })
-      }
-    }
-
-    const sortedTokens = value
-      ? filteredTokens.sort((a, b) => {
-          const aBalance = +printBigint(a.balance, a.decimals)
-          const bBalance = +printBigint(b.balance, b.decimals)
-          if ((aBalance === 0 && bBalance === 0) || (aBalance > 0 && bBalance > 0)) {
-            if (value.length) {
-              if (
-                a.symbol.toLowerCase().startsWith(value.toLowerCase()) &&
-                !b.symbol.toLowerCase().startsWith(value.toLowerCase())
-              ) {
-                return -1
-              }
-
-              if (
-                b.symbol.toLowerCase().startsWith(value.toLowerCase()) &&
-                !a.symbol.toLowerCase().startsWith(value.toLowerCase())
-              ) {
-                return 1
-              }
-            }
-
-            return a.symbol.toLowerCase().localeCompare(b.symbol.toLowerCase())
+    const sorted = list.sort((a, b) => {
+      const aBalance = +printBN(a.balance, a.decimals)
+      const bBalance = +printBN(b.balance, b.decimals)
+      if ((aBalance === 0 && bBalance === 0) || (aBalance > 0 && bBalance > 0)) {
+        if (value.length) {
+          if (
+            a.symbol.toLowerCase().startsWith(value.toLowerCase()) &&
+            !b.symbol.toLowerCase().startsWith(value.toLowerCase())
+          ) {
+            return -1
           }
 
-          return aBalance === 0 ? 1 : -1
-        })
-      : filteredTokens
+          if (
+            b.symbol.toLowerCase().startsWith(value.toLowerCase()) &&
+            !a.symbol.toLowerCase().startsWith(value.toLowerCase())
+          ) {
+            return 1
+          }
+        }
 
-    return sortedTokens
-  }, [value, tokens, hideUnknown, open])
+        return a.symbol.toLowerCase().localeCompare(b.symbol.toLowerCase())
+      }
+
+      return aBalance === 0 ? 1 : -1
+    })
+
+    return hideUnknown ? sorted.filter(token => !token.isUnknown) : sorted
+  }, [value, tokensWithIndexes, hideUnknown])
 
   const searchToken = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value)
@@ -162,6 +156,40 @@ export const SelectTokenModal: React.FC<ISelectTokenModal> = ({
       }
     }
   }, [open])
+
+  const thresholds = (decimals: number): FormatNumberThreshold[] => [
+    {
+      value: 10,
+      decimals
+    },
+    {
+      value: 100,
+      decimals: 4
+    },
+    {
+      value: 1000,
+      decimals: 2
+    },
+    {
+      value: 10000,
+      decimals: 1
+    },
+    {
+      value: 1000000,
+      decimals: 2,
+      divider: 1000
+    },
+    {
+      value: 1000000000,
+      decimals: 2,
+      divider: 1000000
+    },
+    {
+      value: Infinity,
+      decimals: 2,
+      divider: 1000000000
+    }
+  ]
 
   return (
     <>
@@ -215,7 +243,7 @@ export const SelectTokenModal: React.FC<ISelectTokenModal> = ({
                   className={classes.commonTokenItem}
                   key={token.symbol}
                   onClick={() => {
-                    onSelect(token.assetAddress)
+                    onSelect(token.index)
                     setValue('')
                     handleClose()
                   }}>
@@ -271,7 +299,7 @@ export const SelectTokenModal: React.FC<ISelectTokenModal> = ({
               outerRef={outerRef}>
               {({ index, style }: { index: number; style: React.CSSProperties }) => {
                 const token = filteredTokens[index]
-                const tokenBalance = printBigint(token.balance, token.decimals)
+                const tokenBalance = printBN(token.balance, token.decimals)
 
                 return (
                   <Grid
@@ -284,7 +312,7 @@ export const SelectTokenModal: React.FC<ISelectTokenModal> = ({
                     alignItems='center'
                     wrap='nowrap'
                     onClick={() => {
-                      onSelect(token.assetAddress)
+                      onSelect(token.index)
                       setValue('')
                       handleClose()
                     }}>
@@ -304,22 +332,23 @@ export const SelectTokenModal: React.FC<ISelectTokenModal> = ({
                         <Typography className={classes.tokenName}>
                           {token.symbol ? token.symbol : 'Unknown'}{' '}
                         </Typography>
-                        <Grid className={classes.tokenAddress} container direction='column'>
-                          <a
-                            href={`https://ascan.alephzero.org/testnet/account/${token.assetAddress}`}
+                        {/* <Grid className={classes.tokenAddress} container direction='column'> */}
+                        {/* TODO handle correct link  */}
+                        {/* <a
+                            href={`${token.assetAddress}`}
                             target='_blank'
                             rel='noopener noreferrer'
                             onClick={event => {
                               event.stopPropagation()
                             }}>
                             <Typography>
-                              {token.assetAddress.slice(0, 4) +
+                              {token.assetAddress.toString().slice(0, 4) +
                                 '...' +
-                                token.assetAddress.slice(-5, -1)}
+                                token.assetAddress.toString().slice(-5, -1)}
                             </Typography>
                             <img width={8} height={8} src={icons.newTab} alt={'Token address'} />
-                          </a>
-                        </Grid>
+                          </a> */}
+                        {/* </Grid> */}
                       </Grid>
 
                       <Typography className={classes.tokenDescrpiption}>
@@ -334,8 +363,10 @@ export const SelectTokenModal: React.FC<ISelectTokenModal> = ({
                       className={classes.tokenBalanceStatus}>
                       {!hideBalances && Number(tokenBalance) > 0 ? (
                         <>
-                          <Typography>Balance:</Typography>
-                          <Typography>&nbsp; {formatNumber(tokenBalance)}</Typography>
+                          <Typography className={classes.tokenBalanceStatus}>
+                            Balance: {formatNumbers(thresholds(token.decimals))(tokenBalance)}
+                            {showPrefix(Number(tokenBalance))}
+                          </Typography>
                         </>
                       ) : null}
                     </Grid>

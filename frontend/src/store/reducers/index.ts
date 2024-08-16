@@ -4,12 +4,14 @@ import { persistReducer, createTransform, createMigrate, MigrationManifest } fro
 import { NetworkType, RPC } from '@store/consts/static'
 import { reducer as snackbarsReducer, snackbarsSliceName } from './snackbars'
 import { reducer as solanaWalletReducer, solanaWalletSliceName } from './wallet'
+import { reducer as poolsReducer, poolsSliceName } from './pools'
+import { swapSliceName, reducer as swapReducer } from './swap'
+
 import {
   ISolanaConnectionStore,
   reducer as solanaConnectionReducer,
   solanaConnectionSliceName
 } from './connection'
-
 
 const transformNetwork = createTransform(
   (inboundState: any, _key) => {
@@ -25,7 +27,7 @@ const transformNetwork = createTransform(
 )
 
 const migrations: MigrationManifest = {
-    // @ts-expect-error
+  // @ts-expect-error
   1: (state: ISolanaConnectionStore) => {
     const network =
       typeof state?.network !== 'undefined' && Object.values(NetworkType).includes(state.network)
@@ -69,6 +71,8 @@ const combinedReducers = combineReducers({
   [snackbarsSliceName]: snackbarsReducer,
   [solanaConnectionSliceName]: persistReducer(connectionPersistConfig, solanaConnectionReducer),
   [solanaWalletSliceName]: solanaWalletReducer,
+  [poolsSliceName]: poolsReducer,
+  [swapSliceName]: swapReducer
 })
 
 export default combinedReducers

@@ -1,10 +1,10 @@
 import { ISwapStore, swapSliceName } from '../reducers/swap'
-import { AnyProps, keySelectors } from './helpers'
+import { keySelectors, AnyProps } from './helpers'
 
 const store = (s: AnyProps) => s[swapSliceName] as ISwapStore
 
-export const { swap, simulateResult } = keySelectors(store, ['swap', 'simulateResult'])
+export const { swap } = keySelectors(store, ['swap'])
 
-export const swapSelectors = { swap, simulateResult }
+export const swapSelectors = { swap }
 
 export default swapSelectors
