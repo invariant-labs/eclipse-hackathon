@@ -1,3 +1,4 @@
+import { BN } from "@coral-xyz/anchor";
 import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 
 export interface ITransaction {
@@ -5,12 +6,36 @@ export interface ITransaction {
   signers?: Keypair[];
 }
 
-export interface TestAccounts {
+export interface ITest {
   puppetProgram: PublicKey;
   counter: PublicKey;
+  stateBump: number;
 }
 
-export interface InvokeUpdateSecondsPerLiquidityAccounts {
+export interface IMint {
+  amount: BN;
+  tokenMint: PublicKey;
+  to: PublicKey;
+}
+
+export interface IDeposit {
+  tokenMint: PublicKey;
+  reserve: PublicKey;
+  userBalance: PublicKey;
+  amount: BN;
+}
+
+export interface IWithdraw {
+  tokenMint: PublicKey;
+  reserve: PublicKey;
+  userBalance: PublicKey;
+  amount: BN;
+}
+
+export interface IInvokeUpdateSecondsPerLiquidity {
+  lowerTickIndex: number;
+  upperTickIndex: number;
+  index: number;
   invariantProgram: PublicKey;
   pool: PublicKey;
   lowerTick: PublicKey;
@@ -18,5 +43,77 @@ export interface InvokeUpdateSecondsPerLiquidityAccounts {
   position: PublicKey;
   tokenX: PublicKey;
   tokenY: PublicKey;
-  owner: PublicKey;
+}
+
+export interface IInvokeCreatePosition {
+  lowerTickIndex: number;
+  upperTickIndex: number;
+  liquidityDelta: BN;
+  slippageLimitLower: BN;
+  slippageLimitUpper: BN;
+  invariantProgram: PublicKey;
+  state: PublicKey;
+  position: PublicKey;
+  pool: PublicKey;
+  positionList: PublicKey;
+  lowerTick: PublicKey;
+  upperTick: PublicKey;
+  tickmap: PublicKey;
+  tokenX: PublicKey;
+  tokenY: PublicKey;
+  accountX: PublicKey;
+  accountY: PublicKey;
+  reserveX: PublicKey;
+  reserveY: PublicKey;
+  programAuthority: PublicKey;
+  tokenXProgram: PublicKey;
+  tokenYProgram: PublicKey;
+}
+
+export interface IInvokeClosePosition {
+  index: number;
+  lowerTickIndex: number;
+  upperTickIndex: number;
+  invariantState: PublicKey;
+  invariantProgramAuthority: PublicKey;
+  removedPosition: PublicKey;
+  positionList: PublicKey;
+  lastPosition: PublicKey;
+  pool: PublicKey;
+  tickmap: PublicKey;
+  lowerTick: PublicKey;
+  upperTick: PublicKey;
+  tokenX: PublicKey;
+  tokenY: PublicKey;
+  accountX: PublicKey;
+  accountY: PublicKey;
+  reserveX: PublicKey;
+  reserveY: PublicKey;
+  tokenXProgram: PublicKey;
+  tokenYProgram: PublicKey;
+  invariantProgram: PublicKey;
+}
+
+export interface IReopenPosition {
+  // params
+  index: number;
+  // accounts
+  invariantProgram: PublicKey;
+  invariantState: PublicKey;
+  position: PublicKey;
+  lastPosition: PublicKey;
+  pool: PublicKey;
+  positionList: PublicKey;
+  lowerTick: PublicKey;
+  upperTick: PublicKey;
+  tickmap: PublicKey;
+  tokenX: PublicKey;
+  tokenY: PublicKey;
+  accountX: PublicKey;
+  accountY: PublicKey;
+  reserveX: PublicKey;
+  reserveY: PublicKey;
+  invariantProgramAuthority: PublicKey;
+  tokenXProgram: PublicKey;
+  tokenYProgram: PublicKey;
 }

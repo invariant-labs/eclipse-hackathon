@@ -1,6 +1,6 @@
-use crate::ErrorCode::*;
+use crate::{get_signer, ErrorCode::*};
 use anchor_lang::prelude::*;
-use anchor_spl::token::{MintTo, Token, TokenAccount};
+use anchor_spl::token::{self, MintTo, Token, TokenAccount};
 
 use crate::states::{DerivedAccountIdentifier, State};
 
@@ -34,5 +34,14 @@ impl<'info> MintCtx<'info> {
                 authority: self.program_authority.to_account_info(),
             },
         )
+    }
+}
+
+impl MintCtx<'_> {
+    pub fn process(&self, amount: u64) -> Result<()> {
+        let state = &self.state.load()?;
+
+        let signer: &[&[&[u8]]] = get_signer!(state.bump_authority);
+        token::mint_to(self.mint_ctx().with_signer(signer), amount)
     }
 }

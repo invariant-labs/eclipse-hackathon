@@ -1,6 +1,6 @@
-use crate::ErrorCode::*;
+use crate::{get_signer, ErrorCode::*};
 use anchor_lang::prelude::*;
-use anchor_spl::token::{Token, TokenAccount, Transfer};
+use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 
 use crate::states::{DerivedAccountIdentifier, State};
 
@@ -44,5 +44,14 @@ impl<'info> WithdrawCtx<'info> {
                 authority: self.program_authority.clone(),
             },
         )
+    }
+}
+
+impl WithdrawCtx<'_> {
+    pub fn process(&self, amount: u64) -> Result<()> {
+        let state = &self.state.load()?;
+        let signer: &[&[&[u8]]] = get_signer!(state.bump_authority);
+
+        token::transfer(self.withdraw_ctx().with_signer(signer), amount)
     }
 }

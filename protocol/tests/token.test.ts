@@ -2,8 +2,7 @@ import { AnchorProvider, BN } from "@coral-xyz/anchor";
 import { Network } from "../sdk/src/network";
 import { Protocol } from "../sdk/src/protocol";
 import { Keypair, PublicKey } from "@solana/web3.js";
-import { createTokenMint, sleep } from "./test-utils";
-import { getProgramAuthorityAddressAndBump } from "../sdk/src/utils";
+import { createTokenMint, requestAirdrop } from "./test-utils";
 import { assert } from "chai";
 import {
   getAccount,
@@ -26,17 +25,14 @@ describe("token", () => {
 
   before(async () => {
     await Promise.all([
-      connection.requestAirdrop(owner.publicKey, 1e14),
-      await connection.requestAirdrop(payer.publicKey, 1e9),
+      requestAirdrop(connection, owner.publicKey, 1e14),
+      requestAirdrop(connection, payer.publicKey, 1e9),
     ]);
-    await sleep(10000);
 
     protocol = await Protocol.build(Network.LOCAL, wallet, connection);
     await protocol.init(owner);
 
-    const [mintAuthority] = getProgramAuthorityAddressAndBump(
-      protocol.program.programId
-    );
+    const mintAuthority = protocol.programAuthority;
 
     lpTokenMinter = await createTokenMint(
       connection,
@@ -63,9 +59,11 @@ describe("token", () => {
     }
 
     await protocol.mint(
-      lpTokenMinter,
-      lpTokenAccount.address,
-      mintAmount,
+      {
+        tokenMint: lpTokenMinter,
+        to: lpTokenAccount.address,
+        amount: mintAmount,
+      },
       payer
     );
 
@@ -78,9 +76,7 @@ describe("token", () => {
     }
   });
   it("deposit", async () => {
-    const [programAuthority] = getProgramAuthorityAddressAndBump(
-      protocol.program.programId
-    );
+    const programAuthority = protocol.programAuthority;
 
     const lpTokenAccount = await getOrCreateAssociatedTokenAccount(
       connection,
@@ -106,10 +102,12 @@ describe("token", () => {
     );
 
     await protocol.deposit(
-      lpTokenMinter,
-      lpTokenReserve.address,
-      lpTokenAccount.address,
-      depositAmount,
+      {
+        tokenMint: lpTokenMinter,
+        reserve: lpTokenReserve.address,
+        userBalance: lpTokenAccount.address,
+        amount: depositAmount,
+      },
       payer
     );
     {
@@ -127,9 +125,7 @@ describe("token", () => {
     }
   });
   it("withdraw", async () => {
-    const [programAuthority] = getProgramAuthorityAddressAndBump(
-      protocol.program.programId
-    );
+    const programAuthority = protocol.programAuthority;
 
     const lpTokenAccount = await getOrCreateAssociatedTokenAccount(
       connection,
@@ -155,10 +151,12 @@ describe("token", () => {
     );
 
     await protocol.withdraw(
-      lpTokenMinter,
-      lpTokenReserve.address,
-      lpTokenAccount.address,
-      withdrawAmount,
+      {
+        tokenMint: lpTokenMinter,
+        reserve: lpTokenReserve.address,
+        userBalance: lpTokenAccount.address,
+        amount: withdrawAmount,
+      },
       payer
     );
     {

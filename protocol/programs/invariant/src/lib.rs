@@ -1,4 +1,4 @@
-mod decimals;
+pub mod decimals;
 mod errors;
 mod instructions;
 mod interfaces;

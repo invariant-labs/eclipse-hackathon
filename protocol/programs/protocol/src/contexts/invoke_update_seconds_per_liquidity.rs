@@ -18,15 +18,13 @@ pub struct InvokeUpdateSecondsPerLiquidityCtx<'info> {
     pub token_x: UncheckedAccount<'info>,
     /// CHECK:
     pub token_y: UncheckedAccount<'info>,
-    /// CHECK:
-    pub owner: UncheckedAccount<'info>,
     #[account(mut)]
-    pub signer: Signer<'info>,
+    pub owner: Signer<'info>,
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
 }
 
-impl<'info> InvokeUpdateSecondsPerLiquidityCtx<'info> {
+impl InvokeUpdateSecondsPerLiquidityCtx<'_> {
     pub fn process(
         &mut self,
         lower_tick_index: i32,
@@ -42,7 +40,6 @@ impl<'info> InvokeUpdateSecondsPerLiquidityCtx<'info> {
             token_x,
             token_y,
             owner,
-            signer,
             rent,
             system_program,
         } = self;
@@ -56,19 +53,12 @@ impl<'info> InvokeUpdateSecondsPerLiquidityCtx<'info> {
             token_x: token_x.to_account_info(),
             token_y: token_y.to_account_info(),
             owner: owner.to_account_info(),
-            signer: signer.to_account_info(),
+            signer: owner.to_account_info(),
             rent: rent.to_account_info(),
             system_program: system_program.to_account_info(),
         };
         let ctx = CpiContext::new(program, accounts);
 
-        invariant::cpi::update_seconds_per_liquidity(
-            ctx,
-            lower_tick_index,
-            upper_tick_index,
-            index,
-        )?;
-
-        Ok(())
+        invariant::cpi::update_seconds_per_liquidity(ctx, lower_tick_index, upper_tick_index, index)
     }
 }

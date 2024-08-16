@@ -1,18 +1,16 @@
 import { AnchorProvider, utils } from "@coral-xyz/anchor";
 import {
+  BlockheightBasedTransactionConfirmationStrategy,
+  ComputeBudgetProgram,
   ConfirmOptions,
   Connection,
   Keypair,
   PublicKey,
-  sendAndConfirmRawTransaction,
   Transaction,
+  TransactionInstruction,
   TransactionSignature,
 } from "@solana/web3.js";
-import {
-  PROTOCOL_AUTHORITY_SEED,
-  PROTOCOL_STATE_SEED,
-  PUPPET_COUNTER_SEED,
-} from "./consts";
+import { PUPPET_COUNTER_SEED } from "./consts";
 
 export const signAndSend = async (
   tx: Transaction,
@@ -20,40 +18,31 @@ export const signAndSend = async (
   connection: Connection,
   opts?: ConfirmOptions
 ): Promise<TransactionSignature> => {
-  tx.setSigners(...signers.map((s) => s.publicKey));
-  const blockhash = await connection.getRecentBlockhash(
+  tx.feePayer ??= signers[0].publicKey;
+  const latestBlockhash = await connection.getLatestBlockhash(
     opts?.commitment ?? AnchorProvider.defaultOptions().commitment
   );
-  tx.recentBlockhash = blockhash.blockhash;
+  tx.recentBlockhash = latestBlockhash.blockhash;
   tx.partialSign(...signers);
-  const rawTx = tx.serialize();
-  return await sendAndConfirmRawTransaction(
-    connection,
-    rawTx,
+  const signature = await connection.sendRawTransaction(
+    tx.serialize(),
     opts ?? AnchorProvider.defaultOptions()
   );
+
+  const confirmStrategy: BlockheightBasedTransactionConfirmationStrategy = {
+    blockhash: latestBlockhash.blockhash,
+    lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+    signature,
+  };
+  await connection.confirmTransaction(confirmStrategy);
+
+  return signature;
 };
 
-export const getProgramAuthorityAddressAndBump = (
-  programId: PublicKey
-): [PublicKey, number] => {
-  return PublicKey.findProgramAddressSync(
-    [Buffer.from(utils.bytes.utf8.encode(PROTOCOL_AUTHORITY_SEED))],
-    programId
-  );
-};
-
-export const getProtocolStateAddressAndBump = (
-  programId: PublicKey
-): [PublicKey, number] => {
-  return PublicKey.findProgramAddressSync(
-    [Buffer.from(utils.bytes.utf8.encode(PROTOCOL_STATE_SEED))],
-    programId
-  );
-};
-
-export const getProtocolStateAddress = (programId: PublicKey): PublicKey => {
-  return getProtocolStateAddressAndBump(programId)[0];
+export const computeUnitsInstruction = (
+  units: number
+): TransactionInstruction => {
+  return ComputeBudgetProgram.setComputeUnitLimit({ units });
 };
 
 export const getPuppetCounterAddressAndBump = (

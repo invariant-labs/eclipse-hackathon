@@ -18,7 +18,7 @@ pub struct InitCtx<'info> {
     pub system_program: Program<'info, System>,
 }
 
-impl<'info> InitCtx<'info> {
+impl InitCtx<'_> {
     pub fn process(&mut self, bump: u8, bump_authority: u8) -> Result<()> {
         let state = &mut self.state.load_init()?;
         **state = State {
