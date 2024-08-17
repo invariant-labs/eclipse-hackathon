@@ -6,12 +6,12 @@ import useStyles from './style'
 import { FormatNumberThreshold, PrefixConfig } from '@store/consts/types'
 
 const InputInfo: React.FC<{
-  name: string
-  icon: string
+  currency: string
+  icon: string | { fistIcon: string; secondIcon: string }
   decimal: number
   value: string
   showLoader?: boolean
-}> = ({ name, icon, decimal, value, showLoader = false }) => {
+}> = ({ currency, icon, decimal, value, showLoader = false }) => {
   const { classes } = useStyles()
 
   const thresholdsWithTokenDecimal = (decimals: number): FormatNumberThreshold[] => [
@@ -43,32 +43,6 @@ const InputInfo: React.FC<{
     }
   ]
 
-  const usdThresholds: FormatNumberThreshold[] = [
-    {
-      value: 1000,
-      decimals: 2
-    },
-    {
-      value: 10000,
-      decimals: 1
-    },
-    {
-      value: 1000000,
-      decimals: 2,
-      divider: 1000
-    },
-    {
-      value: 1000000000,
-      decimals: 2,
-      divider: 1000000
-    },
-    {
-      value: Infinity,
-      decimals: 2,
-      divider: 1000000000
-    }
-  ]
-
   const prefixConfig: PrefixConfig = {
     B: 1000000000,
     M: 1000000
@@ -85,9 +59,36 @@ const InputInfo: React.FC<{
       ) : null}
       <Grid className={classes.tokenArea}>
         <Grid className={classes.tokenAreaUpperPart}>
-          <Grid className={classes.token}>
-            <img className={classes.iconSmall} src={icon} alt={name} />
-            <Typography className={classes.tokenName}>{name}</Typography>
+          <Grid
+            className={classes.currency}
+            container
+            justifyContent='center'
+            alignItems='center'
+            wrap='nowrap'>
+            {currency !== null && !!icon ? (
+              <>
+                {typeof icon === 'string' ? (
+                  <img alt='currency icon' src={icon} className={classes.currencyIcon} />
+                ) : (
+                  <Grid className={classes.iconsGrid}>
+                    <img
+                      alt='currency first icon'
+                      src={icon.fistIcon}
+                      className={classes.currencyIcon}
+                    />
+                    <img
+                      alt='currency second icon'
+                      src={icon.secondIcon}
+                      className={classes.currencyIcon}
+                      style={{ transform: 'translateX(-16px)' }}
+                    />
+                  </Grid>
+                )}
+                <Typography className={classes.currencySymbol}>{currency}</Typography>
+              </>
+            ) : (
+              <Typography className={classes.noCurrencyText}>-</Typography>
+            )}
           </Grid>
           <Typography className={classes.tokenValue}>
             {formatNumbers(thresholdsWithTokenDecimal(Number(decimal)))(`${tokenValue}`)}

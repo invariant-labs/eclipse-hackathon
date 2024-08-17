@@ -14,7 +14,7 @@ import {
   WRAPPED_ETH_ADDRESS
 } from '@store/consts/static'
 import { BN } from '@project-serum/anchor'
-import InputInfo from '../InfoInput/InfoInput'
+import InputInfo from '../../Inputs/InfoInput/InfoInput'
 
 export interface InputState {
   value: string
@@ -224,8 +224,15 @@ export const AddLiquidity: React.FC<IAddLiquidity> = ({
       <Typography className={classes.sectionTitle}>Receive Amount</Typography>
       <Grid container className={classes.sectionWrapper}>
         <InputInfo
-          name={LPTokenName}
-          icon={LPTokenIcon}
+          currency={LPTokenName}
+          icon={
+            tokenAIndex !== null && tokenBIndex !== null
+              ? {
+                  fistIcon: tokens[tokenAIndex].logoURI,
+                  secondIcon: tokens[tokenBIndex].logoURI
+                }
+              : ''
+          }
           decimal={LPTokenDecimals}
           value={LPTokenReceive}
         />

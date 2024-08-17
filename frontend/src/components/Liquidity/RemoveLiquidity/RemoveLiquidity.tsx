@@ -10,7 +10,7 @@ import { printBN, printBNtoBN } from '@utils/utils'
 import { LPTokenDecimals } from '@store/consts/static'
 import { BN } from '@project-serum/anchor'
 
-import InputInfo from '../InfoInput/InfoInput'
+import InputInfo from '../../Inputs/InfoInput/InfoInput'
 
 export interface InputState {
   value: string
