@@ -35,7 +35,14 @@ export const useStyles = makeStyles<{ isSelected: boolean }>()((theme: Theme, { 
       textAlign: 'right'
     }
   },
-  innerInput: {
+  innerInputRight: {
+    textAlign: 'left',
+    color: colors.white.main,
+    '& ::placeholder': {
+      textAlign: 'left'
+    }
+  },
+  innerInputLeft: {
     textAlign: 'right',
     color: colors.white.main,
     '& ::placeholder': {
@@ -45,7 +52,6 @@ export const useStyles = makeStyles<{ isSelected: boolean }>()((theme: Theme, { 
   currency: {
     height: 36,
     minWidth: 85,
-    width: 'fit-content',
     flexShrink: 0,
     borderRadius: 11,
     backgroundColor: colors.invariant.light,

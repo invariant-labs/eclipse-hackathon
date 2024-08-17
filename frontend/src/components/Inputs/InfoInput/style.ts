@@ -93,7 +93,6 @@ export const useStyles = makeStyles()((theme: Theme) => ({
   currency: {
     height: 36,
     minWidth: 85,
-    width: 'fit-content',
     flexShrink: 0,
     borderRadius: 11,
     backgroundColor: colors.invariant.light,
@@ -206,7 +205,6 @@ export const useStyles = makeStyles()((theme: Theme) => ({
   },
   tokenAreaUpperPart: {
     display: 'flex',
-    flexDirection: 'row',
     justifyContent: 'space-between'
   },
   tokenAreaLowerPart: {
@@ -235,7 +233,6 @@ export const useStyles = makeStyles()((theme: Theme) => ({
     display: 'block',
     whiteSpace: 'nowrap',
     color: colors.invariant.lightGrey,
-    alignSelf: 'center',
 
     '&::-webkit-scrollbar': {
       display: 'none',

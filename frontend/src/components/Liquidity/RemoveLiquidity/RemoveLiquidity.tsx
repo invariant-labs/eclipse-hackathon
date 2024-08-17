@@ -124,6 +124,7 @@ export const RemoveLiquidity: React.FC<IRemoveLiquidity> = ({
             }
           }}
           showEstimatedValue={false}
+          columnMobile
           {...LPTokenInputState}
         />
       </Grid>

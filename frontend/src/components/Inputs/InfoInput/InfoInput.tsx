@@ -1,9 +1,10 @@
-import { Grid, Typography } from '@mui/material'
+import { Grid, Typography, useMediaQuery } from '@mui/material'
 import loader from '@static/gif/loading2.gif'
 import { formatNumbers, showPrefix } from '@utils/utils'
-import React from 'react'
+import React, { useMemo } from 'react'
 import useStyles from './style'
 import { FormatNumberThreshold, PrefixConfig } from '@store/consts/types'
+import { theme } from '@static/theme'
 
 const InputInfo: React.FC<{
   currency: string
@@ -11,8 +12,14 @@ const InputInfo: React.FC<{
   decimal: number
   value: string
   showLoader?: boolean
-}> = ({ currency, icon, decimal, value, showLoader = false }) => {
+  columnMobile?: boolean
+}> = ({ currency, icon, decimal, value, showLoader = false, columnMobile }) => {
   const { classes } = useStyles()
+
+  const isSmDown = useMediaQuery(theme.breakpoints.down('sm'))
+  const columnDirection = useMemo(() => {
+    return columnMobile && isSmDown
+  }, [isSmDown, columnMobile])
 
   const thresholdsWithTokenDecimal = (decimals: number): FormatNumberThreshold[] => [
     {
@@ -58,15 +65,19 @@ const InputInfo: React.FC<{
         </Grid>
       ) : null}
       <Grid className={classes.tokenArea}>
-        <Grid className={classes.tokenAreaUpperPart}>
+        <Grid
+          className={classes.tokenAreaUpperPart}
+          flexDirection={columnDirection ? 'column' : 'row'}
+          rowGap={1}>
           <Grid
             className={classes.currency}
             container
             justifyContent='center'
             alignItems='center'
-            wrap='nowrap'>
+            wrap='nowrap'
+            width={columnDirection ? '100%' : 'fit-content'}>
             {currency !== null && !!icon ? (
-              <>
+              <Grid display='flex' flexDirection='row'>
                 {typeof icon === 'string' ? (
                   <img alt='currency icon' src={icon} className={classes.currencyIcon} />
                 ) : (
@@ -84,13 +95,21 @@ const InputInfo: React.FC<{
                     />
                   </Grid>
                 )}
-                <Typography className={classes.currencySymbol}>{currency}</Typography>
-              </>
+                <Grid item>
+                  <Typography className={classes.currencySymbol} width='100%'>
+                    {currency}
+                  </Typography>
+                </Grid>
+              </Grid>
             ) : (
-              <Typography className={classes.noCurrencyText}>-</Typography>
+              <Grid display='flex'>
+                <Typography className={classes.noCurrencyText}>-</Typography>
+              </Grid>
             )}
           </Grid>
-          <Typography className={classes.tokenValue}>
+          <Typography
+            className={classes.tokenValue}
+            style={{ alignSelf: columnDirection ? 'start' : 'center' }}>
             {formatNumbers(thresholdsWithTokenDecimal(Number(decimal)))(`${tokenValue}`)}
             {showPrefix(tokenValue, prefixConfig)}
           </Typography>

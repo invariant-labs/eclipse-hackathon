@@ -350,9 +350,9 @@ export const Liquidity: React.FC<ILiquidity> = ({
                     return
                   }
                   setTokenADeposit(value)
-                  setTokenBDeposit(
-                    getOtherTokenAmount(printBNtoBN(value, tokens[tokenAIndex].decimals), true)
-                  )
+                  // setTokenBDeposit(
+                  //   getOtherTokenAmount(printBNtoBN(value, tokens[tokenAIndex].decimals), true)
+                  // )
                 },
                 decimalsLimit: tokenAIndex !== null ? tokens[tokenAIndex].decimals : 0
               }}
@@ -363,9 +363,9 @@ export const Liquidity: React.FC<ILiquidity> = ({
                     return
                   }
                   setTokenBDeposit(value)
-                  setTokenADeposit(
-                    getOtherTokenAmount(printBNtoBN(value, tokens[tokenBIndex].decimals), false)
-                  )
+                  // setTokenADeposit(
+                  //   getOtherTokenAmount(printBNtoBN(value, tokens[tokenBIndex].decimals), false)
+                  // )
                 },
                 decimalsLimit: tokenBIndex !== null ? tokens[tokenBIndex].decimals : 0
               }}

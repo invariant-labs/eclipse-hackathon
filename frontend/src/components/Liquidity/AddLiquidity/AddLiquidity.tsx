@@ -235,6 +235,7 @@ export const AddLiquidity: React.FC<IAddLiquidity> = ({
           }
           decimal={LPTokenDecimals}
           value={LPTokenReceive}
+          columnMobile
         />
       </Grid>
       <AnimatedButton
