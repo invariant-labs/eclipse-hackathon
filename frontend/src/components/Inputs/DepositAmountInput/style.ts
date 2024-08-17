@@ -216,6 +216,12 @@ export const useStyles = makeStyles<{ isSelected: boolean }>()((theme: Theme, { 
     padding: '0 10px 0 20px',
     width: 15,
     height: 15
+  },
+  iconsGrid: {
+    display: 'flex',
+    alignItems: 'center',
+    position: 'relative',
+    width: 42
   }
 }))
 export default useStyles

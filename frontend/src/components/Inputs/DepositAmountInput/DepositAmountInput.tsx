@@ -8,7 +8,7 @@ import { FormatNumberThreshold } from '@store/consts/types'
 interface IProps {
   setValue: (value: string) => void
   currency: string | null
-  currencyIconSrc?: string
+  icon: string | { fistIcon: string; secondIcon: string }
   value?: string
   placeholder?: string
   onMaxClick: () => void
@@ -26,7 +26,7 @@ interface IProps {
 
 export const DepositAmountInput: React.FC<IProps> = ({
   currency,
-  currencyIconSrc,
+  icon,
   value,
   setValue,
   placeholder,
@@ -163,9 +163,25 @@ export const DepositAmountInput: React.FC<IProps> = ({
             justifyContent='center'
             alignItems='center'
             wrap='nowrap'>
-            {currency !== null ? (
+            {currency !== null && !!icon ? (
               <>
-                <img alt='currency icon' src={currencyIconSrc} className={classes.currencyIcon} />
+                {typeof icon === 'string' ? (
+                  <img alt='currency icon' src={icon} className={classes.currencyIcon} />
+                ) : (
+                  <Grid className={classes.iconsGrid}>
+                    <img
+                      alt='currency first icon'
+                      src={icon.fistIcon}
+                      className={classes.currencyIcon}
+                    />
+                    <img
+                      alt='currency second icon'
+                      src={icon.secondIcon}
+                      className={classes.currencyIcon}
+                      style={{ transform: 'translateX(-16px)' }}
+                    />
+                  </Grid>
+                )}
                 <Typography className={classes.currencySymbol}>{currency}</Typography>
               </>
             ) : (
