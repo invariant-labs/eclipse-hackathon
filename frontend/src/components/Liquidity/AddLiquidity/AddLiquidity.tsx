@@ -103,7 +103,7 @@ export const AddLiquidity: React.FC<IAddLiquidity> = ({
   return (
     <Grid container direction='column' className={classNames(classes.tabWrapper, className)}>
       <Typography className={classes.sectionTitle}>Deposit Amount</Typography>
-      <Grid container className={classes.sectionWrapper}>
+      <Grid container className={classes.sectionWrapper} rowGap={1.5}>
         <DepositAmountInput
           tokenPrice={priceA}
           currency={tokenAIndex !== null ? tokens[tokenAIndex].symbol : null}
@@ -149,7 +149,7 @@ export const AddLiquidity: React.FC<IAddLiquidity> = ({
               : ''
           }
           style={{
-            marginBottom: 10
+            marginBottom: 0
           }}
           onBlur={() => {
             if (

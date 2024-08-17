@@ -116,7 +116,7 @@ export const RemoveLiquidity: React.FC<IRemoveLiquidity> = ({
           }}
           balanceValue={tokenAIndex !== null ? printBN(LPTokenBalance, LPTokenDecimals) : ''}
           style={{
-            marginBottom: 10
+            marginBottom: 0
           }}
           onBlur={() => {
             if (LPTokenInputState.value.length === 0) {
