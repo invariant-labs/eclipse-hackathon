@@ -91,7 +91,7 @@ export const WETH_DEV: Token = {
 
 export const USDC_TEST: Token = {
   symbol: 'USDC',
-  address: new PublicKey('5gFSyxjNsuQsZKn9g5L9Ky3cSUvJ6YXqWVuPzmSi8Trx'),
+  address: new PublicKey('5W3bmyYDww6p5XRZnCR6m2c75st6XyCxW1TgGS3wTq7S'),
   decimals: 9,
   name: 'USD Coin',
   logoURI:
@@ -101,7 +101,7 @@ export const USDC_TEST: Token = {
 
 export const BTC_TEST: Token = {
   symbol: 'BTC',
-  address: new PublicKey('2F5TprcNBqj2hXVr9oTssabKdf8Zbsf9xStqWjPm8yLo'),
+  address: new PublicKey('3JXmQAzBPU66dkVQufSE1ChBMRAdCHp6T7ZMBKAwhmWw'),
   decimals: 9,
   name: 'Bitcoin',
   logoURI:

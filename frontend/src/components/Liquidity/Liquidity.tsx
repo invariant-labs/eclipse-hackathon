@@ -118,10 +118,11 @@ export const Liquidity: React.FC<ILiquidity> = ({
 
   const [isLoaded, setIsLoaded] = useState<boolean>(false)
   useEffect(() => {
-    if (isLoaded || ALL_FEE_TIERS_DATA.length === 0) {
+    if (isLoaded || tokens.length === 0 || ALL_FEE_TIERS_DATA.length === 0) {
       return
     }
-
+    console.log(initialTokenFrom)
+    console.log(initialTokenTo)
     let tokenAIndexFromPath = null
     let tokenBIndexFromPath = null
     let feeTierIndexFromPath = 0
@@ -136,6 +137,9 @@ export const Liquidity: React.FC<ILiquidity> = ({
       }
     })
 
+    console.log(tokenAIndexFromPath)
+    console.log(tokenBIndexFromPath)
+    console.log(initialFee)
     const parsedFee = parsePathFeeToFeeString(initialFee)
 
     ALL_FEE_TIERS_DATA.forEach((feeTierData, index) => {
@@ -143,18 +147,21 @@ export const Liquidity: React.FC<ILiquidity> = ({
         feeTierIndexFromPath = index
       }
     })
+    console.log(initialTab)
     setTokenAIndex(tokenAIndexFromPath)
     setTokenBIndex(tokenBIndexFromPath)
     setIsAddLiquidity(initialTab !== 'remove')
-    setPositionTokens(
-      tokenAIndexFromPath,
-      tokenBIndexFromPath,
-      feeTierIndexFromPath,
-      initialTab !== 'remove'
-    )
+    // setPositionTokens(
+    //   tokenAIndexFromPath,
+    //   tokenBIndexFromPath,
+    //   feeTierIndexFromPath,
+    //   initialTab !== 'remove'
+    // )
 
     setIsLoaded(true)
-  }, [])
+  }, [tokens])
+
+  console.log(initialTab)
   const lpTokenName = useMemo(() => {
     if (tokenAIndex === null || tokenBIndex === null) {
       return null
