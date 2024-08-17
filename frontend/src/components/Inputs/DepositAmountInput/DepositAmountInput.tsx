@@ -1,14 +1,15 @@
-import { Button, Grid, Input, Tooltip, Typography } from '@mui/material'
+import { Button, Grid, Input, Tooltip, Typography, useMediaQuery } from '@mui/material'
 import loadingAnimation from '@static/gif/loading.gif'
 import { formatNumbers, getScaleFromString, showPrefix } from '@utils/utils'
-import React, { CSSProperties, useRef } from 'react'
+import React, { CSSProperties, useMemo, useRef } from 'react'
 import useStyles from './style'
 import { FormatNumberThreshold } from '@store/consts/types'
+import { theme } from '@static/theme'
 
 interface IProps {
   setValue: (value: string) => void
   currency: string | null
-  currencyIconSrc?: string
+  icon: string | { fistIcon: string; secondIcon: string }
   value?: string
   placeholder?: string
   onMaxClick: () => void
@@ -22,11 +23,12 @@ interface IProps {
   disabled?: boolean
   priceLoading?: boolean
   showEstimatedValue?: boolean
+  columnMobile?: boolean
 }
 
 export const DepositAmountInput: React.FC<IProps> = ({
   currency,
-  currencyIconSrc,
+  icon,
   value,
   setValue,
   placeholder,
@@ -40,9 +42,15 @@ export const DepositAmountInput: React.FC<IProps> = ({
   balanceValue,
   disabled = false,
   priceLoading = false,
-  showEstimatedValue = true
+  showEstimatedValue = true,
+  columnMobile
 }) => {
   const { classes } = useStyles({ isSelected: !!currency })
+
+  const isSmDown = useMediaQuery(theme.breakpoints.down('sm'))
+  const columnDirection = useMemo(() => {
+    return columnMobile && isSmDown
+  }, [isSmDown, columnMobile])
 
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -154,7 +162,7 @@ export const DepositAmountInput: React.FC<IProps> = ({
           container
           justifyContent='space-between'
           alignItems='center'
-          direction='row'
+          direction={columnDirection ? 'column' : 'row'}
           wrap='nowrap'
           className={classes.inputContainer}>
           <Grid
@@ -162,19 +170,42 @@ export const DepositAmountInput: React.FC<IProps> = ({
             container
             justifyContent='center'
             alignItems='center'
-            wrap='nowrap'>
-            {currency !== null ? (
-              <>
-                <img alt='currency icon' src={currencyIconSrc} className={classes.currencyIcon} />
-                <Typography className={classes.currencySymbol}>{currency}</Typography>
-              </>
+            wrap='nowrap'
+            width={columnDirection ? '100%' : 'fit-content'}>
+            {currency !== null && !!icon ? (
+              <Grid display='flex' flexDirection='row'>
+                {typeof icon === 'string' ? (
+                  <img alt='currency icon' src={icon} className={classes.currencyIcon} />
+                ) : (
+                  <Grid className={classes.iconsGrid}>
+                    <img
+                      alt='currency first icon'
+                      src={icon.fistIcon}
+                      className={classes.currencyIcon}
+                    />
+                    <img
+                      alt='currency second icon'
+                      src={icon.secondIcon}
+                      className={classes.currencyIcon}
+                      style={{ transform: 'translateX(-16px)' }}
+                    />
+                  </Grid>
+                )}
+                <Grid item>
+                  <Typography className={classes.currencySymbol} width='100%'>
+                    {currency}
+                  </Typography>
+                </Grid>
+              </Grid>
             ) : (
-              <Typography className={classes.noCurrencyText}>-</Typography>
+              <Grid display='flex'>
+                <Typography className={classes.noCurrencyText}>-</Typography>
+              </Grid>
             )}
           </Grid>
           <Input
             className={classes.input}
-            classes={{ input: classes.innerInput }}
+            classes={{ input: columnDirection ? classes.innerInputRight : classes.innerInputLeft }}
             inputRef={inputRef}
             value={value}
             disableUnderline={true}

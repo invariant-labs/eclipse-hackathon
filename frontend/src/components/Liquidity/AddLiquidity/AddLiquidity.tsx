@@ -14,7 +14,7 @@ import {
   WRAPPED_ETH_ADDRESS
 } from '@store/consts/static'
 import { BN } from '@project-serum/anchor'
-import InputInfo from '../InfoInput/InfoInput'
+import InputInfo from '../../Inputs/InfoInput/InfoInput'
 
 export interface InputState {
   value: string
@@ -103,11 +103,11 @@ export const AddLiquidity: React.FC<IAddLiquidity> = ({
   return (
     <Grid container direction='column' className={classNames(classes.tabWrapper, className)}>
       <Typography className={classes.sectionTitle}>Deposit Amount</Typography>
-      <Grid container className={classes.sectionWrapper}>
+      <Grid container className={classes.sectionWrapper} rowGap={1.5}>
         <DepositAmountInput
           tokenPrice={priceA}
           currency={tokenAIndex !== null ? tokens[tokenAIndex].symbol : null}
-          currencyIconSrc={tokenAIndex !== null ? tokens[tokenAIndex].logoURI : undefined}
+          icon={tokenAIndex !== null ? tokens[tokenAIndex].logoURI : ''}
           placeholder='0.0'
           onMaxClick={() => {
             if (tokenAIndex === null) {
@@ -149,7 +149,7 @@ export const AddLiquidity: React.FC<IAddLiquidity> = ({
               : ''
           }
           style={{
-            marginBottom: 10
+            marginBottom: 0
           }}
           onBlur={() => {
             if (
@@ -167,7 +167,7 @@ export const AddLiquidity: React.FC<IAddLiquidity> = ({
         <DepositAmountInput
           tokenPrice={priceB}
           currency={tokenBIndex !== null ? tokens[tokenBIndex].symbol : null}
-          currencyIconSrc={tokenBIndex !== null ? tokens[tokenBIndex].logoURI : undefined}
+          icon={tokenBIndex !== null ? tokens[tokenBIndex].logoURI : ''}
           placeholder='0.0'
           onMaxClick={() => {
             if (tokenBIndex === null) {
@@ -224,10 +224,18 @@ export const AddLiquidity: React.FC<IAddLiquidity> = ({
       <Typography className={classes.sectionTitle}>Receive Amount</Typography>
       <Grid container className={classes.sectionWrapper}>
         <InputInfo
-          name={LPTokenName}
-          icon={LPTokenIcon}
+          currency={LPTokenName}
+          icon={
+            tokenAIndex !== null && tokenBIndex !== null
+              ? {
+                  fistIcon: tokens[tokenAIndex].logoURI,
+                  secondIcon: tokens[tokenBIndex].logoURI
+                }
+              : ''
+          }
           decimal={LPTokenDecimals}
           value={LPTokenReceive}
+          columnMobile
         />
       </Grid>
       <AnimatedButton

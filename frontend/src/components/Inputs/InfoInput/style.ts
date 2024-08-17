@@ -11,7 +11,9 @@ export const useStyles = makeStyles()((theme: Theme) => ({
   },
   iconsGrid: {
     display: 'flex',
-    alignItems: 'center'
+    alignItems: 'center',
+    position: 'relative',
+    width: 42
   },
   icon: {
     width: 35,
@@ -88,28 +90,35 @@ export const useStyles = makeStyles()((theme: Theme) => ({
     width: 100,
     paddingRight: 0
   },
-  namesGrid: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingLeft: 8,
-    '& #pause': {
-      padding: ' 0px 3px'
-    },
+  currency: {
+    height: 36,
+    minWidth: 85,
+    flexShrink: 0,
+    borderRadius: 11,
+    backgroundColor: colors.invariant.light,
+    padding: '6px 12px 6px 12px',
+    cursor: 'default',
 
-    [theme.breakpoints.down('sm')]: {
-      paddingLeft: 4
+    [theme.breakpoints.down('md')]: {
+      height: 36,
+      minWidth: 85
     }
   },
-  name: {
-    ...typography.heading3,
-    color: colors.invariant.text,
-    lineHeight: '28px',
-
-    [theme.breakpoints.down('sm')]: {
-      ...typography.heading4
-    }
+  currencyIcon: {
+    minWidth: 20,
+    height: 20,
+    marginRight: 8,
+    borderRadius: '100%'
+  },
+  currencySymbol: {
+    ...typography.body3,
+    color: colors.white.main
+  },
+  noCurrencyText: {
+    ...typography.body3,
+    color: colors.white.main,
+    cursor: 'default',
+    transform: 'scaleX(2)'
   },
   bottomGrid: {
     background: colors.invariant.component,
@@ -196,7 +205,6 @@ export const useStyles = makeStyles()((theme: Theme) => ({
   },
   tokenAreaUpperPart: {
     display: 'flex',
-    flexDirection: 'row',
     justifyContent: 'space-between'
   },
   tokenAreaLowerPart: {
@@ -225,7 +233,6 @@ export const useStyles = makeStyles()((theme: Theme) => ({
     display: 'block',
     whiteSpace: 'nowrap',
     color: colors.invariant.lightGrey,
-    alignSelf: 'center',
 
     '&::-webkit-scrollbar': {
       display: 'none',

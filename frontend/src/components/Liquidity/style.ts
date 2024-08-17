@@ -97,20 +97,19 @@ const useStyles = makeStyles()(theme => {
       justifyContent: 'center',
       alignItems: 'center',
       flex: '1 1 0',
-      padding: '16px 0px',
+      padding: '12px 4px',
       borderRadius: 0,
       borderTopLeftRadius: 24,
       borderTopRightRadius: 24,
       color: colors.invariant.lightGrey,
 
       '& p': {
-        color: colors.invariant.text,
-        opacity: 0.3,
-        transition: 'opacity 300ms'
+        color: colors.invariant.light,
+        transition: 'filter 300ms'
       },
       '&:hover': {
         '& p': {
-          opacity: 0.8
+          filter: 'brightness(1.2)'
         },
         '@media (hover: none)': {
           backgroundColor: colors.invariant.component
@@ -148,7 +147,7 @@ const useStyles = makeStyles()(theme => {
     },
     sectionTitle: {
       ...typography.heading4,
-      marginBottom: 24,
+      marginBottom: 16,
       color: colors.white.main
     },
     sectionWrapper: {
@@ -157,7 +156,7 @@ const useStyles = makeStyles()(theme => {
       backgroundColor: colors.invariant.component,
       paddingTop: 0,
       width: '100%',
-      marginBottom: 30
+      marginBottom: 32
     },
     inputLabel: {
       ...typography.body3,

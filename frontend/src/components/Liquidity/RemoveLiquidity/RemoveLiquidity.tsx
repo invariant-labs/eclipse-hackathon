@@ -10,7 +10,7 @@ import { printBN, printBNtoBN } from '@utils/utils'
 import { LPTokenDecimals } from '@store/consts/static'
 import { BN } from '@project-serum/anchor'
 
-import InputInfo from '../InfoInput/InfoInput'
+import InputInfo from '../../Inputs/InfoInput/InfoInput'
 
 export interface InputState {
   value: string
@@ -77,7 +77,14 @@ export const RemoveLiquidity: React.FC<IRemoveLiquidity> = ({
       <Grid container className={classes.sectionWrapper}>
         <DepositAmountInput
           currency={LPTokenName}
-          currencyIconSrc={LPTokenIcon ? LPTokenIcon : undefined}
+          icon={
+            tokenAIndex !== null && tokenBIndex !== null
+              ? {
+                  fistIcon: tokens[tokenAIndex].logoURI,
+                  secondIcon: tokens[tokenBIndex].logoURI
+                }
+              : ''
+          }
           placeholder='0.0'
           onMaxClick={() => {
             // if (tokens[tokenAIndex].assetAddress.equals(new PublicKey(WRAPPED_ETH_ADDRESS))) {
@@ -109,7 +116,7 @@ export const RemoveLiquidity: React.FC<IRemoveLiquidity> = ({
           }}
           balanceValue={tokenAIndex !== null ? printBN(LPTokenBalance, LPTokenDecimals) : ''}
           style={{
-            marginBottom: 10
+            marginBottom: 0
           }}
           onBlur={() => {
             if (LPTokenInputState.value.length === 0) {
@@ -117,19 +124,20 @@ export const RemoveLiquidity: React.FC<IRemoveLiquidity> = ({
             }
           }}
           showEstimatedValue={false}
+          columnMobile
           {...LPTokenInputState}
         />
       </Grid>
       <Typography className={classes.sectionTitle}>Receive Amount</Typography>
       <Grid container className={classes.sectionWrapper} rowGap={1}>
         <InputInfo
-          name={tokenAIndex !== null ? tokens[tokenAIndex].symbol : ''}
+          currency={tokenAIndex !== null ? tokens[tokenAIndex].symbol : ''}
           icon={tokenAIndex !== null ? tokens[tokenAIndex].logoURI : ''}
           decimal={tokenAIndex !== null ? tokens[tokenAIndex].decimals : 0}
           value={tokenAReceive}
         />
         <InputInfo
-          name={tokenBIndex !== null ? tokens[tokenBIndex].symbol : ''}
+          currency={tokenBIndex !== null ? tokens[tokenBIndex].symbol : ''}
           icon={tokenBIndex !== null ? tokens[tokenBIndex].logoURI : ''}
           decimal={tokenBIndex !== null ? tokens[tokenBIndex].decimals : 0}
           value={tokenBReceive}

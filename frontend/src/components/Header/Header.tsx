@@ -94,8 +94,8 @@ export const Header: React.FC<IHeader> = ({
             className={classes.logo}
             image={icons.LogoTitle}
             onClick={() => {
-              if (!activePath.startsWith('exchange')) {
-                navigate('/exchange')
+              if (!activePath.startsWith('liquidity')) {
+                navigate('/liquidity')
               }
             }}
           />
@@ -107,8 +107,8 @@ export const Header: React.FC<IHeader> = ({
                 className={classes.logoShort}
                 image={icons.LogoShort}
                 onClick={() => {
-                  if (!activePath.startsWith('exchange')) {
-                    navigate('/exchange')
+                  if (!activePath.startsWith('liquidity')) {
+                    navigate('/liquidity')
                   }
                 }}
               />
