@@ -89,4 +89,9 @@ pub mod protocol {
     pub fn reopen_position(ctx: Context<ReopenPositionCtx>, index: u32) -> Result<()> {
         ctx.accounts.process(index)
     }
+
+    pub fn init_lp_pool(ctx: Context<InitPoolCtx>) -> Result<()> {
+        let bump = ctx.bumps.lp_pool;
+        ctx.accounts.process(bump)
+    }
 }

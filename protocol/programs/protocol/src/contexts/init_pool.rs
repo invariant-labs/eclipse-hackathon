@@ -1,4 +1,4 @@
-use crate::states::{DerivedAccountIdentifier, LpPool};
+use crate::states::{DerivedAccountIdentifier, LpPool, LP_TOKEN_IDENT};
 use crate::ErrorCode::*;
 use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
@@ -21,22 +21,27 @@ pub struct InitPoolCtx<'info> {
     #[account(constraint = &state.load()?.program_authority == program_authority.key @ InvalidAuthority)]
     pub program_authority: AccountInfo<'info>,
 
-    #[account(init, space = LpPool::LEN,
+    #[account(init,
         seeds = [LpPool::IDENT, token_x.key().as_ref(), token_y.key().as_ref(), &pool.load()?.fee.v.to_le_bytes(), &pool.load()?.tick_spacing.to_le_bytes()],
-        bump, payer = signer
+        space = LpPool::LEN,
+        bump,
+        payer = payer
     )]
     pub lp_pool: AccountLoader<'info, LpPool>,
     #[account(init,
-        payer = signer,
+        seeds = [LP_TOKEN_IDENT, token_x.key().as_ref(), token_y.key().as_ref(), &pool.load()?.fee.v.to_le_bytes(), &pool.load()?.tick_spacing.to_le_bytes()],
+        bump,
+        payer = payer,
         mint::decimals = 6,
         mint::authority = program_authority,
-        mint::token_program = associated_token_program)]
+        mint::token_program = token_program)]
     pub token_lp: InterfaceAccount<'info, Mint>,
     #[account(mut)]
-    pub signer: Signer<'info>,
-    #[account(mut,
+    pub payer: Signer<'info>,
+    #[account(
         seeds = [b"poolv1", token_x.key().as_ref(), token_y.key().as_ref(), &pool.load()?.fee.v.to_le_bytes(), &pool.load()?.tick_spacing.to_le_bytes()],
-        bump = pool.load()?.bump
+        bump = pool.load()?.bump,
+        seeds::program = invariant::ID
     )]
     pub pool: AccountLoader<'info, Pool>,
     pub token_x: InterfaceAccount<'info, Mint>,
@@ -45,14 +50,14 @@ pub struct InitPoolCtx<'info> {
         associated_token::mint = token_x,
         associated_token::authority = program_authority,
         associated_token::token_program = token_x_program,
-        payer = signer,
+        payer = payer,
     )]
     pub reserve_x: InterfaceAccount<'info, TokenAccount>,
     #[account(init_if_needed,
         associated_token::mint = token_y,
         associated_token::authority = program_authority,
         associated_token::token_program = token_y_program,
-        payer = signer,
+        payer = payer,
     )]
     pub reserve_y: InterfaceAccount<'info, TokenAccount>,
     #[account(constraint = token_x_program.key() == token::ID || token_x_program.key() == token_2022::ID)]
@@ -68,18 +73,11 @@ impl InitPoolCtx<'_> {
     pub fn process(&mut self, bump: u8) -> Result<()> {
         let token_x = self.token_x.key();
         let token_y = self.token_y.key();
-        let token_lp = self.token_lp.key();
-        let reserve_x = self.reserve_x.key();
-        let reserve_y = self.reserve_y.key();
-
         let lp_pool = &mut self.lp_pool.load_init()?;
         let pool = &self.pool.load()?;
+
         **lp_pool = LpPool {
-            token_lp,
-            // TODO: Make a "position list" account, every single one of our pools is one position
-            position_index: 0,
-            reserve_x,
-            reserve_y,
+            invariant_position: Pubkey::default(),
             leftover_x: 0,
             leftover_y: 0,
             token_x,
@@ -89,6 +87,6 @@ impl InitPoolCtx<'_> {
             bump,
         };
 
-        Result::<()>::Ok(())
+        Ok(())
     }
 }

@@ -622,9 +622,132 @@ export type Protocol = {
           "type": "u32"
         }
       ]
+    },
+    {
+      "name": "initLpPool",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lpPool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenLp",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "pool",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenX",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenY",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "reserveX",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserveY",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenXProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenYProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
+    {
+      "name": "lpPool",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "invariantPosition",
+            "type": "publicKey"
+          },
+          {
+            "name": "leftoverX",
+            "type": "u64"
+          },
+          {
+            "name": "leftoverY",
+            "type": "u64"
+          },
+          {
+            "name": "tokenX",
+            "type": "publicKey"
+          },
+          {
+            "name": "tokenY",
+            "type": "publicKey"
+          },
+          {
+            "name": "tickSpacing",
+            "type": "u16"
+          },
+          {
+            "name": "fee",
+            "type": {
+              "defined": "FixedPoint"
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
     {
       "name": "state",
       "type": {
@@ -654,6 +777,56 @@ export type Protocol = {
       }
     }
   ],
+  "types": [
+    {
+      "name": "Price",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "v",
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Liquidity",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "v",
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FeeGrowth",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "v",
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FixedPoint",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "v",
+            "type": "u128"
+          }
+        ]
+      }
+    }
+  ],
   "errors": [
     {
       "code": 6000,
@@ -674,6 +847,11 @@ export type Protocol = {
       "code": 6003,
       "name": "InvalidOwner",
       "msg": "Provided owner account is different than expected"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidInvariantAuthority",
+      "msg": "Provided Invariant authority is different than expected"
     }
   ]
 };
@@ -1302,9 +1480,132 @@ export const IDL: Protocol = {
           "type": "u32"
         }
       ]
+    },
+    {
+      "name": "initLpPool",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lpPool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenLp",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "pool",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenX",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenY",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "reserveX",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserveY",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenXProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenYProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
+    {
+      "name": "lpPool",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "invariantPosition",
+            "type": "publicKey"
+          },
+          {
+            "name": "leftoverX",
+            "type": "u64"
+          },
+          {
+            "name": "leftoverY",
+            "type": "u64"
+          },
+          {
+            "name": "tokenX",
+            "type": "publicKey"
+          },
+          {
+            "name": "tokenY",
+            "type": "publicKey"
+          },
+          {
+            "name": "tickSpacing",
+            "type": "u16"
+          },
+          {
+            "name": "fee",
+            "type": {
+              "defined": "FixedPoint"
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
     {
       "name": "state",
       "type": {
@@ -1334,6 +1635,56 @@ export const IDL: Protocol = {
       }
     }
   ],
+  "types": [
+    {
+      "name": "Price",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "v",
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Liquidity",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "v",
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FeeGrowth",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "v",
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FixedPoint",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "v",
+            "type": "u128"
+          }
+        ]
+      }
+    }
+  ],
   "errors": [
     {
       "code": 6000,
@@ -1354,6 +1705,11 @@ export const IDL: Protocol = {
       "code": 6003,
       "name": "InvalidOwner",
       "msg": "Provided owner account is different than expected"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidInvariantAuthority",
+      "msg": "Provided Invariant authority is different than expected"
     }
   ]
 };

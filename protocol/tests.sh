@@ -4,6 +4,7 @@ e2e_tests=(
     "init"
     "token"
     "invoke"
+    "init-lp-pool"
 )
 
 # currenty, there are no unit tests 

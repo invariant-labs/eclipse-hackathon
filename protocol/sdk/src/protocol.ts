@@ -10,13 +10,28 @@ import {
 } from "@solana/web3.js";
 import { getProtocolProgramAddress, Network } from "./network";
 import { IWallet } from "./wallet";
-import { Program, utils } from "@coral-xyz/anchor";
+import { BN, Program, utils } from "@coral-xyz/anchor";
 import { IDL, Protocol as ProtocolProgram } from "./idl/protocol";
-import { computeUnitsInstruction, signAndSend } from "./utils";
-import { PROTOCOL_AUTHORITY_SEED, PROTOCOL_STATE_SEED } from "./consts";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import {
+  bigNumberToBuffer,
+  computeUnitsInstruction,
+  signAndSend,
+} from "./utils";
+import {
+  LP_POOL_SEED,
+  LP_TOKEN_SEED,
+  PROTOCOL_AUTHORITY_SEED,
+  PROTOCOL_STATE_SEED,
+} from "./consts";
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  getAssociatedTokenAddressSync,
+  TOKEN_2022_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
 import {
   IDeposit,
+  IInitLpPool,
   IInvokeClosePosition,
   IInvokeCreatePosition,
   IInvokeUpdateSecondsPerLiquidity,
@@ -24,7 +39,13 @@ import {
   IReopenPosition,
   ITest,
   IWithdraw,
+  LpPoolStructure,
 } from "./types";
+import {
+  getMarketAddress,
+  getTokenProgramAddress,
+  Pair,
+} from "@invariant-labs/sdk-eclipse";
 
 export class Protocol {
   public connection: Connection;
@@ -69,6 +90,43 @@ export class Protocol {
       [Buffer.from(utils.bytes.utf8.encode(PROTOCOL_AUTHORITY_SEED))],
       this.program.programId
     );
+  }
+
+  getLpPoolAddressAndBump(pair: Pair): [PublicKey, number] {
+    return PublicKey.findProgramAddressSync(
+      [
+        Buffer.from(utils.bytes.utf8.encode(LP_POOL_SEED)),
+        pair.tokenX.toBuffer(),
+        pair.tokenY.toBuffer(),
+        bigNumberToBuffer(pair.feeTier.fee, 128),
+        bigNumberToBuffer(new BN(pair.feeTier.tickSpacing as number), 16),
+      ],
+      this.program.programId
+    );
+  }
+
+  getLpTokenAddressAndBump(pair: Pair): [PublicKey, number] {
+    return PublicKey.findProgramAddressSync(
+      [
+        Buffer.from(utils.bytes.utf8.encode(LP_TOKEN_SEED)),
+        pair.tokenX.toBuffer(),
+        pair.tokenY.toBuffer(),
+        bigNumberToBuffer(pair.feeTier.fee, 128),
+        bigNumberToBuffer(new BN(pair.feeTier.tickSpacing as number), 16),
+      ],
+      this.program.programId
+    );
+  }
+
+  getReserveAddress(token: PublicKey): PublicKey {
+    return getAssociatedTokenAddressSync(token, this.programAuthority, true);
+  }
+
+  async getLpPool(pair: Pair) {
+    const [address] = this.getLpPoolAddressAndBump(pair);
+    return (await this.program.account.lpPool.fetch(
+      address
+    )) as LpPoolStructure;
   }
 
   async sendTx(ix: TransactionInstruction[], signers: Keypair[]) {
@@ -123,14 +181,20 @@ export class Protocol {
 
   async mintIx({
     amount,
+    tokenMint,
     ...accounts
   }: IMint): Promise<TransactionInstruction> {
+    const tokenProgram = await getTokenProgramAddress(
+      this.connection,
+      tokenMint
+    );
     return await this.program.methods
       .mint(amount)
       .accounts({
         state: this.stateAddress,
         programAuthority: this.programAuthority,
-        tokenProgram: TOKEN_PROGRAM_ID,
+        tokenMint,
+        tokenProgram,
         ...accounts,
       })
       .instruction();
@@ -293,6 +357,54 @@ export class Protocol {
       .accounts({
         systemProgram: SystemProgram.programId,
         owner,
+        ...accounts,
+      })
+      .instruction();
+  }
+
+  async initLpPool(accounts: IInitLpPool, signer: Keypair) {
+    const ix = await this.initLpPoolIx(accounts, signer);
+    return await this.sendTx([ix], [signer]);
+  }
+
+  async initLpPoolIx(
+    { pair, ...accounts }: IInitLpPool,
+    signer?: Keypair
+  ): Promise<TransactionInstruction> {
+    const payer = signer?.publicKey ?? this.wallet.publicKey;
+
+    const [lpPool] = this.getLpPoolAddressAndBump(pair);
+    const [tokenLp] = this.getLpTokenAddressAndBump(pair);
+    const pool =
+      accounts.pool ??
+      (await pair.getAddress(new PublicKey(getMarketAddress(this.network))));
+    const reserveX = this.getReserveAddress(pair.tokenX);
+    const reserveY = this.getReserveAddress(pair.tokenY);
+    const tokenXProgram =
+      accounts.tokenXProgram ??
+      (await getTokenProgramAddress(this.connection, pair.tokenX));
+    const tokenYProgram =
+      accounts.tokenYProgram ??
+      (await getTokenProgramAddress(this.connection, pair.tokenY));
+
+    return await this.program.methods
+      .initLpPool()
+      .accounts({
+        state: this.stateAddress,
+        programAuthority: this.programAuthority,
+        lpPool,
+        tokenLp,
+        payer,
+        pool,
+        tokenX: pair.tokenX,
+        tokenY: pair.tokenY,
+        reserveX,
+        reserveY,
+        tokenXProgram,
+        tokenYProgram,
+        tokenProgram: TOKEN_2022_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
         ...accounts,
       })
       .instruction();

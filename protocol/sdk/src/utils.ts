@@ -1,4 +1,4 @@
-import { AnchorProvider, utils } from "@coral-xyz/anchor";
+import { AnchorProvider, BN, utils } from "@coral-xyz/anchor";
 import {
   BlockheightBasedTransactionConfirmationStrategy,
   ComputeBudgetProgram,
@@ -56,4 +56,19 @@ export const getPuppetCounterAddressAndBump = (
 
 export const getPuppetCounterAddress = (programId: PublicKey): PublicKey => {
   return getPuppetCounterAddressAndBump(programId)[0];
+};
+
+export const bigNumberToBuffer = (n: BN, size: 16 | 32 | 64 | 128 | 256) => {
+  const chunk = new BN(2).pow(new BN(16));
+
+  const buffer = Buffer.alloc(size / 8);
+  let offset = 0;
+
+  while (n.gt(new BN(0))) {
+    buffer.writeUInt16LE(n.mod(chunk).toNumber(), offset);
+    n = n.div(chunk);
+    offset += 2;
+  }
+
+  return buffer;
 };
