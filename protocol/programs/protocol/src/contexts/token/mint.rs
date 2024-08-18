@@ -12,7 +12,7 @@ pub struct MintCtx<'info> {
     )]
     pub state: AccountLoader<'info, State>,
 
-    /// CHECK: pretty much only cached from the state account
+    /// CHECK: cached from the state account
     #[account(constraint = &state.load()?.program_authority == program_authority.key @ InvalidAuthority)]
     pub program_authority: AccountInfo<'info>,
     #[account(mut)]

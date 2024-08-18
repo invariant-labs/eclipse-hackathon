@@ -39,7 +39,15 @@ pub struct FeeGrowth {
 #[decimal(12)]
 #[zero_copy]
 #[derive(
-    Default, std::fmt::Debug, PartialEq, Eq, PartialOrd, Ord, AnchorSerialize, AnchorDeserialize,
+    Default,
+    std::fmt::Debug,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    AnchorSerialize,
+    AnchorDeserialize,
+    InitSpace,
 )]
 pub struct FixedPoint {
     pub v: u128,

@@ -1,5 +1,7 @@
+mod lp_pool;
 mod state;
 
+pub use lp_pool::LpPool;
 pub use state::State;
 
 pub trait DerivedAccountIdentifier {
