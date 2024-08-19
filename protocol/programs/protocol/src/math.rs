@@ -540,7 +540,7 @@ pub fn liquidity_to_lp_token_amount(
     }
 
     if rounding_up {
-        let mut amount = TokenAmount::new(
+        let amount = TokenAmount::new(
             U192::from(liquidity_delta.get())
                 .checked_mul(U192::from(lp_token_supply.get()))
                 .ok_or(err!(TrackableError::MUL))?

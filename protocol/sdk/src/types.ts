@@ -1,5 +1,18 @@
 import { BN } from "@coral-xyz/anchor";
+import { Pair } from "@invariant-labs/sdk-eclipse";
+import { Decimal } from "@invariant-labs/sdk-eclipse/lib/market";
 import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
+
+export interface LpPoolStructure {
+  invariantPosition: PublicKey;
+  leftoverX: BN;
+  leftoverY: BN;
+  tokenX: PublicKey;
+  tokenY: PublicKey;
+  tickSpacing: number;
+  fee: Decimal;
+  bump: number;
+}
 
 export interface ITransaction {
   tx: Transaction;
@@ -116,4 +129,11 @@ export interface IReopenPosition {
   invariantProgramAuthority: PublicKey;
   tokenXProgram: PublicKey;
   tokenYProgram: PublicKey;
+}
+
+export interface IInitLpPool {
+  pair: Pair;
+  pool?: PublicKey;
+  tokenXProgram?: PublicKey;
+  tokenYProgram?: PublicKey;
 }

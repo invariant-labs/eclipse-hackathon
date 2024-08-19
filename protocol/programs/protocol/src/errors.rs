@@ -12,6 +12,8 @@ pub enum ErrorCode {
     InvalidMint = 2, //0x12E (302)
     #[msg("Provided owner account is different than expected")]
     InvalidOwner = 3, //0x12F (303)
+    #[msg("Provided Invariant authority is different than expected")]
+    InvalidInvariantAuthority = 4, //0x130 (304)
 }
 
 impl TryInto<ErrorCode> for u32 {
