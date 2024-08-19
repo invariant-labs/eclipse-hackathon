@@ -3,13 +3,12 @@ import { NetworkType, RPC } from '@store/consts/static'
 import { actions } from '@store/reducers/connection'
 import { Status, actions as walletActions } from '@store/reducers/wallet'
 import { address, status } from '@store/selectors/wallet'
-import { openWalletSelectorModal, nightlyConnectAdapter } from '@utils/web3/selector'
+import { nightlyConnectAdapter } from '@utils/web3/selector'
 import React, { useEffect, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useLocation } from 'react-router-dom'
 import { network, rpcAddress } from '@store/selectors/connection'
 import { actions as snackbarsActions } from '@store/reducers/snackbars'
-import { getSolanaWallet } from '@utils/web3/wallet'
 
 export const HeaderWrapper: React.FC = () => {
   const dispatch = useDispatch()
@@ -21,12 +20,9 @@ export const HeaderWrapper: React.FC = () => {
 
   useEffect(() => {
     const fetchWallet = async () => {
-      const wallet = await getSolanaWallet()
-
       await nightlyConnectAdapter.canEagerConnect().then(
         async canEagerConnect => {
           if (canEagerConnect) {
-            await openWalletSelectorModal()
             dispatch(walletActions.connect(true))
           }
         },
@@ -62,7 +58,6 @@ export const HeaderWrapper: React.FC = () => {
         }
       }}
       onConnectWallet={async () => {
-        await openWalletSelectorModal()
         dispatch(walletActions.connect(false))
       }}
       landing={location.pathname.substring(1)}
