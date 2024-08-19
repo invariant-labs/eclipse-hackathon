@@ -17,9 +17,11 @@ jobs:
         with:
           node-version: '16'
       - name: install
-        run: npm i
+        run: npm I
+        working-directory: frontend
       - name: build
         run: npm run build
+        working-directory: frontend
 
   upload:
     runs-on: ubuntu-latest
