@@ -1,4 +1,4 @@
-use crate::states::{DerivedAccountIdentifier, LpPool, LP_TOKEN_IDENT};
+use crate::states::{DerivedAccountIdentifier, LpPool, INVARIANT_POOL_IDENT, LP_TOKEN_IDENT};
 use crate::ErrorCode::*;
 use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
@@ -39,7 +39,7 @@ pub struct InitPoolCtx<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
     #[account(
-        seeds = [b"poolv1", token_x.key().as_ref(), token_y.key().as_ref(), &pool.load()?.fee.v.to_le_bytes(), &pool.load()?.tick_spacing.to_le_bytes()],
+        seeds = [INVARIANT_POOL_IDENT, token_x.key().as_ref(), token_y.key().as_ref(), &pool.load()?.fee.v.to_le_bytes(), &pool.load()?.tick_spacing.to_le_bytes()],
         bump = pool.load()?.bump,
         seeds::program = invariant::ID
     )]
@@ -70,7 +70,7 @@ pub struct InitPoolCtx<'info> {
 }
 
 impl InitPoolCtx<'_> {
-    pub fn process(&mut self, bump: u8) -> Result<()> {
+    pub fn process(&mut self, token_bump: u8, bump: u8) -> Result<()> {
         let token_x = self.token_x.key();
         let token_y = self.token_y.key();
         let lp_pool = &mut self.lp_pool.load_init()?;
@@ -84,6 +84,7 @@ impl InitPoolCtx<'_> {
             token_y,
             tick_spacing: pool.tick_spacing,
             fee: crate::decimals::FixedPoint::new(pool.fee.v),
+            token_bump,
             bump,
         };
 

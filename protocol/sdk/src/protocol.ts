@@ -36,6 +36,7 @@ import {
   IInvokeCreatePosition,
   IInvokeUpdateSecondsPerLiquidity,
   IMint,
+  IMintLpToken,
   IReopenPosition,
   ITest,
   IWithdraw,
@@ -44,6 +45,7 @@ import {
 import {
   getMarketAddress,
   getTokenProgramAddress,
+  Market,
   Pair,
 } from "@invariant-labs/sdk-eclipse";
 
@@ -138,6 +140,28 @@ export class Protocol {
     const ix = await this.initIx(signer);
     return await this.sendTx([ix], [signer]);
   }
+  // TODO: Make this the only init function
+  async initWithPositionlist(
+    signer: Keypair,
+    market: Market
+  ): Promise<TransactionSignature> {
+    const ix = await this.initIx(signer);
+
+    // TODO: Fix the function in SDK To accept different payer and owner
+    const { positionListAddress } = await market.getPositionListAddress(
+      this.programAuthority
+    );
+    const positionListIx = market.program.instruction.createPositionList({
+      accounts: {
+        positionList: positionListAddress,
+        owner: this.programAuthority,
+        signer: signer.publicKey,
+        rent: SYSVAR_RENT_PUBKEY,
+        systemProgram: SystemProgram.programId,
+      },
+    });
+    return await this.sendTx([ix, positionListIx], [signer]);
+  }
 
   async initIx(signer?: Keypair): Promise<TransactionInstruction> {
     const [, programAuthorityBump] = this.getProgramAuthorityAddressAndBump();
@@ -179,25 +203,21 @@ export class Protocol {
     return await this.sendTx([ix], [signer]);
   }
 
-  async mintIx({
-    amount,
-    tokenMint,
-    ...accounts
-  }: IMint): Promise<TransactionInstruction> {
+  async mintIx({ amount, tokenMint, ...accounts }: IMint): Promise<any> {
     const tokenProgram = await getTokenProgramAddress(
       this.connection,
       tokenMint
     );
-    return await this.program.methods
-      .mint(amount)
-      .accounts({
-        state: this.stateAddress,
-        programAuthority: this.programAuthority,
-        tokenMint,
-        tokenProgram,
-        ...accounts,
-      })
-      .instruction();
+    // return await this.program.methods
+    //   .mint(amount)
+    //   .accounts({
+    //     state: this.stateAddress,
+    //     programAuthority: this.programAuthority,
+    //     tokenMint,
+    //     tokenProgram,
+    //     ...accounts,
+    //   })
+    //   .instruction();
   }
 
   async deposit(
@@ -362,8 +382,8 @@ export class Protocol {
       .instruction();
   }
 
-  async initLpPool(accounts: IInitLpPool, signer: Keypair) {
-    const ix = await this.initLpPoolIx(accounts, signer);
+  async initLpPool(params: IInitLpPool, signer: Keypair) {
+    const ix = await this.initLpPoolIx(params, signer);
     return await this.sendTx([ix], [signer]);
   }
 
@@ -395,6 +415,64 @@ export class Protocol {
         lpPool,
         tokenLp,
         payer,
+        pool,
+        tokenX: pair.tokenX,
+        tokenY: pair.tokenY,
+        reserveX,
+        reserveY,
+        tokenXProgram,
+        tokenYProgram,
+        tokenProgram: TOKEN_2022_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+        ...accounts,
+      })
+      .instruction();
+  }
+
+  async mintLpToken(params: IMintLpToken, signer: Keypair) {
+    const ix = await this.mintLpTokenIx(params, signer);
+    return await this.sendTx([ix], [signer]);
+  }
+
+  async mintLpTokenIx(
+    { pair, liquidityDelta, index, ...accounts }: IMintLpToken,
+    signer?: Keypair
+  ) {
+    const owner = signer?.publicKey ?? this.wallet.publicKey;
+
+    const [lpPool] = this.getLpPoolAddressAndBump(pair);
+    const [tokenLp] = this.getLpTokenAddressAndBump(pair);
+    const pool =
+      accounts.pool ??
+      (await pair.getAddress(new PublicKey(getMarketAddress(this.network))));
+    const reserveX = this.getReserveAddress(pair.tokenX);
+    const reserveY = this.getReserveAddress(pair.tokenY);
+    const tokenXProgram =
+      accounts.tokenXProgram ??
+      (await getTokenProgramAddress(this.connection, pair.tokenX));
+    const tokenYProgram =
+      accounts.tokenYProgram ??
+      (await getTokenProgramAddress(this.connection, pair.tokenY));
+    const accountLp = getAssociatedTokenAddressSync(
+      tokenLp,
+      owner,
+      undefined,
+      TOKEN_2022_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID
+    );
+
+    console.log(pair)
+
+    return await this.program.methods
+      .mintLpToken(liquidityDelta, index)
+      .accounts({
+        state: this.stateAddress,
+        programAuthority: this.programAuthority,
+        lpPool,
+        tokenLp,
+        accountLp,
+        owner,
         pool,
         tokenX: pair.tokenX,
         tokenY: pair.tokenY,

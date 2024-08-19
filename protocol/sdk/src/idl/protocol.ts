@@ -70,42 +70,6 @@ export type Protocol = {
       ]
     },
     {
-      "name": "mint",
-      "accounts": [
-        {
-          "name": "state",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "programAuthority",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "to",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        }
-      ]
-    },
-    {
       "name": "deposit",
       "accounts": [
         {
@@ -703,6 +667,174 @@ export type Protocol = {
         }
       ],
       "args": []
+    },
+    {
+      "name": "mintLpToken",
+      "accounts": [
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lpPool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenLp",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserveX",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserveY",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "accountLp",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "invProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "INVARIANT"
+          ]
+        },
+        {
+          "name": "invState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "invProgramAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "position",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lastPosition",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "pool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "positionList",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lowerTick",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "upperTick",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tickmap",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenX",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenY",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "accountX",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "accountY",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "invReserveX",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "invReserveY",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenXProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenYProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "liquidity",
+          "type": "u128"
+        },
+        {
+          "name": "index",
+          "type": "u32"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -740,6 +872,10 @@ export type Protocol = {
             "type": {
               "defined": "FixedPoint"
             }
+          },
+          {
+            "name": "tokenBump",
+            "type": "u8"
           },
           {
             "name": "bump",
@@ -852,6 +988,11 @@ export type Protocol = {
       "code": 6004,
       "name": "InvalidInvariantAuthority",
       "msg": "Provided Invariant authority is different than expected"
+    },
+    {
+      "code": 6005,
+      "name": "InvalidTokenProgram",
+      "msg": "Provided Token Program for Token is different than expected"
     }
   ]
 };
@@ -928,42 +1069,6 @@ export const IDL: Protocol = {
       ]
     },
     {
-      "name": "mint",
-      "accounts": [
-        {
-          "name": "state",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "programAuthority",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "to",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        }
-      ]
-    },
-    {
       "name": "deposit",
       "accounts": [
         {
@@ -1561,6 +1666,174 @@ export const IDL: Protocol = {
         }
       ],
       "args": []
+    },
+    {
+      "name": "mintLpToken",
+      "accounts": [
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lpPool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenLp",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserveX",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserveY",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "accountLp",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "invProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "INVARIANT"
+          ]
+        },
+        {
+          "name": "invState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "invProgramAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "position",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lastPosition",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "pool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "positionList",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lowerTick",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "upperTick",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tickmap",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenX",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenY",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "accountX",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "accountY",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "invReserveX",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "invReserveY",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenXProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenYProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "liquidity",
+          "type": "u128"
+        },
+        {
+          "name": "index",
+          "type": "u32"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -1598,6 +1871,10 @@ export const IDL: Protocol = {
             "type": {
               "defined": "FixedPoint"
             }
+          },
+          {
+            "name": "tokenBump",
+            "type": "u8"
           },
           {
             "name": "bump",
@@ -1710,6 +1987,11 @@ export const IDL: Protocol = {
       "code": 6004,
       "name": "InvalidInvariantAuthority",
       "msg": "Provided Invariant authority is different than expected"
+    },
+    {
+      "code": 6005,
+      "name": "InvalidTokenProgram",
+      "msg": "Provided Token Program for Token is different than expected"
     }
   ]
 };

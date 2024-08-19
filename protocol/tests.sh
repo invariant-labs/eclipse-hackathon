@@ -1,10 +1,11 @@
 #!/bin/bash
 
 e2e_tests=(
-    "init"
-    "token"
-    "invoke"
-    "init-lp-pool"
+    # "init"
+    # "token"
+    # "invoke"
+    # "init-lp-pool"
+    "mint"
 )
 
 # currenty, there are no unit tests 

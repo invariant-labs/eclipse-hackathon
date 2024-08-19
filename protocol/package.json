@@ -11,7 +11,8 @@
     "test:init": "anchor test --skip-build tests/init.test.ts",
     "test:token": "anchor test --skip-build tests/token.test.ts",
     "test:invoke": "anchor test --skip-build tests/invoke.test.ts",
-    "test:init-lp-pool": "anchor test --skip-build tests/init-lp-pool.test.ts"
+    "test:init-lp-pool": "anchor test --skip-build tests/init-lp-pool.test.ts",
+    "test:mint": "anchor test --skip-build tests/mint.test.ts"
   },
   "keywords": [],
   "author": "",

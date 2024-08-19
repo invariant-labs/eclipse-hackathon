@@ -17,6 +17,7 @@ pub struct LpPool {
     pub token_y: Pubkey,
     pub tick_spacing: u16,
     pub fee: FixedPoint,
+    pub token_bump: u8,
     pub bump: u8,
 }
 

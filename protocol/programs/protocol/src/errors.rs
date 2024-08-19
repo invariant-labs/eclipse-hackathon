@@ -14,6 +14,8 @@ pub enum ErrorCode {
     InvalidOwner = 3, //0x12F (303)
     #[msg("Provided Invariant authority is different than expected")]
     InvalidInvariantAuthority = 4, //0x130 (304)
+    #[msg("Provided Token Program for Token is different than expected")]
+    InvalidTokenProgram = 5, //0x131 (305)
 }
 
 impl TryInto<ErrorCode> for u32 {
