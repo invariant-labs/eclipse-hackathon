@@ -2,8 +2,8 @@ import { BN } from "@coral-xyz/anchor";
 import {
   calculateAmountDelta,
   computeLpShareChange,
-  getLiquidityByX,
-  getLiquidityByY,
+  getLiquidityByXInFullRange,
+  getLiquidityByYInFullRange,
   getMaxLiquidity,
   liquidityToLpTokenAmount,
 } from "../sdk/src/math";
@@ -21,7 +21,7 @@ describe("math", () => {
   const liquidityDelta = { v: new BN(485220000000) };
 
   it("get liquidity by x works", () => {
-    const { liquidity, y } = getLiquidityByX(
+    const { liquidity, y } = getLiquidityByXInFullRange(
       providedAmount,
       sqrtPrice,
       true,
@@ -33,7 +33,7 @@ describe("math", () => {
   });
 
   it("get liquidity by y works", () => {
-    const { liquidity, x } = getLiquidityByY(
+    const { liquidity, x } = getLiquidityByYInFullRange(
       providedAmount,
       sqrtPrice,
       true,

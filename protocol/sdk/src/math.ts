@@ -11,7 +11,7 @@ import {
 import { getMaxTick, getMinTick } from "@invariant-labs/sdk-eclipse/lib/utils";
 import { ONE_LP_TOKEN } from "./consts";
 
-export const getLiquidityByX = (
+export const getLiquidityByXInFullRange = (
   x: BN,
   currentSqrtPrice: Decimal,
   roundingUp: boolean,
@@ -32,7 +32,7 @@ export const getLiquidityByX = (
   );
 };
 
-export const getLiquidityByY = (
+export const getLiquidityByYInFullRange = (
   y: BN,
   currentSqrtPrice: Decimal,
   roundingUp: boolean,
