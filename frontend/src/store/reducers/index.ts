@@ -27,7 +27,7 @@ const transformNetwork = createTransform(
 )
 
 const migrations: MigrationManifest = {
-  // @ts-expect-error
+  // @ts-expect-error: Migration keys are not typed
   1: (state: ISolanaConnectionStore) => {
     const network =
       typeof state?.network !== 'undefined' && Object.values(NetworkType).includes(state.network)

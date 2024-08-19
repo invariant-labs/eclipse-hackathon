@@ -38,7 +38,7 @@ export const Header: React.FC<IHeader> = ({
   walletConnected,
   landing,
   typeOfNetwork,
-  rpc,
+  // rpc,
   onFaucet,
   onDisconnectWallet,
   defaultTestnetRPC,
@@ -54,14 +54,14 @@ export const Header: React.FC<IHeader> = ({
   const routes = ['exchange', 'liquidity', 'statistics']
 
   const otherRoutesToHighlight: Record<string, RegExp[]> = {
-    liquidity: [/^\/?liquidity(\/(add|remove)(\/[^\/]*)*)?$/],
+    liquidity: [/^\/?liquidity(\/(add|remove)(\/[^/]*)*)?$/],
     exchange: [/^\/?exchange\/.*$/]
   }
 
   const [activePath, setActive] = useState('exchange')
 
   const [routesModalOpen, setRoutesModalOpen] = useState(false)
-  const [testnetRpcsOpen, setTestnetRpcsOpen] = useState(false)
+  // const [testnetRpcsOpen, setTestnetRpcsOpen] = useState(false)
   const [routesModalAnchor, setRoutesModalAnchor] = useState<HTMLButtonElement | null>(null)
 
   useEffect(() => {
@@ -225,7 +225,7 @@ export const Header: React.FC<IHeader> = ({
               typeOfNetwork === NetworkType.TESTNET && isMdDown
                 ? () => {
                     setRoutesModalOpen(false)
-                    setTestnetRpcsOpen(true)
+                    // setTestnetRpcsOpen(true)
                   }
                 : undefined
             }

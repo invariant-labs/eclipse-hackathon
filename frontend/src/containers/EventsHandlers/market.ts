@@ -1,6 +1,6 @@
 import { PublicKey } from '@solana/web3.js'
 import { Status } from '@store/reducers/connection'
-import { network, rpcAddress, status } from '@store/selectors/connection'
+import { network,  status } from '@store/selectors/connection'
 import { getFullNewTokensData, getNetworkTokensList } from '@utils/utils'
 import { getCurrentSolanaConnection } from '@utils/web3/connection'
 import { useEffect } from 'react'
@@ -10,7 +10,7 @@ import { actions } from '@store/reducers/pools'
 const MarketEvents = () => {
   const dispatch = useDispatch()
   const networkType = useSelector(network)
-  const rpc = useSelector(rpcAddress)
+  // const rpc = useSelector(rpcAddress)
   // const marketProgram = getMarketProgramSync(networkType, rpc)
   // const { tokenFrom, tokenTo } = useSelector(swap)
   const networkStatus = useSelector(status)
