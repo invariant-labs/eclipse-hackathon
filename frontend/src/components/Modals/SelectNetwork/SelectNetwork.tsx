@@ -5,15 +5,15 @@ import useStyles from './style'
 import { ISelectNetwork } from '@store/consts/types'
 import { Grid, Popover, Typography } from '@mui/material'
 import DotIcon from '@mui/icons-material/FiberManualRecordRounded'
-import { Network } from '@invariant-labs/a0-sdk'
+import { NetworkType } from '@store/consts/static'
 
 export interface ISelectNetworkModal {
   networks: ISelectNetwork[]
   open: boolean
   anchorEl: HTMLButtonElement | null
-  onSelect: (networkType: Network, rpcAddress: string, rpcName?: string) => void
+  onSelect: (networkType: NetworkType, rpcAddress: string, rpcName?: string) => void
   handleClose: () => void
-  activeNetwork: Network
+  activeNetwork: NetworkType
 }
 export const SelectNetwork: React.FC<ISelectNetworkModal> = ({
   networks,

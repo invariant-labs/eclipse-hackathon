@@ -5,7 +5,8 @@ import { blurContent, unblurContent } from '@utils/uiUtils'
 import { Button } from '@mui/material'
 import SelectNetwork from '@components/Modals/SelectNetwork/SelectNetwork'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
-import { Network } from '@invariant-labs/a0-sdk'
+import { Network } from '@store/consts/static'
+
 
 export interface IProps {
   name: Network

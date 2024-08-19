@@ -46,9 +46,9 @@ const migrations: MigrationManifest = {
       case NetworkType.LOCALNET:
         rpcAddress = RPC.LOCAL
         break
-      case NetworkType.MAINNET:
-        rpcAddress = RPC.MAIN
-        break
+      // case NetworkType.MAINNET:
+      //   rpcAddress = RPC.MAIN
+      //   break
     }
 
     return {
