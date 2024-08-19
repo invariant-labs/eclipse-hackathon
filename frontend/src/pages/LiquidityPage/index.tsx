@@ -1,5 +1,5 @@
 import { Grid } from '@mui/material'
-import React, { useEffect } from 'react'
+import React from 'react'
 import useStyles from './styles'
 import { useParams } from 'react-router-dom'
 import NewPositionWrapper from '@containers/LiquidityWrapper/LiquidityWrapper'

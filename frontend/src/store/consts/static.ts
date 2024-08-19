@@ -37,7 +37,6 @@ export const FEE_TIERS: FeeTier[] = [
 export const LPTokenDecimals = 6
 export enum RPC {
   TEST = 'https://testnet.dev2.eclipsenetwork.xyz',
-  MAIN = 'https://staging-rpc-eu.dev2.eclipsenetwork.xyz',
   DEV = 'https://staging-rpc.dev2.eclipsenetwork.xyz',
   DEV_EU = 'https://staging-rpc-eu.dev2.eclipsenetwork.xyz',
   LOCAL = 'http://127.0.0.1:8899'

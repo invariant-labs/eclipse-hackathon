@@ -29,7 +29,6 @@ import emptyIcon from './svg/empty.svg'
 import plusIcon from './svg/plus.svg'
 import horizontalSwapIcon from './svg/horizontalSwapArrows.svg'
 import swapListIcon from './svg/swap-list.svg'
-import a0Logo from './svg/a0Logo.svg'
 import eclipseLogo from './svg/eclipseLogo.svg'
 import solanaLogo from './svg/solanaLogo.svg'
 
@@ -65,7 +64,6 @@ const icons: { [key: string]: string } = {
   plusIcon: plusIcon,
   horizontalSwapIcon: horizontalSwapIcon,
   swapListIcon: swapListIcon,
-  AlephZero: a0Logo,
   Eclipse: eclipseLogo,
   Solana: solanaLogo
 }
