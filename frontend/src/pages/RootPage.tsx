@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate, useLocation, Outlet } from 'react-router-dom'
 import EventsHandlers from '@containers/EventsHandlers'
@@ -19,8 +19,13 @@ const RootPage: React.FC = React.memo(() => {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const initConnection = useCallback(() => {
-    dispatch(connectionActions.initSolanaConnection())
+  const initializedRef = useRef(false)
+
+  useEffect(() => {
+    if (!initializedRef.current) {
+      dispatch(connectionActions.initSolanaConnection())
+      initializedRef.current = true
+    }
   }, [dispatch])
 
   useEffect(() => {
@@ -29,9 +34,6 @@ const RootPage: React.FC = React.memo(() => {
     }
   }, [location.pathname, navigate])
 
-  useEffect(() => {
-    initConnection()
-  }, [initConnection])
   return (
     <>
       {signerStatus === Status.Initialized && <EventsHandlers />}

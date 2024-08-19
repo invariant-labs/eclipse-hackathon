@@ -420,34 +420,41 @@ export function* createMultipleAccounts(tokenAddress: PublicKey[]): SagaGenerato
 }
 
 export function* init(isEagerConnect?: boolean): Generator {
-  yield* put(actions.setStatus(Status.Init))
-  const wallet = yield* call(getWallet)
+  try {
+    yield* put(actions.setStatus(Status.Init))
 
-  if (isEagerConnect) {
-    yield* put(
-      snackbarsActions.add({
-        message: 'Wallet reconnected.',
-        variant: 'success',
-        persist: false
-      })
-    )
-  } else {
-    yield* put(
-      snackbarsActions.add({
-        message: 'Wallet connected.',
-        variant: 'success',
-        persist: false
-      })
-    )
+    yield* call(openWalletSelectorModal, true)
+
+    const wallet = yield* call(getWallet)
+
+    if (isEagerConnect) {
+      yield* put(
+        snackbarsActions.add({
+          message: 'Wallet reconnected.',
+          variant: 'success',
+          persist: false
+        })
+      )
+    } else {
+      yield* put(
+        snackbarsActions.add({
+          message: 'Wallet connected.',
+          variant: 'success',
+          persist: false
+        })
+      )
+    }
+    yield* put(actions.setAddress(wallet.publicKey))
+    yield* put(actions.setIsBalanceLoading(true))
+    const balance = yield* call(getBalance, wallet.publicKey)
+    yield* put(actions.setBalance(balance))
+    yield* put(actions.setStatus(Status.Initialized))
+    // yield* call(fetchTokensAccounts)
+    yield* put(actions.setIsBalanceLoading(false))
+  } catch (error) {
+    yield* put(actions.setStatus(Status.Uninitialized))
+    console.log(error)
   }
-
-  yield* put(actions.setAddress(wallet.publicKey))
-  yield* put(actions.setIsBalanceLoading(true))
-  const balance = yield* call(getBalance, wallet.publicKey)
-  yield* put(actions.setBalance(balance))
-  yield* put(actions.setStatus(Status.Initialized))
-  // yield* call(fetchTokensAccounts)
-  yield* put(actions.setIsBalanceLoading(false))
 }
 
 export function* handleReconnect(): Generator {

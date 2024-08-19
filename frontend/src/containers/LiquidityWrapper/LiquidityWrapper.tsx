@@ -11,7 +11,6 @@ import { network } from '@store/selectors/connection'
 import { canCreateNewPool, status, swapTokens } from '@store/selectors/wallet'
 import { addNewTokenToLocalStorage, getNewTokenOrThrow, printBN } from '@utils/utils'
 import { getCurrentSolanaConnection } from '@utils/web3/connection'
-import { openWalletSelectorModal } from '@utils/web3/selector'
 import { VariantType } from 'notistack'
 import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -133,7 +132,6 @@ export const LiquidityWrapper: React.FC<IProps> = ({
       }))}
       noConnectedBlockerProps={{
         onConnect: async () => {
-          await openWalletSelectorModal()
           dispatch(walletActions.connect(false))
         },
         descCustomText: 'Cannot add any liquidity.'

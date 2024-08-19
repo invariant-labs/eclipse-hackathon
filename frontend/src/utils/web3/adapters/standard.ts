@@ -1,6 +1,5 @@
-import { Transaction } from '@solana/web3.js'
+import { PublicKey, Transaction } from '@solana/web3.js'
 import { WalletAdapter } from './types'
-import { DEFAULT_PUBLICKEY } from '@store/consts/static'
 import { nightlyConnectAdapter } from '@utils/web3/selector'
 
 export class StandardAdapter implements WalletAdapter {
@@ -17,7 +16,7 @@ export class StandardAdapter implements WalletAdapter {
   }
 
   get publicKey() {
-    return nightlyConnectAdapter.publicKey ?? DEFAULT_PUBLICKEY
+    return nightlyConnectAdapter.publicKey ?? new PublicKey('')
   }
 
   async signTransaction(transaction: Transaction) {
