@@ -24,11 +24,11 @@ jobs:
       matrix:
         case:
           [
-            npm run test:init,
-            npm run test:token,
-            npm run test:invoke,
-            npm run test:init-lp-pool,
-            npm run test:math
+            'npm run test:init',
+            'npm run test:token',
+            'npm run test:invoke',
+            'npm run test:init-lp-pool',
+            'npm run test:math'
           ]
     steps:
       - uses: actions/checkout@v4
