@@ -18,7 +18,6 @@ import { poolsArraySortedByFees } from '@store/selectors/pools'
 import { canCreateNewPool, status, swapTokens } from '@store/selectors/wallet'
 import { addNewTokenToLocalStorage, getNewTokenOrThrow, printBN } from '@utils/utils'
 import { getCurrentSolanaConnection } from '@utils/web3/connection'
-import { VariantType } from 'notistack'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
@@ -217,7 +216,9 @@ export const LiquidityWrapper: React.FC<IProps> = ({
       midPrice={10}
       setMidPrice={() => {}}
       addLiquidityHandler={() => {}}
-      removeLiquidityHandler={(xAmount, yAmount) => {}}
+      removeLiquidityHandler={(xAmount, yAmount) => {
+        console.log(xAmount, yAmount)
+      }}
       onChangePositionTokens={(tokenA, tokenB, feeTierIndex) => {
         setTokenAIndex(tokenA)
         setTokenBIndex(tokenB)

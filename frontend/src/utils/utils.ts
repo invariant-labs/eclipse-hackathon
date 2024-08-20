@@ -139,6 +139,7 @@ export enum PositionTokenBlock {
 
 //TODO replace mock calculatePriceSqrt
 export const calculatePriceSqrt = (tick: number): BN => {
+  console.log(tick)
   return new BN(1)
 }
 
