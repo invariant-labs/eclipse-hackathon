@@ -61,6 +61,7 @@ export interface ILiquidity {
   onHideUnknownTokensChange: (val: boolean) => void
   reloadHandler: () => void
   currentFeeIndex: number
+  setCurrentFeeIndex: (index: number) => void
   showNoConnected?: boolean
   tokenAPriceData?: TokenPriceData
   tokenBPriceData?: TokenPriceData
@@ -74,28 +75,29 @@ export const Liquidity: React.FC<ILiquidity> = ({
   initialFee,
   initialTab,
   tokens,
-  setMidPrice,
-  addLiquidityHandler,
-  removeLiquidityHandler,
+  // setMidPrice,
+  // addLiquidityHandler,
+  // removeLiquidityHandler,
   onChangePositionTokens,
   calcAmount,
   feeTiers,
   noConnectedBlockerProps,
   progress,
-  isXtoY,
-  xDecimal,
-  yDecimal,
-  tickSpacing,
-  isWaitingForNewPool,
+  // isXtoY,
+  // xDecimal,
+  // yDecimal,
+  // tickSpacing,
+  // isWaitingForNewPool,
   poolIndex,
   bestTiers,
-  canCreateNewPool,
+  // canCreateNewPool,
   handleAddToken,
   commonTokens,
   initialHideUnknownTokensValue,
   onHideUnknownTokensChange,
-  reloadHandler,
+  // reloadHandler,
   currentFeeIndex,
+  setCurrentFeeIndex,
   showNoConnected = false,
   tokenAPriceData,
   tokenBPriceData,
@@ -114,9 +116,9 @@ export const Liquidity: React.FC<ILiquidity> = ({
   const [tokenBDeposit, setTokenBDeposit] = useState<string>('')
   const [LPTokenDeposit, setLPTokenDeposit] = useState<string>('')
 
-  const [tokenAReceive, setTokenAReceive] = useState<string>('')
-  const [tokenBReceive, setTokenBReceive] = useState<string>('')
-  const [LPTokenReceive, setLPTokenReceive] = useState<string>('')
+  // const [tokenAReceive, setTokenAReceive] = useState<string>('')
+  // const [tokenBReceive, setTokenBReceive] = useState<string>('')
+  // const [LPTokenReceive, setLPTokenReceive] = useState<string>('')
 
   const [isLoaded, setIsLoaded] = useState<boolean>(false)
   useEffect(() => {
@@ -147,12 +149,8 @@ export const Liquidity: React.FC<ILiquidity> = ({
     setTokenAIndex(tokenAIndexFromPath)
     setTokenBIndex(tokenBIndexFromPath)
     setIsAddLiquidity(initialTab !== 'remove')
-    // setPositionTokens(
-    //   tokenAIndexFromPath,
-    //   tokenBIndexFromPath,
-    //   feeTierIndexFromPath,
-    //   initialTab !== 'remove'
-    // )
+
+    setCurrentFeeIndex(feeTierIndexFromPath)
 
     setIsLoaded(true)
   }, [tokens])
@@ -207,9 +205,9 @@ export const Liquidity: React.FC<ILiquidity> = ({
     } else if (index2 !== null) {
       const tokenSymbol = tokens[index2].symbol
       navigate(`/liquidity/${tab}/${tokenSymbol}/${parsedFee}`, { replace: true })
-    } else if (!!fee) {
+    } else if (fee) {
       navigate(`/liquidity/${tab}/${parsedFee}`, { replace: true })
-    } else if (!!tab) {
+    } else if (tab) {
       navigate(`/liquidity/${tab}`, { replace: true })
     }
   }
@@ -406,8 +404,7 @@ export const Liquidity: React.FC<ILiquidity> = ({
               feeTierIndex={currentFeeIndex}
               progress={progress}
               LPTokenName={lpTokenName ?? ''}
-              LPTokenIcon={''} //add icon
-              LPTokenReceive={LPTokenReceive}
+              LPTokenReceive={''}
               priceA={tokenAPriceData?.price}
               priceB={tokenBPriceData?.price}
               priceALoading={priceALoading}
@@ -432,9 +429,8 @@ export const Liquidity: React.FC<ILiquidity> = ({
               progress={progress}
               LPTokenName={lpTokenName ?? ''}
               LPTokenBalance={new BN(0)}
-              LPTokenIcon={''} //add icon
-              tokenAReceive={tokenAReceive}
-              tokenBReceive={tokenBReceive}
+              tokenAReceive={''}
+              tokenBReceive={''}
             />
           )}
         </Grid>

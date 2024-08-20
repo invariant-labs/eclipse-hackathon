@@ -1,4 +1,3 @@
-import { ProgressState } from '@components/AnimatedButton/AnimatedButton'
 import { Liquidity } from '@components/Liquidity/Liquidity'
 import { Pair } from '@invariant-labs/sdk-eclipse'
 import { getLiquidityByX, getLiquidityByY } from '@invariant-labs/sdk-eclipse/lib/math'
@@ -11,7 +10,6 @@ import {
 import { BN } from '@project-serum/anchor'
 import { PublicKey } from '@solana/web3.js'
 import { ALL_FEE_TIERS_DATA, bestTiers, commonTokensForNetworks } from '@store/consts/static'
-import { TokenPriceData } from '@store/consts/types'
 import { actions as poolsActions } from '@store/reducers/pools'
 import { actions as snackbarsActions } from '@store/reducers/snackbars'
 import { Status, actions as walletActions } from '@store/reducers/wallet'
@@ -48,7 +46,7 @@ export const LiquidityWrapper: React.FC<IProps> = ({
   const canUserCreateNewPool = useSelector(canCreateNewPool(currentNetwork))
   const [poolIndex, setPoolIndex] = useState<number | null>(null)
 
-  const [progress, setProgress] = useState<ProgressState>('none')
+  // const [progress, setProgress] = useState<ProgressState>('none')
   const [feeIndex, setFeeIndex] = useState(0)
   const [tokenAIndex, setTokenAIndex] = useState<number | null>(null)
   const [tokenBIndex, setTokenBIndex] = useState<number | null>(null)
@@ -90,26 +88,16 @@ export const LiquidityWrapper: React.FC<IProps> = ({
     }
   }
 
-  const copyPoolAddressHandler = (message: string, variant: VariantType) => {
-    dispatch(
-      snackbarsActions.add({
-        message,
-        variant,
-        persist: false
-      })
-    )
-  }
-
   const setHideUnknownTokensValue = (val: boolean) => {
     localStorage.setItem('HIDE_UNKNOWN_TOKENS', val ? 'true' : 'false')
   }
 
-  const [tokenAPriceData, setTokenAPriceData] = useState<TokenPriceData | undefined>(undefined)
-  const [priceALoading, setPriceALoading] = useState(false)
+  // const [tokenAPriceData, setTokenAPriceData] = useState<TokenPriceData | undefined>(undefined)
+  // const [priceALoading, setPriceALoading] = useState(false)
 
-  const [tokenBPriceData, setTokenBPriceData] = useState<TokenPriceData | undefined>(undefined)
-  const [priceBLoading, setPriceBLoading] = useState(false)
-  const initialSlippage = localStorage.getItem('INVARIANT_NEW_POSITION_SLIPPAGE') ?? '1'
+  // const [tokenBPriceData, setTokenBPriceData] = useState<TokenPriceData | undefined>(undefined)
+  // const [priceBLoading, setPriceBLoading] = useState(false)
+  // const initialSlippage = localStorage.getItem('INVARIANT_NEW_POSITION_SLIPPAGE') ?? '1'
 
   const calcAmount = (amount: BN, tokenAddress: PublicKey) => {
     if (tokenAIndex === null || tokenBIndex === null || poolIndex === null) {
@@ -228,7 +216,7 @@ export const LiquidityWrapper: React.FC<IProps> = ({
       tokens={tokens}
       midPrice={10}
       setMidPrice={() => {}}
-      addLiquidityHandler={(xAmount, yAmount) => {}}
+      addLiquidityHandler={() => {}}
       removeLiquidityHandler={(xAmount, yAmount) => {}}
       onChangePositionTokens={(tokenA, tokenB, feeTierIndex) => {
         setTokenAIndex(tokenA)
@@ -245,7 +233,7 @@ export const LiquidityWrapper: React.FC<IProps> = ({
         },
         descCustomText: 'Cannot add any liquidity.'
       }}
-      progress={progress}
+      progress={'none'}
       isXtoY={true}
       xDecimal={12}
       yDecimal={10}
@@ -260,11 +248,12 @@ export const LiquidityWrapper: React.FC<IProps> = ({
       onHideUnknownTokensChange={setHideUnknownTokensValue}
       reloadHandler={() => {}}
       currentFeeIndex={feeIndex}
+      setCurrentFeeIndex={setFeeIndex}
       showNoConnected={walletStatus !== Status.Initialized}
-      tokenAPriceData={tokenAPriceData}
-      tokenBPriceData={tokenBPriceData}
-      priceALoading={priceALoading}
-      priceBLoading={priceBLoading}
+      tokenAPriceData={{ price: 1 }}
+      tokenBPriceData={{ price: 1 }}
+      priceALoading={false}
+      priceBLoading={false}
     />
   )
 }

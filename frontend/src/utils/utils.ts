@@ -1,5 +1,5 @@
 import { BN } from '@project-serum/anchor'
-import { Connection, Keypair, PublicKey } from '@solana/web3.js'
+import { Connection, PublicKey } from '@solana/web3.js'
 import {
   BTC_DEV,
   BTC_TEST,
@@ -14,7 +14,7 @@ import {
   defaultThresholds
 } from '@store/consts/static'
 import { FormatNumberThreshold, PrefixConfig } from '@store/consts/types'
-import { TOKEN_PROGRAM_ID, getMint } from '@solana/spl-token'
+import { getMint } from '@solana/spl-token'
 import mainnetList from '@store/consts/tokenLists/mainnet.json'
 import icons from '@static/icons'
 export const createLoaderKey = () => (new Date().getMilliseconds() + Math.random()).toString()
@@ -35,14 +35,12 @@ export const printBN = (amount: BN, decimals: number): string => {
 
   if (balanceString.length <= decimals) {
     return (
-      // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
       (isNegative ? '-' : '') + '0.' + '0'.repeat(decimals - balanceString.length) + balanceString
     )
   } else {
     return (
       (isNegative ? '-' : '') +
       trimZeros(
-        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
         balanceString.substring(0, balanceString.length - decimals) +
           '.' +
           balanceString.substring(balanceString.length - decimals)

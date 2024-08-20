@@ -26,8 +26,8 @@ export const RoutesModal: React.FC<IRoutesModal> = ({
   const { classes } = useStyles()
 
   const otherRoutesToHighlight: Record<string, RegExp[]> = {
-    liquidity: [/^\/?liquidity(\/(add|remove)(\/[^\/]*)*)?$/],
-    exchange: [/^exchange\/*/]
+    liquidity: [/^\/?liquidity(\/(add|remove)(\/[^/]*)*)?$/],
+    exchange: [/^\/?exchange\/.*$/]
   }
 
   return (
