@@ -45,7 +45,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
           key: cargo-${{ runner.os }}-v0000-${{ hashFiles('**/Cargo.lock') }}
-      - uses: actions/cache@v4
+      - uses: actions/cache@v3
         name: Cache Solana Tool Suite
         id: cache-solana
         with:
@@ -53,14 +53,14 @@ jobs:
             ~/.cache/solana/
             ~/.local/share/solana/
           key: solana-${{ runner.os }}-v0000-${{ env.solana_version }}
-      - uses: actions/cache@v4
+      - uses: actions/cache@v3
         name: Cache target folder
         id: cache-programs
         with:
           path: |
             ./target
           key: solana-${{ runner.os }}-v0000-${{ hashFiles('**/programs/**/*.rs') }}-${{ hashFiles('**/programs/**/*.toml') }}
-      - uses: actions/cache@v4
+      - uses: actions/cache@v3
         name: Cache Node Modules
         id: cache-node-modules
         with:
