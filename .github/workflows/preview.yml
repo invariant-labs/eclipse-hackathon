@@ -5,36 +5,57 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  lint:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
+
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
           node-version: '20'
-      - name: Install & Build
-        run: |
-          cd frontend
-          npm i
-          npm run build
 
-      # - name: Install & Build Protocol
+      # - name: Install & Build Backend
       #   run: |
-      #     cd protocol
+      #     cd backend
       #     npm install
       #     npm run build
 
-  upload:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Deploy to Vercel Action
+      - name: Install & Build Frontend
+        run: |
+          cd frontend
+          npm install
+          npm run build
+
+      # - name: Deploy Backend to Vercel
+      #   id: deploy-backend
+      #   uses: BetaHuhn/deploy-to-vercel-action@v1
+      #   with:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      #     VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      #     VERCEL_SCOPE: ${{ secrets.VERCEL_ORG_ID }}
+      #     VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      #     WORKING_DIRECTORY: backend
+      #     PRODUCTION: false
+
+      - name: Update Frontend Config
+        run: |
+          BACKEND_URL="${{ steps.deploy-backend.outputs.PREVIEW_URL }}"
+          echo "Deployed Backend URL: ${{ steps.deploy-backend.outputs.PREVIEW_URL }}"
+          if grep -q '^VITE_API_BASE_URL=' ./frontend/.env; then
+            sed -i 's|^VITE_API_BASE_URL=.*|VITE_API_BASE_URL='$BACKEND_URL'|' ./frontend/.env
+          else
+            echo "VITE_API_BASE_URL=$BACKEND_URL" >> ./frontend/.env
+          fi
+
+      - name: Rebuild Frontend
+        run: |
+          cd frontend
+          npm run build
+
+      - name: Deploy Frontend to Vercel
         uses: BetaHuhn/deploy-to-vercel-action@v1
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -42,4 +63,5 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_SCOPE: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          WORKING_DIRECTORY: frontend
           PRODUCTION: false
