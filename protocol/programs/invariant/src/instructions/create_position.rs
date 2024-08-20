@@ -156,7 +156,6 @@ impl<'info> CreatePosition<'info> {
         bump: u8,
     ) -> Result<()> {
         msg!("INVARIANT: CREATE POSITION");
-
         let mut position = self.position.load_init()?;
         let mut pool = &mut self.pool.load_mut()?;
         let lower_tick = &mut self.lower_tick.load_mut()?;

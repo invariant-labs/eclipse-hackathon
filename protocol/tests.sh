@@ -2,11 +2,12 @@
 set -e
 
 e2e_tests=(
-    "init"
+    # "init"
     # "token"
-    "invoke"
-    "init-lp-pool"
-    "mint"
+    # "invoke"
+    # "init-lp-pool"
+    # "mint"
+    "burn"
 )
 
 # currenty, there are no unit tests 

@@ -1,3 +1,4 @@
+mod burn;
 mod init;
 mod init_pool;
 mod invoke_close_position;
@@ -8,6 +9,7 @@ mod reopen_position;
 mod test;
 mod token;
 
+pub use burn::*;
 pub use init::*;
 pub use init_pool::*;
 pub use invoke_close_position::*;
