@@ -4,98 +4,38 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
-env:
-  solana_version: 1.18.18
-  anchor_version: 0.29.0
-
 jobs:
-  build-and-deploy:
+  lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/cache@v3
-        name: Cache Cargo registry + index
-        id: cache-anchor
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-          key: cargo-${{ runner.os }}-v0000-${{ hashFiles('**/Cargo.lock') }}
-      - uses: actions/cache@v3
-        name: Cache Solana Tool Suite
-        id: cache-solana
-        with:
-          path: |
-            ~/.cache/solana/
-            ~/.local/share/solana/
-          key: solana-${{ runner.os }}-v0000-${{ env.solana_version }}
-      - uses: actions/cache@v3
-        name: Cache target folder
-        id: cache-programs
-        with:
-          path: |
-            ./target
-          key: solana-${{ runner.os }}-v0000-${{ hashFiles('**/programs/**/*.rs') }}-${{ hashFiles('**/programs/**/*.toml') }}
-      - uses: actions/cache@v3
-        name: Cache Node Modules
-        id: cache-node-modules
-        with:
-          path: |
-            ~/.npm/
-            ./node_modules
-          key: npm-${{ runner.os }}-v0000-${{ hashFiles('**/package-lock.json') }}
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly-2024-02-04
-          override: true
-      - name: install global mocha
-        run: |
-          export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
-          npm install -g mocha
-          npm install -g ts-mocha
-          npm install -g typescript
-          npm install -g @project-serum/anchor
-          ts-mocha -h
-      - name: install essential
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y pkg-config build-essential libudev-dev
-      - name: install solana
-        if: steps.cache-solana.outputs.cache-hit != 'true'
-        run: |
-          sh -c "$(curl -sSfL https://release.solana.com/v${{ env.solana_version }}/install)"
-          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-          export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
-          solana --version
-      - name: setup solana
-        run: |
-          export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
-          solana --version
-          solana-keygen new -o "$HOME/.config/solana/id.json" --no-passphrase --silent
       - name: install
         run: |
-          export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
-          npm install
-      - name: build invariant sdk & staker sdk
-        run: |
-          npm run build:all
-      - name: test
-        run: |
-          export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
-          ${{ matrix.case }}
-
-      - name: Install & Build Frontend
-        run: |
           cd frontend
-          npm install
-          npm run build
+          npm i
+      - name: build
+        run: npm run build
 
-      - name: Deploy Protocol to Vercel
-        id: deploy-protocol
+      # - name: Install & Build Protocol
+      #   run: |
+      #     cd protocol
+      #     npm install
+      #     npm run build
+
+  upload:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Deploy to Vercel Action
         uses: BetaHuhn/deploy-to-vercel-action@v1
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -103,31 +43,4 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_SCOPE: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          WORKING_DIRECTORY: protocol
-          PRODUCTION: false
-
-      - name: Update Frontend Config
-        run: |
-          BACKEND_URL="${{ steps.deploy-backend.outputs.PREVIEW_URL }}"
-          echo "Deployed Backend URL: ${{ steps.deploy-backend.outputs.PREVIEW_URL }}"
-          if grep -q '^VITE_API_BASE_URL=' ./frontend/.env; then
-            sed -i 's|^VITE_API_BASE_URL=.*|VITE_API_BASE_URL='$BACKEND_URL'|' ./frontend/.env
-          else
-            echo "VITE_API_BASE_URL=$BACKEND_URL" >> ./frontend/.env
-          fi
-
-      - name: Rebuild Frontend
-        run: |
-          cd frontend
-          npm run build
-
-      - name: Deploy Frontend to Vercel
-        uses: BetaHuhn/deploy-to-vercel-action@v1
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_SCOPE: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          WORKING_DIRECTORY: frontend
           PRODUCTION: false
