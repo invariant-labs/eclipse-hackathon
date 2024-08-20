@@ -1,4 +1,4 @@
-name: Test project
+name: test protocol
 
 permissions:
   contents: read
