@@ -78,13 +78,12 @@ jobs:
           solana-keygen new -o "$HOME/.config/solana/id.json" --no-passphrase --silent
       - name: build programs
         run: |
-          cd protocol
           export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
           anchor build
       - name: install
         run: |
-          cd protocol
           export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
+          cd protocol
           npm install
       - name: build invariant sdk & staker sdk
         run: |
