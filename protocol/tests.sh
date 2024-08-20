@@ -2,10 +2,10 @@
 set -e
 
 e2e_tests=(
-    # "init"
+    "init"
     # "token"
-    # "invoke"
-    # "init-lp-pool"
+    "invoke"
+    "init-lp-pool"
     "mint"
 )
 

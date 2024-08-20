@@ -683,7 +683,7 @@ export type Protocol = {
         },
         {
           "name": "programAuthority",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -993,6 +993,11 @@ export type Protocol = {
       "code": 6005,
       "name": "InvalidTokenProgram",
       "msg": "Provided Token Program for Token is different than expected"
+    },
+    {
+      "code": 6006,
+      "name": "InvalidShares",
+      "msg": "Error originated from compute_lp_share_change"
     }
   ]
 };
@@ -1682,7 +1687,7 @@ export const IDL: Protocol = {
         },
         {
           "name": "programAuthority",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1992,6 +1997,11 @@ export const IDL: Protocol = {
       "code": 6005,
       "name": "InvalidTokenProgram",
       "msg": "Provided Token Program for Token is different than expected"
+    },
+    {
+      "code": 6006,
+      "name": "InvalidShares",
+      "msg": "Error originated from compute_lp_share_change"
     }
   ]
 };

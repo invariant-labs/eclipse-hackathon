@@ -1,20 +1,26 @@
 import { AnchorProvider, BN } from "@coral-xyz/anchor";
 import { Network } from "../sdk/src/network";
 import { Protocol } from "../sdk/src/protocol";
-import { Keypair, SendTransactionError } from "@solana/web3.js";
+import { Keypair } from "@solana/web3.js";
 import {
   createTokenMint,
   initMarket,
   INVARIANT_ADDRESS,
   requestAirdrop,
-  sleep,
 } from "./test-utils";
 import { assert } from "chai";
-import { ASSOCIATED_TOKEN_PROGRAM_ID, getOrCreateAssociatedTokenAccount, mintTo, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  createAssociatedTokenAccount,
+  getOrCreateAssociatedTokenAccount,
+  mintTo,
+  TOKEN_2022_PROGRAM_ID,
+} from "@solana/spl-token";
 import { Pair } from "@invariant-labs/sdk-eclipse";
 import {
   fromFee,
-  getTokenProgramAddress,
+  getMaxTick,
+  getMinTick,
 } from "@invariant-labs/sdk-eclipse/lib/utils";
 import {
   CreateTick,
@@ -35,8 +41,8 @@ describe("mint lp token", () => {
     tickSpacing: 10,
   };
   let pair: Pair;
-  const lowerTick = -10;
-  const upperTick = 10;
+  const lowerTick = getMinTick(feeTier.tickSpacing ? feeTier.tickSpacing : 0);
+  const upperTick = getMaxTick(feeTier.tickSpacing ? feeTier.tickSpacing : 0);
   const initTick = 0;
 
   before(async () => {
@@ -124,7 +130,7 @@ describe("mint lp token", () => {
       owner.publicKey
     );
 
-    // TODO: make it support cases where the id is different from 0
+    // TODO: make it support cases where the id is different from 0 -> multiple positions for user aka multiple LP pools
     const positionId = 0;
     const lastPositionId = 0;
 
@@ -139,7 +145,10 @@ describe("mint lp token", () => {
       positionId
     );
     const { positionAddress: lastPositionAddress } =
-      await market.getPositionAddress(protocol.programAuthority, lastPositionId);
+      await market.getPositionAddress(
+        protocol.programAuthority,
+        lastPositionId
+      );
     const { tickAddress: lowerTickAddress } = await market.getTickAddress(
       pair,
       lowerTick
@@ -160,50 +169,73 @@ describe("mint lp token", () => {
     );
 
     const [tokenLp] = protocol.getLpTokenAddressAndBump(pair);
-    const accountLp = await getOrCreateAssociatedTokenAccount(
+    // getorCreate has the advantage since you can call it several times with no downsides
+    const accountLp = await createAssociatedTokenAccount(
       connection,
       owner,
       tokenLp,
       owner.publicKey,
       undefined,
-      undefined,
-      undefined,
       TOKEN_2022_PROGRAM_ID,
       ASSOCIATED_TOKEN_PROGRAM_ID
     );
-    
-   
-    try {
-      await protocol.mintLpToken(
-        {
-          liquidityDelta,
-          pair,
-          index: positionId,
-          invProgram: INVARIANT_ADDRESS,
-          invState: stateAddress,
-          position: positionAddress,
-          lastPosition: lastPositionAddress,
-          pool: poolAddress,
-          positionList: positionListAddress,
-          lowerTick: lowerTickAddress,
-          upperTick: upperTickAddress,
-          tickmap,
-          accountX: userTokenXAccount.address,
-          accountY: userTokenYAccount.address,
-          invReserveX: tokenXReserve,
-          invReserveY: tokenYReserve,
-          invProgramAuthority: market.programAuthority,
-        },
-        owner
-      );
-    } catch (error) {
-      if (error instanceof SendTransactionError) {
-        console.log(await error.getLogs(connection));
-      }
-    }
 
+    await protocol.mintLpToken(
+      {
+        liquidityDelta,
+        pair,
+        index: positionId,
+        invProgram: INVARIANT_ADDRESS,
+        invState: stateAddress,
+        position: positionAddress,
+        lastPosition: lastPositionAddress,
+        pool: poolAddress,
+        positionList: positionListAddress,
+        lowerTick: lowerTickAddress,
+        upperTick: upperTickAddress,
+        tickmap,
+        accountX: userTokenXAccount.address,
+        accountY: userTokenYAccount.address,
+        invReserveX: tokenXReserve,
+        invReserveY: tokenYReserve,
+        invProgramAuthority: market.programAuthority,
+      },
+      owner
+    );
 
-    // const position = await market.getPosition(protocol.programAuthority, positionId);
-    // assert.ok(position);
+    // const { positionAddress: lastPositionAddress2 } =
+    // await market.getPositionAddress(protocol.programAuthority, 1);
+
+    // console.log("mint 2")
+
+    // await protocol.mintLpToken(
+    //   {
+    //     liquidityDelta,
+    //     pair,
+    //     index: positionId,
+    //     invProgram: INVARIANT_ADDRESS,
+    //     invState: stateAddress,
+    //     position: positionAddress,
+    //     lastPosition: lastPositionAddress,
+    //     pool: poolAddress,
+    //     positionList: positionListAddress,
+    //     lowerTick: lowerTickAddress,
+    //     upperTick: upperTickAddress,
+    //     tickmap,
+    //     accountX: userTokenXAccount.address,
+    //     accountY: userTokenYAccount.address,
+    //     invReserveX: tokenXReserve,
+    //     invReserveY: tokenYReserve,
+    //     invProgramAuthority: market.programAuthority,
+    //   },
+    //   owner
+    // );
+
+    const position = await market.getPosition(
+      protocol.programAuthority,
+      positionId
+    );
+    console.log(position);
+    assert.ok(position);
   });
 });

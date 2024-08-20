@@ -431,8 +431,9 @@ export class Protocol {
   }
 
   async mintLpToken(params: IMintLpToken, signer: Keypair) {
+    const setCuIx = computeUnitsInstruction(1_400_000);
     const ix = await this.mintLpTokenIx(params, signer);
-    return await this.sendTx([ix], [signer]);
+    return await this.sendTx([setCuIx, ix], [signer]);
   }
 
   async mintLpTokenIx(

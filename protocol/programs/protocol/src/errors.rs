@@ -16,6 +16,8 @@ pub enum ErrorCode {
     InvalidInvariantAuthority = 4, //0x130 (304)
     #[msg("Provided Token Program for Token is different than expected")]
     InvalidTokenProgram = 5, //0x131 (305)
+    #[msg("Error originated from compute_lp_share_change")]
+    InvalidShares = 6, //0x132 (306)
 }
 
 impl TryInto<ErrorCode> for u32 {
