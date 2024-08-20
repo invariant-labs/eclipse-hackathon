@@ -14,12 +14,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: install
+      - name: Install & Build
         run: |
           cd frontend
           npm i
-      - name: build
-        run: npm run build
+          npm run build
 
       # - name: Install & Build Protocol
       #   run: |
