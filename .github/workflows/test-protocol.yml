@@ -71,9 +71,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - uses: actions-rs/toolchain@v2
+      - uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: rustup defualt nightly
           override: true
       - name: install global mocha
         run: |
