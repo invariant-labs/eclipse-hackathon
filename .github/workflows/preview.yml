@@ -79,11 +79,9 @@ jobs:
       - name: install
         run: |
           export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
-          cd protocol
           npm install
       - name: build invariant sdk & staker sdk
         run: |
-          cd protocol
           npm run build:all
       - name: test
         run: |
