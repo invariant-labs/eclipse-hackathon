@@ -54,7 +54,6 @@ jobs:
           override: true
       - name: install global mocha
         run: |
-          cd protocol
           export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
           npm install -g mocha
           npm install -g ts-mocha
