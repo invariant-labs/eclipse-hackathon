@@ -25,5 +25,8 @@ export default defineConfig({
     rollupOptions: {
       external: ['fs/promises', 'path']
     }
+  },
+  define: {
+    'process.env.NODE_DEBUG': 'false'
   }
 })

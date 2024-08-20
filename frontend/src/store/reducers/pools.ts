@@ -1,15 +1,18 @@
+import { PoolStructure } from '@invariant-labs/sdk-eclipse/lib/market'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { PublicKey } from '@solana/web3.js'
+import * as R from 'remeda'
 import { Token } from '@store/consts/static'
 import { PayloadType } from '@store/reducers/types'
+import { Pair } from '@invariant-labs/sdk-eclipse'
 
-// export interface PoolWithAddress extends PoolStructure {
-//   address: PublicKey
-// }
+export interface PoolWithAddress extends PoolStructure {
+  address: PublicKey
+}
 
 export interface IPoolsStore {
   tokens: Record<string, Token>
-  //   pools: { [key in string]: PoolWithAddress }
+  pools: { [key in string]: PoolWithAddress }
   //   poolTicks: { [key in string]: Tick[] }
   //   nearestPoolTicksForPair: { [key in string]: Tick[] }
   isLoadingLatestPoolsForTransaction: boolean
@@ -52,7 +55,7 @@ export interface FetchTicksAndTickMaps {
 
 export const defaultState: IPoolsStore = {
   tokens: {},
-  //   pools: {},
+  pools: {},
   //   poolTicks: {},
   //   nearestPoolTicksForPair: {},
   isLoadingLatestPoolsForTransaction: false
@@ -90,6 +93,28 @@ const poolsSlice = createSlice({
         ...state.tokens,
         ...action.payload
       }
+      return state
+    },
+    getPoolData(state, _action: PayloadAction<Pair>) {
+      state.isLoadingLatestPoolsForTransaction = true
+
+      return state
+    },
+    addPools(state, action: PayloadAction<PoolWithAddress[]>) {
+      const newData = action.payload.reduce(
+        (acc, pool) => ({
+          ...acc,
+          [pool.address.toString()]: pool
+        }),
+        {}
+      )
+      state.pools = R.merge(state.pools, newData)
+      state.isLoadingLatestPoolsForTransaction = false
+      return state
+    },
+    getAllPoolsForPairData(state, _action: PayloadAction<PairTokens>) {
+      state.isLoadingLatestPoolsForTransaction = true
+
       return state
     }
   }
