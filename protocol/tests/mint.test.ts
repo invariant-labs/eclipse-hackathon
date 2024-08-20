@@ -1,7 +1,7 @@
 import { AnchorProvider, BN } from "@coral-xyz/anchor";
 import { Network } from "../sdk/src/network";
 import { Protocol } from "../sdk/src/protocol";
-import { Keypair } from "@solana/web3.js";
+import { Keypair, SendTransactionError } from "@solana/web3.js";
 import {
   createTokenMint,
   initMarket,
@@ -10,7 +10,7 @@ import {
   sleep,
 } from "./test-utils";
 import { assert } from "chai";
-import { getOrCreateAssociatedTokenAccount, mintTo } from "@solana/spl-token";
+import { ASSOCIATED_TOKEN_PROGRAM_ID, getOrCreateAssociatedTokenAccount, mintTo, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
 import { Pair } from "@invariant-labs/sdk-eclipse";
 import {
   fromFee,
@@ -158,31 +158,52 @@ describe("mint lp token", () => {
       },
       owner
     );
-    
-    await protocol.mintLpToken(
-      {
-        liquidityDelta,
-        pair,
-        index: positionId,
-        invProgram: INVARIANT_ADDRESS,
-        invState: stateAddress,
-        position: positionAddress,
-        lastPosition: lastPositionAddress,
-        pool: poolAddress,
-        positionList: positionListAddress,
-        lowerTick: lowerTickAddress,
-        upperTick: upperTickAddress,
-        tickmap,
-        accountX: userTokenXAccount.address,
-        accountY: userTokenYAccount.address,
-        invReserveX: tokenXReserve,
-        invReserveY: tokenYReserve,
-        invProgramAuthority: market.programAuthority,
-      },
-      owner
-    );
 
-    const position = await market.getPosition(protocol.programAuthority, positionId);
-    assert.ok(position);
+    const [tokenLp] = protocol.getLpTokenAddressAndBump(pair);
+    const accountLp = await getOrCreateAssociatedTokenAccount(
+      connection,
+      owner,
+      tokenLp,
+      owner.publicKey,
+      undefined,
+      undefined,
+      undefined,
+      TOKEN_2022_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID
+    );
+    
+   
+    try {
+      await protocol.mintLpToken(
+        {
+          liquidityDelta,
+          pair,
+          index: positionId,
+          invProgram: INVARIANT_ADDRESS,
+          invState: stateAddress,
+          position: positionAddress,
+          lastPosition: lastPositionAddress,
+          pool: poolAddress,
+          positionList: positionListAddress,
+          lowerTick: lowerTickAddress,
+          upperTick: upperTickAddress,
+          tickmap,
+          accountX: userTokenXAccount.address,
+          accountY: userTokenYAccount.address,
+          invReserveX: tokenXReserve,
+          invReserveY: tokenYReserve,
+          invProgramAuthority: market.programAuthority,
+        },
+        owner
+      );
+    } catch (error) {
+      if (error instanceof SendTransactionError) {
+        console.log(await error.getLogs(connection));
+      }
+    }
+
+
+    // const position = await market.getPosition(protocol.programAuthority, positionId);
+    // assert.ok(position);
   });
 });

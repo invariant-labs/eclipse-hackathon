@@ -9,7 +9,7 @@ use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::{token::{self, TokenAccount}, token_2022};
 use anchor_spl::token_2022::{mint_to, MintTo, Token2022};
 use anchor_spl::token_interface::{Mint, TokenAccount as ITokenAccount, TokenInterface};
-use decimal::Factories;
+use decimal::{Decimal, Factories};
 use invariant::decimals::{Liquidity as InvLiquidity, Price as InvPrice};
 use invariant::{
     cpi::accounts::{CreatePosition, RemovePosition},
@@ -42,72 +42,87 @@ pub struct MintLpTokenCtx<'info> {
     )]
     pub lp_pool: AccountLoader<'info, LpPool>,
     #[account(mut,
+        // validated in the handler!
         seeds = [LP_TOKEN_IDENT, token_x.key().as_ref(), token_y.key().as_ref(), &lp_pool.load()?.fee.v.to_le_bytes(), &lp_pool.load()?.tick_spacing.to_le_bytes()],
         bump=lp_pool.load()?.token_bump,
     )]
-    pub token_lp: InterfaceAccount<'info, Mint>,
+    pub token_lp: Box<InterfaceAccount<'info, Mint>>,
     #[account(mut,
         associated_token::mint = token_x,
-        associated_token::authority = program_authority)]
-    pub reserve_x: InterfaceAccount<'info, ITokenAccount>,
+        associated_token::authority = program_authority,
+        associated_token::token_program = token_x_program,
+    )]
+    pub reserve_x: Box<InterfaceAccount<'info, ITokenAccount>>,
     #[account(mut,
         associated_token::mint = token_y,
-        associated_token::authority = program_authority)]
-    pub reserve_y: InterfaceAccount<'info, ITokenAccount>,
-    #[account(init_if_needed,
-        payer = owner, 
-        associated_token::mint = token_lp, 
-        associated_token::authority = owner
+        associated_token::authority = program_authority,
+        associated_token::token_program = token_y_program,
     )]
-    pub account_lp: InterfaceAccount<'info, ITokenAccount>,
+    pub reserve_y: Box<InterfaceAccount<'info, ITokenAccount>>,
+    #[account(mut,
+        associated_token::mint = token_lp, 
+        associated_token::authority = owner,
+        associated_token::token_program = token_program,
+    )]
+    pub account_lp: Box<InterfaceAccount<'info, ITokenAccount>>,
     pub token_program: Program<'info, Token2022>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     /// INVARIANT
-    pub inv_program: Program<'info, Invariant>,
-    pub inv_state: AccountLoader<'info, InvariantState>,
+    /// CHECK: passed to Invariant
+    pub inv_program: UncheckedAccount<'info>,
+    /// CHECK: passed to Invariant
+    pub inv_state: UncheckedAccount<'info>,
     /// CHECK: invariant_program_authority is the authority of the Invariant program
-    pub inv_program_authority: AccountInfo<'info>,
-    // might not exist, explicit check in the handler
+    pub inv_program_authority: UncheckedAccount<'info>,
+    /// CHECK: might not exist, explicit check in the handler
     #[account(mut)]
     pub position: AccountInfo<'info>,
-    // might not exist, check in Invariant CPI
+    /// CHECK: might not exist, check in Invariant CPI
     #[account(mut)]
     pub last_position: UncheckedAccount<'info>,
     #[account(mut,
+        // validated in the handler!
         seeds = [INVARIANT_POOL_IDENT, token_x.key().as_ref(), token_y.key().as_ref(), &lp_pool.load()?.fee.v.to_le_bytes(), &lp_pool.load()?.tick_spacing.to_le_bytes()],
         bump=pool.load()?.bump,
         seeds::program = invariant::ID
+        // OR
+        // constraint = pool.load()?.token_x == token_x.key() && pool.load()?.token_y == token_y.key(),
+        // constraint = pool.load()?.tick_spacing == lp_pool.load()?.tick_spacing,
+        // constraint = pool.load()?.fee.v == lp_pool.load()?.fee.v
     )]
     pub pool: AccountLoader<'info, Pool>,
+    /// CHECK: passed to Invariant
     #[account(mut)]
-    pub position_list: AccountLoader<'info, PositionList>,
-    // TODO: check if lowest tick possible
+    pub position_list: UncheckedAccount<'info>,
+    /// CHECK: passed to Invariant
     #[account(mut)]
-    pub lower_tick: AccountLoader<'info, Tick>,
-    // TODO: check if highest tick possible
+    pub lower_tick: UncheckedAccount<'info>,
+    /// CHECK: passed to Invariant
     #[account(mut)]
-    pub upper_tick: AccountLoader<'info, Tick>,
+    pub upper_tick: UncheckedAccount<'info>,
+    /// CHECK: passed to Invariant
     #[account(mut)]
-    pub tickmap: AccountLoader<'info, Tickmap>,
-    pub token_x: InterfaceAccount<'info, Mint>,
-    pub token_y: InterfaceAccount<'info, Mint>,
+    pub tickmap: UncheckedAccount<'info>,
+    pub token_x: Box<InterfaceAccount<'info, Mint>>,
+    pub token_y: Box<InterfaceAccount<'info, Mint>>,
     #[account(mut)]
-    pub account_x: InterfaceAccount<'info, ITokenAccount>,
+    pub account_x: Box<InterfaceAccount<'info, ITokenAccount>>,
     #[account(mut)]
-    pub account_y: InterfaceAccount<'info, ITokenAccount>,
+    pub account_y: Box<InterfaceAccount<'info, ITokenAccount>>,
     #[account(mut)]
     pub inv_reserve_x: Box<InterfaceAccount<'info, ITokenAccount>>,
     #[account(mut)]
     pub inv_reserve_y: Box<InterfaceAccount<'info, ITokenAccount>>,
-    #[account(constraint = token_x_program.key() == token::ID || token_x_program.key() == token_2022::ID)]
     pub token_x_program: Interface<'info, TokenInterface>,
-    #[account(constraint = token_y_program.key() == token::ID || token_y_program.key() == token_2022::ID)]
     pub token_y_program: Interface<'info, TokenInterface>,
-    pub rent: Sysvar<'info, Rent>,
-    pub system_program: Program<'info, System>,
+    /// CHECK: passed to Invariant
+    pub rent: UncheckedAccount<'info>,
+    /// CHECK: no inits here, passed to Invariant
+    pub system_program: UncheckedAccount<'info>,
 }
 
 impl<'info> MintLpTokenCtx<'info> {
+
     pub fn mint_lp(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
         CpiContext::new(
             self.token_program.to_account_info(),
@@ -129,6 +144,7 @@ impl<'info> MintLpTokenCtx<'info> {
             },
         )
     }
+
     pub fn deposit_x_2022(&self) -> CpiContext<'_, '_, '_, 'info, token_2022::TransferChecked<'info>> {
         CpiContext::new(
             self.token_x_program.to_account_info(),
@@ -151,6 +167,7 @@ impl<'info> MintLpTokenCtx<'info> {
             },
         )
     }
+
     pub fn deposit_y_2022(&self) -> CpiContext<'_, '_, '_, 'info, token_2022::TransferChecked<'info>> {
         CpiContext::new(
             self.token_y_program.to_account_info(),
@@ -188,6 +205,7 @@ impl<'info> MintLpTokenCtx<'info> {
             },
         )
     }
+
     pub fn create_position(&self) -> CpiContext<'_, '_, '_, 'info, CreatePosition<'info>> {
         CpiContext::new(
             self.inv_program.to_account_info(),
@@ -216,19 +234,43 @@ impl<'info> MintLpTokenCtx<'info> {
             },
         )
     }
-// }
-    // impl MintLpTokenCtx<'_> {
+
+    pub fn validate_pool(&self) -> Result<()> {
+        let lp_pool = &self.lp_pool.load()?;
+        let pool = &self.pool.load()?;
+        require_keys_eq!(pool.token_x, self.token_x.key());
+        require_keys_eq!(pool.token_y, self.token_y.key());
+        require_eq!(pool.fee.v, lp_pool.fee.v);
+        require_eq!(pool.tick_spacing, lp_pool.tick_spacing);
+        Ok(())
+    }
+
+    pub fn validate_token_lp(&self) -> Result<()> {
+        let lp_pool = &self.lp_pool.load()?;
+        let token_x = self.token_x.key();
+        let token_y = self.token_y.key();
+        let seeds = [LP_TOKEN_IDENT, token_x.as_ref(), token_y.as_ref(), &lp_pool.fee.v.to_le_bytes(), &lp_pool.tick_spacing.to_le_bytes()];
+        let (pubkey, token_bump) = Pubkey::find_program_address(&seeds, &crate::ID);
+        require_keys_eq!(pubkey, self.token_lp.key());
+        require_eq!(token_bump, lp_pool.token_bump);
+        Ok(())
+    }
+
     pub fn process(&mut self, liquidity: Liquidity, index: u32) -> Result<()> {
-        let lp_pool = self.lp_pool.load()?;
-        let Pool { sqrt_price, current_tick_index, .. } = *self.pool.load()?;
-        let sqrt_price = Price::from_integer(sqrt_price.v);
+        self.validate_pool()?;
+        self.validate_token_lp()?;
+
+        let lp_pool = &self.lp_pool.load()?;
+        // let Pool { sqrt_price, current_tick_index, .. } = &self.pool.load()?;
+
+        let sqrt_price = Price::new(5);
         let upper_tick_index = get_max_tick(lp_pool.tick_spacing);
         let lower_tick_index = -upper_tick_index;
 
         let dummy_test_val_please_remove = liquidity.v;
 
         // let (required_x, required_y) = calculate_amount_delta(sqrt_price, liquidity, true, current_tick_index, lower_tick_index, upper_tick_index).unwrap();
-        let (required_x, required_y) = (TokenAmount::from_integer(dummy_test_val_please_remove), TokenAmount::from_integer(dummy_test_val_please_remove));
+        let (required_x, required_y) = (TokenAmount::new(dummy_test_val_please_remove as u64), TokenAmount::new(dummy_test_val_please_remove as u64));
         match self.token_x_program.key() {
             token_2022::ID => token_2022::transfer_checked(
                 self.deposit_x_2022(),
@@ -252,11 +294,11 @@ impl<'info> MintLpTokenCtx<'info> {
         let init_liquidity = if lp_pool.invariant_position != Pubkey::default() {
             // let position = try_from!(AccountLoader::<Position>, &self.position)?;
             // let val = position.load()?.liquidity.v;
-            // Liquidity::from_integer(val)
-            Liquidity::from_integer(0)
+            // Liquidity::new(val)
+            Liquidity::new(0)
         }
         else {
-            Liquidity::from_integer(0)
+            Liquidity::new(0)
         };
         
         if lp_pool.invariant_position != Pubkey::default()
@@ -269,9 +311,9 @@ impl<'info> MintLpTokenCtx<'info> {
             //     self.create_position(),
             //     lower_tick_index,
             //     upper_tick_index,
-            //     InvLiquidity::from_integer(init_liquidity.v + dummy_test_val_please_remove),
-            //     InvPrice::from_integer(sqrt_price.v),
-            //     InvPrice::from_integer(sqrt_price.v),
+            //     InvLiquidity::new(init_liquidity.v + dummy_test_val_please_remove),
+            //     InvPrice::new(sqrt_price.v),
+            //     InvPrice::new(sqrt_price.v),
             // )?;
         }
 

@@ -93,7 +93,7 @@ pub mod protocol {
     }
 
     pub fn init_lp_pool(ctx: Context<InitPoolCtx>) -> Result<()> {
-        let token_bump = ctx.bumps.lp_pool;
+        let token_bump = ctx.bumps.token_lp;
         let bump = ctx.bumps.lp_pool;
         ctx.accounts.process(token_bump, bump)
     }

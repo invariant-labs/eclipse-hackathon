@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 e2e_tests=(
     # "init"

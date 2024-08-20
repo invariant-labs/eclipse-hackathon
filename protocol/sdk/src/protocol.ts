@@ -462,8 +462,6 @@ export class Protocol {
       ASSOCIATED_TOKEN_PROGRAM_ID
     );
 
-    console.log(pair)
-
     return await this.program.methods
       .mintLpToken(liquidityDelta, index)
       .accounts({
