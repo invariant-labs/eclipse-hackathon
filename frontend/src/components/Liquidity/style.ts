@@ -4,7 +4,7 @@ import { makeStyles } from 'tss-react/mui'
 const useStyles = makeStyles()(theme => {
   return {
     wrapper: {
-      width: 952,
+      width: 600,
       maxWidth: '100%',
       position: 'relative'
     },

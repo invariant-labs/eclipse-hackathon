@@ -1,38 +1,30 @@
 name: preview
 
-permissions:
-  contents: read
-
 on:
   pull_request:
     types: [opened, synchronize, reopened]
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v2
         with:
-          node-version: '20'
-      - name: install
-        run: npm i
-      - name: build
-        run: npm run build
+          node-version: '18'
+      - name: install & build
+        run: |
+          cd frontend
+          npm i
+          npm run build
 
   upload:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
       - name: Deploy to Vercel Action
         uses: BetaHuhn/deploy-to-vercel-action@v1
         with:
@@ -41,5 +33,5 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_SCOPE: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          WORKING_DIRECTORY: frontend
           PRODUCTION: false
-
