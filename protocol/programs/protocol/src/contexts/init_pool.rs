@@ -35,7 +35,7 @@ pub struct InitPoolCtx<'info> {
         mint::decimals = 6,
         mint::authority = program_authority,
         mint::token_program = token_program)]
-    pub token_lp: InterfaceAccount<'info, Mint>,
+    pub token_lp: Box<InterfaceAccount<'info, Mint>>,
     #[account(mut)]
     pub payer: Signer<'info>,
     #[account(
@@ -44,22 +44,22 @@ pub struct InitPoolCtx<'info> {
         seeds::program = invariant::ID
     )]
     pub pool: AccountLoader<'info, Pool>,
-    pub token_x: InterfaceAccount<'info, Mint>,
-    pub token_y: InterfaceAccount<'info, Mint>,
+    pub token_x: Box<InterfaceAccount<'info, Mint>>,
+    pub token_y: Box<InterfaceAccount<'info, Mint>>,
     #[account(init_if_needed,
         associated_token::mint = token_x,
         associated_token::authority = program_authority,
         associated_token::token_program = token_x_program,
         payer = payer,
     )]
-    pub reserve_x: InterfaceAccount<'info, TokenAccount>,
+    pub reserve_x: Box<InterfaceAccount<'info, TokenAccount>>,
     #[account(init_if_needed,
         associated_token::mint = token_y,
         associated_token::authority = program_authority,
         associated_token::token_program = token_y_program,
         payer = payer,
     )]
-    pub reserve_y: InterfaceAccount<'info, TokenAccount>,
+    pub reserve_y: Box<InterfaceAccount<'info, TokenAccount>>,
     #[account(constraint = token_x_program.key() == token::ID || token_x_program.key() == token_2022::ID)]
     pub token_x_program: Interface<'info, TokenInterface>,
     #[account(constraint = token_y_program.key() == token::ID || token_y_program.key() == token_2022::ID)]

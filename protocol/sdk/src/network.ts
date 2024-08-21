@@ -8,13 +8,13 @@ export enum Network {
 export const getProtocolProgramAddress = (network: Network): string => {
   switch (network) {
     case Network.LOCAL:
-      return "HTBzkQCWc2sbkn5WmLkPmQKKotaeeWgZ3RSD4Eg3f1MS";
+      return "GXXm1rzfDiMvgGR92jPAwC48gXxbHCgm87Vjz64kp4Lq";
     case Network.DEV:
-      return "HTBzkQCWc2sbkn5WmLkPmQKKotaeeWgZ3RSD4Eg3f1MS";
+      return "GXXm1rzfDiMvgGR92jPAwC48gXxbHCgm87Vjz64kp4Lq";
     case Network.TEST:
-      return "HTBzkQCWc2sbkn5WmLkPmQKKotaeeWgZ3RSD4Eg3f1MS";
+      return "GXXm1rzfDiMvgGR92jPAwC48gXxbHCgm87Vjz64kp4Lq";
     case Network.MAIN:
-      return "HTBzkQCWc2sbkn5WmLkPmQKKotaeeWgZ3RSD4Eg3f1MS";
+      return "GXXm1rzfDiMvgGR92jPAwC48gXxbHCgm87Vjz64kp4Lq";
     default:
       throw new Error("Unknown network");
   }

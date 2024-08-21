@@ -5,7 +5,7 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-protocol = "HTBzkQCWc2sbkn5WmLkPmQKKotaeeWgZ3RSD4Eg3f1MS"
+protocol = "GXXm1rzfDiMvgGR92jPAwC48gXxbHCgm87Vjz64kp4Lq"
 invariant = "CsT21LCRqBfh4SCcNZXtWjRZ6xvYKvdpEBaytCVmWnVJ"
 
 [registry]

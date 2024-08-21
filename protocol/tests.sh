@@ -9,7 +9,7 @@ e2e_tests=(
 )
 
 # currenty, there are no unit tests 
-cargo test
+# cargo test
 
 # build protocol before run test
 ./build.sh
