@@ -135,8 +135,7 @@ export function* fetchTokensAccounts(): Generator {
       }
     }
   }
-  console.log(newAccounts)
-  console.log(unknownTokens)
+
   yield* put(actions.addTokenAccounts(newAccounts))
   yield* put(poolsActions.addTokens(unknownTokens))
 }

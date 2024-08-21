@@ -1,4 +1,3 @@
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import searchIcon from '@static/svg/lupa.svg'
 import { theme } from '@static/theme'
 import React, { forwardRef, useEffect, useMemo, useRef, useState } from 'react'
@@ -22,7 +21,6 @@ import {
 import { SwapToken } from '@store/selectors/wallet'
 import Scrollbars from 'rc-scrollbars'
 import icons from '@static/icons'
-import { TooltipHover } from '@components/TooltipHover/TooltipHover'
 import { PublicKey } from '@solana/web3.js'
 import { formatNumbers, printBN, showPrefix } from '@utils/utils'
 import { FormatNumberThreshold } from '@store/consts/types'
@@ -229,12 +227,12 @@ export const SelectTokenModal: React.FC<ISelectTokenModal> = ({
               />
               <CardMedia image={searchIcon} className={classes.inputIcon} />
             </Grid>
-            <TooltipHover text='Add token'>
+            {/* <TooltipHover text='Add token'>
               <AddCircleOutlineIcon
                 className={classes.addIcon}
                 onClick={() => setIsAddOpen(true)}
               />
-            </TooltipHover>
+            </TooltipHover> */}
           </Grid>
           <Grid container>
             <Grid className={classes.commonTokensList}>
