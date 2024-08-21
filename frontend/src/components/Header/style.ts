@@ -25,9 +25,9 @@ const useStyles = makeStyles()((theme: Theme) => {
       }
     },
     logo: {
-      width: 150,
-      height: 40,
-
+      width: 240,
+      height: 30,
+      backgroundOrigin: 'content-box',
       '&:hover': {
         cursor: 'pointer'
       }
@@ -106,7 +106,7 @@ const useStyles = makeStyles()((theme: Theme) => {
       transition: 'filter 300ms'
     },
     menuButton: {
-      width: 142,
+      width: 240,
       display: 'flex',
       justifyContent: 'flex-end',
       borderRadius: 10,

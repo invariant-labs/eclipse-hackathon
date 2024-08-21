@@ -52,8 +52,8 @@ export const Header: React.FC<IHeader> = ({
   const isMdDown = useMediaQuery(theme.breakpoints.down('md'))
 
   const routes = [
-    { root: 'liquidity', name: 'Liquidity management' },
-    { root: 'position', name: 'Fungible position' },
+    { root: 'liquidity', name: 'Fullrange Tokenizer' },
+    { root: 'position', name: 'Fingible Position' },
     { root: 'orderbook', name: 'Orderbook' }
   ]
 
@@ -103,6 +103,7 @@ export const Header: React.FC<IHeader> = ({
               }
             }}
           />
+          {/* <img src={invariantLogo} alt='Invariant Link' className={classes.logo} /> */}
         </Grid>
         <Box sx={{ display: { xs: 'block', md: 'none' } }}>
           <Grid container item className={classes.leftSide} justifyContent='flex-start'>
