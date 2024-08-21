@@ -6,8 +6,6 @@ mod invoke_create_position;
 mod invoke_update_seconds_per_liquidity;
 mod mint;
 mod reopen_position;
-mod test;
-mod token;
 
 pub use burn::*;
 pub use init::*;
@@ -17,5 +15,3 @@ pub use invoke_create_position::*;
 pub use invoke_update_seconds_per_liquidity::*;
 pub use mint::*;
 pub use reopen_position::*;
-pub use test::*;
-pub use token::*;
