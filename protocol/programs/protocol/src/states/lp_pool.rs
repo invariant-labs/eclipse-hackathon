@@ -11,6 +11,7 @@ impl DerivedAccountIdentifier for LpPool {
 #[derive(PartialEq, Default, Debug, InitSpace)]
 pub struct LpPool {
     pub invariant_position: Pubkey,
+    pub position_bump: u8,
     pub leftover_x: u64,
     pub leftover_y: u64,
     pub token_x: Pubkey,
