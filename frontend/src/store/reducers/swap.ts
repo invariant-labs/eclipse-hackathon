@@ -5,7 +5,7 @@ import { PayloadType } from './types'
 
 //TODO replace mock fromFee
 export const fromFee = (fee: BN) => {
-  console.log(fee)
+  return fee
 }
 
 //TODO replace mock Decimal

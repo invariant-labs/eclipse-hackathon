@@ -1,3 +1,4 @@
+import { LpPoolStructure } from '@invariant-labs/eclipse-link-sdk/dist/types'
 import { Pair } from '@invariant-labs/sdk-eclipse'
 import { PoolStructure } from '@invariant-labs/sdk-eclipse/lib/market'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
@@ -10,9 +11,14 @@ export interface PoolWithAddress extends PoolStructure {
   address: PublicKey
 }
 
+export interface LpPoolWithAddress extends LpPoolStructure {
+  address: PublicKey
+}
+
 export interface IPoolsStore {
   tokens: Record<string, Token>
   pools: { [key in string]: PoolWithAddress }
+  lpPools: { [key in string]: LpPoolWithAddress }
   //   poolTicks: { [key in string]: Tick[] }
   //   nearestPoolTicksForPair: { [key in string]: Tick[] }
   isLoadingLatestPoolsForTransaction: boolean
@@ -56,6 +62,7 @@ export interface FetchTicksAndTickMaps {
 export const defaultState: IPoolsStore = {
   tokens: {},
   pools: {},
+  lpPools: {},
   //   poolTicks: {},
   //   nearestPoolTicksForPair: {},
   isLoadingLatestPoolsForTransaction: false
@@ -115,6 +122,23 @@ const poolsSlice = createSlice({
     getAllPoolsForPairData(state, _action: PayloadAction<PairTokens>) {
       state.isLoadingLatestPoolsForTransaction = true
 
+      return state
+    },
+    getLpPoolData(state, _action: PayloadAction<Pair>) {
+      state.isLoadingLatestPoolsForTransaction = true
+
+      return state
+    },
+    addLpPools(state, action: PayloadAction<LpPoolWithAddress[]>) {
+      const newData = action.payload.reduce(
+        (acc, pool) => ({
+          ...acc,
+          [pool.address.toString()]: pool
+        }),
+        {}
+      )
+      state.lpPools = R.merge(state.lpPools, newData)
+      state.isLoadingLatestPoolsForTransaction = false
       return state
     }
   }

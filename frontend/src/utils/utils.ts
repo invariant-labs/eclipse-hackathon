@@ -51,9 +51,7 @@ export const printBN = (amount: BN, decimals: number): string => {
 }
 
 export const printBNtoBN = (amount: string, decimals: number): BN => {
-  console.log(amount)
   const balanceString = amount.split('.')
-  console.log(balanceString)
   if (balanceString.length !== 2) {
     return new BN(balanceString[0] + '0'.repeat(decimals))
   }
@@ -112,9 +110,7 @@ export const parseFeeToPathFee = (fee: BN): string => {
 }
 
 export const trimLeadingZeros = (amount: string): string => {
-  console.log(amount)
   const amountParts = amount.split('.')
-  console.log(amountParts)
 
   if (!amountParts.length) {
     return '0'
@@ -144,8 +140,7 @@ export enum PositionTokenBlock {
 
 //TODO replace mock calculatePriceSqrt
 export const calculatePriceSqrt = (tick: number): BN => {
-  console.log(tick)
-  return new BN(1)
+  return new BN(tick)
 }
 
 export const determinePositionTokenBlock = (
