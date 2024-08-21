@@ -16,7 +16,7 @@ import {
   getLiquidityByYInFullRange
 } from '@invariant-labs/eclipse-link-sdk'
 import { FEE_TIERS, feeToTickSpacing } from '@invariant-labs/sdk-eclipse/lib/utils'
-import { poolsArraySortedByFees } from '@store/selectors/pools'
+import { lpPoolsArraySortedByFees, poolsArraySortedByFees } from '@store/selectors/pools'
 import { Pair } from '@invariant-labs/sdk-eclipse'
 
 export interface IProps {
@@ -42,6 +42,7 @@ export const LiquidityWrapper: React.FC<IProps> = ({
 
   const canUserCreateNewPool = useSelector(canCreateNewPool(currentNetwork))
   const [poolIndex, setPoolIndex] = useState<number | null>(null)
+  const [lpPoolIndex, setLpPoolIndex] = useState<number | null>(null)
 
   // const [progress, setProgress] = useState<ProgressState>('none')
   const [feeIndex, setFeeIndex] = useState(0)
@@ -148,6 +149,7 @@ export const LiquidityWrapper: React.FC<IProps> = ({
     localStorage.getItem('HIDE_UNKNOWN_TOKENS') === null
 
   const allPools = useSelector(poolsArraySortedByFees)
+  const allLpPools = useSelector(lpPoolsArraySortedByFees)
   const liquidityRef = useRef<any>({ v: new BN(0) })
   const isMountedRef = useRef(false)
 
@@ -171,11 +173,13 @@ export const LiquidityWrapper: React.FC<IProps> = ({
 
   useEffect(() => {
     if (tokenAIndex !== null && tokenBIndex !== null) {
-      dispatch(
-        poolsActions.getPoolData(
-          new Pair(tokens[tokenAIndex].address, tokens[tokenBIndex].address, FEE_TIERS[feeIndex])
-        )
+      const pair = new Pair(
+        tokens[tokenAIndex].address,
+        tokens[tokenBIndex].address,
+        FEE_TIERS[feeIndex]
       )
+      dispatch(poolsActions.getPoolData(pair))
+      dispatch(poolsActions.getLpPoolData(pair))
     }
   }, [tokenAIndex, tokenBIndex, feeIndex])
 
@@ -195,6 +199,21 @@ export const LiquidityWrapper: React.FC<IProps> = ({
   }, [allPools])
 
   useEffect(() => {
+    if (tokenAIndex !== null && tokenBIndex !== null) {
+      const index = allLpPools.findIndex(
+        pool =>
+          pool.fee.v.eq(fee) &&
+          ((pool.tokenX.equals(tokens[tokenAIndex].assetAddress) &&
+            pool.tokenY.equals(tokens[tokenBIndex].assetAddress)) ||
+            (pool.tokenX.equals(tokens[tokenBIndex].assetAddress) &&
+              pool.tokenY.equals(tokens[tokenAIndex].assetAddress)))
+      )
+
+      setLpPoolIndex(index !== -1 ? index : null)
+    }
+  }, [allLpPools])
+
+  useEffect(() => {
     isMountedRef.current = true
     return () => {
       isMountedRef.current = false
@@ -211,13 +230,10 @@ export const LiquidityWrapper: React.FC<IProps> = ({
       midPrice={10}
       setMidPrice={() => {}}
       addLiquidityHandler={() => {}}
-      removeLiquidityHandler={(xAmount, yAmount) => {
-        console.log(xAmount, yAmount)
-      }}
+      removeLiquidityHandler={() => {}}
       onChangePositionTokens={(tokenA, tokenB, feeTierIndex) => {
         setTokenAIndex(tokenA)
         setTokenBIndex(tokenB)
-        console.log(tokenA, tokenB)
         setFeeIndex(feeTierIndex)
       }}
       calcAmount={calcAmount}

@@ -14,7 +14,7 @@
   "dependencies": {
     "@emotion/react": "^11.13.0",
     "@emotion/styled": "^11.13.0",
-    "@invariant-labs/eclipse-link-sdk": "^0.1.1",
+    "@invariant-labs/eclipse-link-sdk": "^0.1.3",
     "@invariant-labs/sdk-eclipse": "^0.0.17",
     "@mui/icons-material": "^5.16.7",
     "@mui/material": "^5.16.7",
