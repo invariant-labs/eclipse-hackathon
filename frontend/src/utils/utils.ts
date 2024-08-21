@@ -17,6 +17,7 @@ import { FormatNumberThreshold, PrefixConfig } from '@store/consts/types'
 import { getMint } from '@solana/spl-token'
 import mainnetList from '@store/consts/tokenLists/mainnet.json'
 import icons from '@static/icons'
+import { getTokenProgramAddress } from '@invariant-labs/sdk-eclipse'
 export const createLoaderKey = () => (new Date().getMilliseconds() + Math.random()).toString()
 
 export const trimZeros = (amount: string) => {
@@ -202,7 +203,7 @@ export const getNetworkTokensList = (networkType: NetworkType): Record<string, T
   const obj: Record<string, Token> = {}
   switch (networkType) {
     case NetworkType.MAINNET:
-      (mainnetList as any[]).forEach(token => {
+      ;(mainnetList as any[]).forEach(token => {
         obj[token.address] = {
           ...token,
           address: new PublicKey(token.address),
@@ -260,4 +261,11 @@ export const tickerToAddress = (ticker: string): string => {
 
 export const parsePathFeeToFeeString = (pathFee: string): string => {
   return (+pathFee.replace('_', '') * Math.pow(10, 8)).toString()
+}
+
+export const getTokenProgramId = async (
+  connection: Connection,
+  address: PublicKey
+): Promise<PublicKey> => {
+  return await getTokenProgramAddress(connection, address)
 }

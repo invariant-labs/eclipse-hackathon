@@ -228,8 +228,6 @@ export const Liquidity: React.FC<ILiquidity> = ({
 
   const [lastInput, setLastInput] = useState<'A' | 'B'>('A')
 
-  console.log('pi', poolIndex)
-
   useEffect(() => {
     if (tokenAIndex !== null && tokenBIndex !== null) {
       if (lastInput === 'A') {
