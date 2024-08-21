@@ -93,7 +93,7 @@ export const Liquidity: React.FC<ILiquidity> = ({
   tickSpacing,
   // isWaitingForNewPool,
   poolIndex,
-  bestTiers,
+  // bestTiers,
   // canCreateNewPool,
   handleAddToken,
   commonTokens,
