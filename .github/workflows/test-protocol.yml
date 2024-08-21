@@ -92,6 +92,7 @@ jobs:
         working-directory: ${{ env.protocol_path }}
         run: |
           export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
+          avm use ${{ env.anchor_version }}
           npm i
           chmod +x tests.sh
           ./tests.sh
