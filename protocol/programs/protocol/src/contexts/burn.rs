@@ -1,7 +1,7 @@
 use std::cell::RefMut;
 
 use crate::math::{
-    calculate_amount_delta, compute_lp_share_change, get_max_tick, get_min_tick,
+    calculate_amount_delta, compute_lp_share_change,
     LiquidityChangeResult,
 };
 use crate::states::{DerivedAccountIdentifier, LpPool, State, LP_TOKEN_IDENT};
@@ -285,19 +285,8 @@ impl<'info> BurnLpTokenCtx<'info> {
 
     pub fn validate_position(&self) -> Result<()> {
         let lp_pool = &self.lp_pool.load()?;
-        if lp_pool.invariant_position != Pubkey::default() {
-            let upper_tick_index = get_max_tick(lp_pool.tick_spacing);
-            let lower_tick_index = get_min_tick(lp_pool.tick_spacing);
-            let position = try_from!(AccountLoader::<Position>, &self.position)?;
-            require_eq!(position.load()?.upper_tick_index, upper_tick_index);
-            require_eq!(position.load()?.lower_tick_index, lower_tick_index);
+        require_keys_eq!(lp_pool.invariant_position, self.position.key());
 
-            require_keys_eq!(self.position.key(), self.last_position.key());
-            let owner = self.program_authority.key();
-            let seeds = [b"positionv1", owner.as_ref(), &0i32.to_le_bytes()];
-            let (pubkey, _bump) = Pubkey::find_program_address(&seeds, &invariant::ID);
-            require_keys_eq!(self.last_position.key(), pubkey);
-        }
         Ok(())
     }
 

@@ -213,7 +213,7 @@ describe("burn lp token", () => {
 
     const { positionAddress: lastPositionAddress2 } =
       await market.getPositionAddress(protocol.programAuthority, 0);
-    const liquidityDelta2 = new BN(49000747);
+
     accountLp = await getOrCreateAssociatedTokenAccount(
       connection,
       owner,
@@ -226,10 +226,44 @@ describe("burn lp token", () => {
       ASSOCIATED_TOKEN_PROGRAM_ID
     );
     assert.equal(accountLp.amount, 23n);
+    await protocol.burnLpToken(
+      {
+        liquidityDelta: new BN(46000747),
+        pair,
+        index: positionId,
+        invProgram: INVARIANT_ADDRESS,
+        invState: stateAddress,
+        position: positionAddress,
+        lastPosition: lastPositionAddress2,
+        pool: poolAddress,
+        positionList: positionListAddress,
+        lowerTick: lowerTickAddress,
+        upperTick: upperTickAddress,
+        tickmap,
+        accountX: userTokenXAccount.address,
+        accountY: userTokenYAccount.address,
+        invReserveX: tokenXReserve,
+        invReserveY: tokenYReserve,
+        invProgramAuthority: market.programAuthority,
+      },
+      owner
+    );
+    accountLp = await getOrCreateAssociatedTokenAccount(
+      connection,
+      owner,
+      tokenLp,
+      owner.publicKey,
+      undefined,
+      undefined,
+      undefined,
+      TOKEN_2022_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID
+    );
+    assert.equal(accountLp.amount, 1n);
 
     await protocol.burnLpToken(
       {
-        liquidityDelta: liquidityDelta2,
+        liquidityDelta: new BN(2000030),
         pair,
         index: positionId,
         invProgram: INVARIANT_ADDRESS,
