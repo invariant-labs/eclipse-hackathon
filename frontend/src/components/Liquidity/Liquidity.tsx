@@ -246,6 +246,12 @@ export const Liquidity: React.FC<ILiquidity> = ({
     }
   }, [poolIndex])
 
+  useEffect(() => {
+    // Temporary set best tier index as only available
+    if (bestTierIndex) {
+      setPositionTokens(tokenAIndex, tokenBIndex, bestTierIndex, true)
+    }
+  }, [bestTierIndex])
   return (
     <Grid container className={classes.wrapper} direction='column'>
       {showNoConnected && <NoConnected {...noConnectedBlockerProps} />}

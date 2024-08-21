@@ -97,7 +97,12 @@ export const LiquidityWrapper: React.FC<IProps> = ({
   // const initialSlippage = localStorage.getItem('INVARIANT_NEW_POSITION_SLIPPAGE') ?? '1'
 
   const calcAmount = (amount: BN, tokenAddress: PublicKey) => {
-    if (tokenAIndex === null || tokenBIndex === null || poolIndex === null) {
+    if (
+      tokenAIndex === null ||
+      tokenBIndex === null ||
+      poolIndex === null ||
+      tokenAIndex === tokenBIndex
+    ) {
       return new BN(0)
     }
 
@@ -161,7 +166,7 @@ export const LiquidityWrapper: React.FC<IProps> = ({
   )
 
   const isXtoY = useMemo(() => {
-    if (tokenAIndex !== null && tokenBIndex !== null) {
+    if (tokenAIndex !== null && tokenBIndex !== null && tokenAIndex !== tokenBIndex) {
       return (
         tokens[tokenAIndex].assetAddress.toString() < tokens[tokenBIndex].assetAddress.toString()
       )
@@ -170,7 +175,7 @@ export const LiquidityWrapper: React.FC<IProps> = ({
   }, [tokenAIndex, tokenBIndex])
 
   useEffect(() => {
-    if (tokenAIndex !== null && tokenBIndex !== null) {
+    if (tokenAIndex !== null && tokenBIndex !== null && tokenAIndex !== tokenBIndex) {
       dispatch(
         poolsActions.getPoolData(
           new Pair(tokens[tokenAIndex].address, tokens[tokenBIndex].address, FEE_TIERS[feeIndex])
@@ -217,7 +222,6 @@ export const LiquidityWrapper: React.FC<IProps> = ({
       onChangePositionTokens={(tokenA, tokenB, feeTierIndex) => {
         setTokenAIndex(tokenA)
         setTokenBIndex(tokenB)
-        console.log(tokenA, tokenB)
         setFeeIndex(feeTierIndex)
       }}
       calcAmount={calcAmount}
