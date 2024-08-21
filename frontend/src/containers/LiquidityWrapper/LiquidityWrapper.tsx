@@ -9,8 +9,15 @@ import { network } from '@store/selectors/connection'
 import { canCreateNewPool, status, swapTokens } from '@store/selectors/wallet'
 import { addNewTokenToLocalStorage, getNewTokenOrThrow, printBN } from '@utils/utils'
 import { getCurrentSolanaConnection } from '@utils/web3/connection'
-import React, { useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import {
+  getLiquidityByXInFullRange,
+  getLiquidityByYInFullRange
+} from '@invariant-labs/eclipse-link-sdk'
+import { FEE_TIERS, feeToTickSpacing } from '@invariant-labs/sdk-eclipse/lib/utils'
+import { poolsArraySortedByFees } from '@store/selectors/pools'
+import { Pair } from '@invariant-labs/sdk-eclipse'
 
 export interface IProps {
   initialTokenFrom: string
@@ -34,12 +41,12 @@ export const LiquidityWrapper: React.FC<IProps> = ({
   const currentNetwork = useSelector(network)
 
   const canUserCreateNewPool = useSelector(canCreateNewPool(currentNetwork))
-  // const [poolIndex, setPoolIndex] = useState<number | null>(null)
+  const [poolIndex, setPoolIndex] = useState<number | null>(null)
 
   // const [progress, setProgress] = useState<ProgressState>('none')
   const [feeIndex, setFeeIndex] = useState(0)
-  // const [tokenAIndex, setTokenAIndex] = useState<number | null>(null)
-  // const [tokenBIndex, setTokenBIndex] = useState<number | null>(null)
+  const [tokenAIndex, setTokenAIndex] = useState<number | null>(null)
+  const [tokenBIndex, setTokenBIndex] = useState<number | null>(null)
 
   const addTokenHandler = (address: string) => {
     if (
@@ -89,13 +96,110 @@ export const LiquidityWrapper: React.FC<IProps> = ({
   // const [priceBLoading, setPriceBLoading] = useState(false)
   // const initialSlippage = localStorage.getItem('INVARIANT_NEW_POSITION_SLIPPAGE') ?? '1'
 
-  // const calcAmount = (amount: BN, left: number, right: number, tokenAddress: PublicKey) => {
-  //   return new BN(0)
-  // }
+  const calcAmount = (amount: BN, tokenAddress: PublicKey) => {
+    if (tokenAIndex === null || tokenBIndex === null || poolIndex === null) {
+      return new BN(0)
+    }
+
+    const byX = tokenAddress.equals(
+      isXtoY ? tokens[tokenAIndex].assetAddress : tokens[tokenBIndex].assetAddress
+    )
+
+    try {
+      if (byX) {
+        const result = getLiquidityByXInFullRange(
+          amount,
+          allPools[poolIndex].sqrtPrice,
+          true,
+          tickSpacing
+        )
+        if (isMountedRef.current) {
+          liquidityRef.current = result.liquidity
+        }
+        return result.y
+      }
+      const result = getLiquidityByYInFullRange(
+        amount,
+        allPools[poolIndex].sqrtPrice,
+        true,
+        tickSpacing
+      )
+      if (isMountedRef.current) {
+        liquidityRef.current = result.liquidity
+      }
+      return result.x
+    } catch (error) {
+      const result = (byX ? getLiquidityByYInFullRange : getLiquidityByXInFullRange)(
+        amount,
+        allPools[poolIndex].sqrtPrice,
+        true,
+        tickSpacing
+      )
+      if (isMountedRef.current) {
+        liquidityRef.current = result.liquidity
+      }
+    }
+
+    return new BN(0)
+  }
 
   const initialHideUnknownTokensValue =
     localStorage.getItem('HIDE_UNKNOWN_TOKENS') === 'true' ||
     localStorage.getItem('HIDE_UNKNOWN_TOKENS') === null
+
+  const allPools = useSelector(poolsArraySortedByFees)
+  const liquidityRef = useRef<any>({ v: new BN(0) })
+  const isMountedRef = useRef(false)
+
+  const fee = useMemo(() => ALL_FEE_TIERS_DATA[feeIndex].tier.fee, [feeIndex])
+
+  const tickSpacing = useMemo(
+    () =>
+      ALL_FEE_TIERS_DATA[feeIndex].tier.tickSpacing ??
+      feeToTickSpacing(ALL_FEE_TIERS_DATA[feeIndex].tier.fee),
+    [feeIndex]
+  )
+
+  const isXtoY = useMemo(() => {
+    if (tokenAIndex !== null && tokenBIndex !== null) {
+      return (
+        tokens[tokenAIndex].assetAddress.toString() < tokens[tokenBIndex].assetAddress.toString()
+      )
+    }
+    return true
+  }, [tokenAIndex, tokenBIndex])
+
+  useEffect(() => {
+    if (tokenAIndex !== null && tokenBIndex !== null) {
+      dispatch(
+        poolsActions.getPoolData(
+          new Pair(tokens[tokenAIndex].address, tokens[tokenBIndex].address, FEE_TIERS[feeIndex])
+        )
+      )
+    }
+  }, [tokenAIndex, tokenBIndex, feeIndex])
+
+  useEffect(() => {
+    if (tokenAIndex !== null && tokenBIndex !== null) {
+      const index = allPools.findIndex(
+        pool =>
+          pool.fee.v.eq(fee) &&
+          ((pool.tokenX.equals(tokens[tokenAIndex].assetAddress) &&
+            pool.tokenY.equals(tokens[tokenBIndex].assetAddress)) ||
+            (pool.tokenX.equals(tokens[tokenBIndex].assetAddress) &&
+              pool.tokenY.equals(tokens[tokenAIndex].assetAddress)))
+      )
+
+      setPoolIndex(index !== -1 ? index : null)
+    }
+  }, [allPools])
+
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
 
   return (
     <Liquidity
@@ -111,14 +215,12 @@ export const LiquidityWrapper: React.FC<IProps> = ({
         console.log(xAmount, yAmount)
       }}
       onChangePositionTokens={(tokenA, tokenB, feeTierIndex) => {
-        // setTokenAIndex(tokenA)
-        // setTokenBIndex(tokenB)
+        setTokenAIndex(tokenA)
+        setTokenBIndex(tokenB)
         console.log(tokenA, tokenB)
         setFeeIndex(feeTierIndex)
       }}
-      calcAmount={(amount: BN, tokenAddress: PublicKey) => {
-        console.log(amount, tokenAddress) 
-      }}
+      calcAmount={calcAmount}
       feeTiers={ALL_FEE_TIERS_DATA.map(tier => ({
         feeValue: +printBN(tier.tier.fee, 10)
       }))}
@@ -134,7 +236,7 @@ export const LiquidityWrapper: React.FC<IProps> = ({
       yDecimal={10}
       tickSpacing={1}
       isWaitingForNewPool={false}
-      poolIndex={1}
+      poolIndex={poolIndex}
       bestTiers={bestTiers[currentNetwork]}
       canCreateNewPool={canUserCreateNewPool}
       handleAddToken={addTokenHandler}
@@ -145,8 +247,8 @@ export const LiquidityWrapper: React.FC<IProps> = ({
       currentFeeIndex={feeIndex}
       setCurrentFeeIndex={setFeeIndex}
       showNoConnected={walletStatus !== Status.Initialized}
-      tokenAPriceData={{price: 1}}
-      tokenBPriceData={{price: 1}}
+      tokenAPriceData={{ price: 1 }}
+      tokenBPriceData={{ price: 1 }}
       priceALoading={false}
       priceBLoading={false}
     />

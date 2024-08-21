@@ -11,7 +11,10 @@ import { ALL_FEE_TIERS_DATA, BestTier } from '@store/consts/static'
 import {
   parseFeeToPathFee,
   parsePathFeeToFeeString,
-  tickerToAddress
+  printBN,
+  printBNtoBN,
+  tickerToAddress,
+  trimLeadingZeros
 } from '@utils/utils'
 import { BN } from '@project-serum/anchor'
 import { PublicKey } from '@solana/web3.js'
@@ -76,7 +79,7 @@ export const Liquidity: React.FC<ILiquidity> = ({
   // addLiquidityHandler,
   // removeLiquidityHandler,
   onChangePositionTokens,
-  // calcAmount,
+  calcAmount,
   feeTiers,
   noConnectedBlockerProps,
   progress,
@@ -85,7 +88,7 @@ export const Liquidity: React.FC<ILiquidity> = ({
   // yDecimal,
   // tickSpacing,
   // isWaitingForNewPool,
-  // poolIndex,
+  poolIndex,
   bestTiers,
   // canCreateNewPool,
   handleAddToken,
@@ -162,10 +165,18 @@ export const Liquidity: React.FC<ILiquidity> = ({
     return tokens[tokenAIndex].symbol + '-' + tokens[tokenBIndex].symbol + '-' + parsedFee
   }, [tokenAIndex, tokenBIndex, currentFeeIndex])
 
-  // const getOtherTokenAmount = (amount: BN, byFirst: boolean) => {
-  //   return amount
-  //   //TODO
-  // }
+  const getOtherTokenAmount = (amount: BN, byFirst: boolean) => {
+    const printIndex = byFirst ? tokenBIndex : tokenAIndex
+    const calcIndex = byFirst ? tokenAIndex : tokenBIndex
+    if (printIndex === null || calcIndex === null) {
+      return '0.0'
+    }
+
+    const result = calcAmount(amount, tokens[calcIndex].assetAddress)
+
+    return trimLeadingZeros(printBN(result, tokens[printIndex].decimals))
+  }
+
   const bestTierIndex =
     tokenAIndex === null || tokenBIndex === null
       ? undefined
@@ -214,6 +225,28 @@ export const Liquidity: React.FC<ILiquidity> = ({
 
     updatePath(index1, index2, fee, isAdd)
   }
+
+  const [lastInput, setLastInput] = useState<'A' | 'B'>('A')
+
+  console.log('pi', poolIndex)
+
+  useEffect(() => {
+    if (tokenAIndex !== null && tokenBIndex !== null) {
+      if (lastInput === 'A') {
+        const result = getOtherTokenAmount(
+          printBNtoBN(tokenADeposit, tokens[tokenAIndex].decimals),
+          true
+        )
+        setTokenBDeposit(result)
+      } else {
+        const result = getOtherTokenAmount(
+          printBNtoBN(tokenBDeposit, tokens[tokenBIndex].decimals),
+          false
+        )
+        setTokenADeposit(result)
+      }
+    }
+  }, [poolIndex])
 
   return (
     <Grid container className={classes.wrapper} direction='column'>
@@ -275,23 +308,23 @@ export const Liquidity: React.FC<ILiquidity> = ({
                     return
                   }
 
-                  // if (tokenAIndex !== null) {
-                  //   setTokenBDeposit(tokenADeposit)
-                  //   setTokenADeposit(
-                  //     getOtherTokenAmount(
-                  //       printBNtoBN(tokenADeposit, tokens[tokenAIndex].decimals),
-                  //       false
-                  //     )
-                  //   )
-                  // } else if (tokenBIndex !== null) {
-                  //   setTokenADeposit(tokenBDeposit)
-                  //   setTokenBDeposit(
-                  //     getOtherTokenAmount(
-                  //       printBNtoBN(tokenBDeposit, tokens[tokenBIndex].decimals),
-                  //       true
-                  //     )
-                  //   )
-                  // }
+                  if (tokenAIndex !== null) {
+                    setTokenBDeposit(tokenADeposit)
+                    setTokenADeposit(
+                      getOtherTokenAmount(
+                        printBNtoBN(tokenADeposit, tokens[tokenAIndex].decimals),
+                        false
+                      )
+                    )
+                  } else if (tokenBIndex !== null) {
+                    setTokenADeposit(tokenBDeposit)
+                    setTokenBDeposit(
+                      getOtherTokenAmount(
+                        printBNtoBN(tokenBDeposit, tokens[tokenBIndex].decimals),
+                        true
+                      )
+                    )
+                  }
 
                   setTokenBDeposit(tokenADeposit)
                   setTokenADeposit(tokenBDeposit)
@@ -348,10 +381,11 @@ export const Liquidity: React.FC<ILiquidity> = ({
                   if (tokenAIndex === null) {
                     return
                   }
+                  setLastInput('A')
                   setTokenADeposit(value)
-                  // setTokenBDeposit(
-                  //   getOtherTokenAmount(printBNtoBN(value, tokens[tokenAIndex].decimals), true)
-                  // )
+                  setTokenBDeposit(
+                    getOtherTokenAmount(printBNtoBN(value, tokens[tokenAIndex].decimals), true)
+                  )
                 },
                 decimalsLimit: tokenAIndex !== null ? tokens[tokenAIndex].decimals : 0
               }}
@@ -361,10 +395,11 @@ export const Liquidity: React.FC<ILiquidity> = ({
                   if (tokenBIndex === null) {
                     return
                   }
+                  setLastInput('B')
                   setTokenBDeposit(value)
-                  // setTokenADeposit(
-                  //   getOtherTokenAmount(printBNtoBN(value, tokens[tokenBIndex].decimals), false)
-                  // )
+                  setTokenADeposit(
+                    getOtherTokenAmount(printBNtoBN(value, tokens[tokenBIndex].decimals), false)
+                  )
                 },
                 decimalsLimit: tokenBIndex !== null ? tokens[tokenBIndex].decimals : 0
               }}
