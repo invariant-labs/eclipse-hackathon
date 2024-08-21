@@ -11,6 +11,8 @@ export const getProtocolProgramAddress = (network: Network): string => {
       return "HTBzkQCWc2sbkn5WmLkPmQKKotaeeWgZ3RSD4Eg3f1MS";
     case Network.DEV:
       return "HTBzkQCWc2sbkn5WmLkPmQKKotaeeWgZ3RSD4Eg3f1MS";
+    case Network.TEST:
+      return "HTBzkQCWc2sbkn5WmLkPmQKKotaeeWgZ3RSD4Eg3f1MS";
     case Network.MAIN:
       return "HTBzkQCWc2sbkn5WmLkPmQKKotaeeWgZ3RSD4Eg3f1MS";
     default:
