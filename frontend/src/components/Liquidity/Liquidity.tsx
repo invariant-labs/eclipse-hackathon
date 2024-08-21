@@ -129,8 +129,7 @@ export const Liquidity: React.FC<ILiquidity> = ({
     let tokenAIndexFromPath = null
     let tokenBIndexFromPath = null
     let feeTierIndexFromPath = 0
-    console.log(initialTokenFrom)
-    console.log(initialTokenTo)
+
     tokens.forEach((token, index) => {
       if (token.assetAddress.toString() === tickerToAddress(initialTokenFrom)) {
         tokenAIndexFromPath = index
@@ -148,8 +147,7 @@ export const Liquidity: React.FC<ILiquidity> = ({
         feeTierIndexFromPath = index
       }
     })
-    console.log('tokenAIndexFromPath', tokenAIndexFromPath)
-    console.log('tokenBIndexFromPath', tokenBIndexFromPath)
+
     setTokenAIndex(tokenAIndexFromPath)
     setTokenBIndex(tokenBIndexFromPath)
     setIsAddLiquidity(initialTab !== 'remove')
