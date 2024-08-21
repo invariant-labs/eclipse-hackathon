@@ -10,7 +10,7 @@ import {
 } from "@solana/web3.js";
 import { getProtocolProgramAddress, Network } from "./network";
 import { IWallet } from "./wallet";
-import { BN, Program, utils } from "@coral-xyz/anchor";
+import { AnchorProvider, BN, Program, utils } from "@coral-xyz/anchor";
 import { IDL, Protocol as ProtocolProgram } from "./idl/protocol";
 import {
   bigNumberToBuffer,
@@ -64,7 +64,12 @@ export class Protocol {
     this.wallet = wallet;
     this.network = network;
     const programAddress = getProtocolProgramAddress(network);
-    this.program = new Program(IDL, programAddress);
+    const provider = new AnchorProvider(
+      connection,
+      wallet,
+      AnchorProvider.defaultOptions()
+    );
+    this.program = new Program(IDL, programAddress, provider);
     [this.stateAddress] = this.getProtocolStateAddressAndBump();
     [this.programAuthority] = this.getProgramAuthorityAddressAndBump();
   }
