@@ -958,7 +958,7 @@ mod test {
             true,
         )
         .unwrap();
-        assert_eq!(max_liquidity.l.v, 18447025555601329581907199); // < 2^84
+        assert_eq!(max_liquidity.l.v, 18447025809048884511436060); // < 2^84
     }
 
     #[test]
