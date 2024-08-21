@@ -36,7 +36,7 @@ export interface ILiquidity {
   tokens: SwapToken[]
   midPrice: any
   setMidPrice: (mid: any) => void
-  addLiquidityHandler: (xAmount: number, yAmount: number) => void
+  addLiquidityHandler: (tokenXDeposit: BN, tokenYDeposit: BN) => void
   removeLiquidityHandler: (xAmount: number, yAmount: FormatNumberThreshold) => void
   onChangePositionTokens: (
     tokenAIndex: number | null,
@@ -80,7 +80,7 @@ export const Liquidity: React.FC<ILiquidity> = ({
   initialTab,
   tokens,
   // setMidPrice,
-  // addLiquidityHandler,
+  addLiquidityHandler,
   // removeLiquidityHandler,
   onChangePositionTokens,
   calcAmount,
@@ -256,10 +256,9 @@ export const Liquidity: React.FC<ILiquidity> = ({
       tokenAIndex !== null &&
       tokenBIndex !== null &&
       tokenADeposit !== null &&
-      tokenBDeposit !== null
+      tokenBDeposit !== null &&
+      !sqrtPrice.v.eq(new BN(0))
     ) {
-      console.log('sqrt price', sqrtPrice.v.toString(), tickSpacing, getMaxTick(tickSpacing))
-
       const maxLiquidity = getMaxLiquidity(
         { v: printBNtoBN(tokenADeposit, xDecimal) },
         { v: printBNtoBN(tokenBDeposit, yDecimal) },
@@ -407,7 +406,12 @@ export const Liquidity: React.FC<ILiquidity> = ({
             <AddLiquidity
               tokens={tokens}
               onAddLiquidity={() => {
-                //TODO
+                if (tokenAIndex !== null && tokenBIndex !== null) {
+                  addLiquidityHandler(
+                    printBNtoBN(tokenADeposit, tokens[tokenAIndex].decimals),
+                    printBNtoBN(tokenBDeposit, tokens[tokenBIndex].decimals)
+                  )
+                }
               }}
               tokenAInputState={{
                 value: tokenADeposit,
