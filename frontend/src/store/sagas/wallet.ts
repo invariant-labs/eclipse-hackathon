@@ -468,9 +468,7 @@ export function* init(isEagerConnect?: boolean): Generator {
     const balance = yield* call(getBalance, wallet.publicKey)
     yield* put(actions.setBalance(balance))
     yield* put(actions.setStatus(Status.Initialized))
-    console.log('fetching tokens')
     yield* call(fetchTokensAccounts)
-    console.log('fetching tokens')
     yield* put(actions.setIsBalanceLoading(false))
   } catch (error) {
     yield* put(actions.setStatus(Status.Uninitialized))

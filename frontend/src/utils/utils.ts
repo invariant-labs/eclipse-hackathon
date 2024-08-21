@@ -256,8 +256,6 @@ export const getFullNewTokensData = async (
 }
 
 export const tickerToAddress = (ticker: string): string => {
-  console.log(ticker)
-  console.log(addressTickerMap[ticker] || ticker)
   return addressTickerMap[ticker] || ticker
 }
 
