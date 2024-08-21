@@ -252,7 +252,12 @@ export const Liquidity: React.FC<ILiquidity> = ({
   }, [poolIndex])
 
   const LPTokenReceive = useMemo(() => {
-    if (tokenADeposit && tokenBDeposit) {
+    if (
+      tokenAIndex !== null &&
+      tokenBIndex !== null &&
+      tokenADeposit !== null &&
+      tokenBDeposit !== null
+    ) {
       console.log('sqrt price', sqrtPrice.v.toString(), tickSpacing, getMaxTick(tickSpacing))
 
       const maxLiquidity = getMaxLiquidity(
