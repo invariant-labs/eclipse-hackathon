@@ -8,7 +8,7 @@ import {
   select,
   takeLatest
 } from 'typed-redux-saga'
-import { createLoaderKey, getTokenProgramId } from '@utils/utils'
+import { createLoaderKey } from '@utils/utils'
 import { closeSnackbar } from 'notistack'
 import { actions, ITokenAccount, Status } from '@store/reducers/wallet'
 import {
