@@ -1,6 +1,7 @@
 import { BN } from '@project-serum/anchor'
 import { PublicKey } from '@solana/web3.js'
 import { FormatNumberThreshold, PrefixConfig } from './types'
+import { FEE_TIERS } from '@invariant-labs/sdk-eclipse/lib/utils'
 export interface FeeTier {
   fee: BN
   tickSpacing?: number
@@ -12,26 +13,6 @@ export const fromFee = (fee: BN): BN => {
   // e.g fee - BN(1) -> 0.001%
   return fee.mul(FEE_OFFSET)
 }
-
-//TODO replace mocked fee tiers
-export const FEE_TIERS: FeeTier[] = [
-  // { fee: fromFee(new BN(1)), tickSpacing: 1 },
-  // { fee: fromFee(new BN(3)), tickSpacing: 1 },
-  // { fee: fromFee(new BN(5)), tickSpacing: 1 },
-  { fee: fromFee(new BN(10)), tickSpacing: 1 },
-  { fee: fromFee(new BN(20)), tickSpacing: 5 },
-  { fee: fromFee(new BN(50)), tickSpacing: 5 },
-  { fee: fromFee(new BN(100)), tickSpacing: 5 },
-  { fee: fromFee(new BN(200)), tickSpacing: 5 },
-  { fee: fromFee(new BN(300)), tickSpacing: 5 },
-  { fee: fromFee(new BN(500)), tickSpacing: 5 },
-  { fee: fromFee(new BN(1000)), tickSpacing: 5 }
-  // { fee: fromFee(new BN(3000)), tickSpacing: 5 },
-  // { fee: fromFee(new BN(5000)), tickSpacing: 5 },
-  // { fee: fromFee(new BN(10000)), tickSpacing: 5 },
-  // { fee: fromFee(new BN(25000)), tickSpacing: 5 },
-  // { fee: fromFee(new BN(50000)), tickSpacing: 5 }
-]
 
 //TODO replace mocked decimal
 export const LPTokenDecimals = 6
@@ -90,7 +71,7 @@ export const WETH_DEV: Token = {
 
 export const USDC_TEST: Token = {
   symbol: 'USDC',
-  address: new PublicKey('5W3bmyYDww6p5XRZnCR6m2c75st6XyCxW1TgGS3wTq7S'),
+  address: new PublicKey('5gFSyxjNsuQsZKn9g5L9Ky3cSUvJ6YXqWVuPzmSi8Trx'),
   decimals: 9,
   name: 'USD Coin',
   logoURI:
@@ -100,7 +81,7 @@ export const USDC_TEST: Token = {
 
 export const BTC_TEST: Token = {
   symbol: 'BTC',
-  address: new PublicKey('3JXmQAzBPU66dkVQufSE1ChBMRAdCHp6T7ZMBKAwhmWw'),
+  address: new PublicKey('2F5TprcNBqj2hXVr9oTssabKdf8Zbsf9xStqWjPm8yLo'),
   decimals: 9,
   name: 'Bitcoin',
   logoURI:
