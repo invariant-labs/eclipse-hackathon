@@ -162,3 +162,28 @@ export interface IMintLpToken {
   tokenXProgram?: PublicKey;
   tokenYProgram?: PublicKey;
 }
+
+export interface IBurnLpToken {
+  // data
+  pair: Pair;
+  // params
+  index: number;
+  liquidityDelta: BN;
+  // invariant accounts
+  invProgram: PublicKey;
+  invState: PublicKey;
+  pool?: PublicKey;
+  position: PublicKey;
+  lastPosition: PublicKey;
+  positionList: PublicKey;
+  lowerTick: PublicKey;
+  upperTick: PublicKey;
+  tickmap: PublicKey;
+  accountX: PublicKey;
+  accountY: PublicKey;
+  invReserveX: PublicKey;
+  invReserveY: PublicKey;
+  invProgramAuthority: PublicKey;
+  tokenXProgram?: PublicKey;
+  tokenYProgram?: PublicKey;
+}

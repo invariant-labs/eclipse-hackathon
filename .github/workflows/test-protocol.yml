@@ -56,7 +56,7 @@ jobs:
           node-version: '18'
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly-2024-02-04
+          toolchain: 1.79
           override: true
       - name: install global mocha
         run: |
@@ -86,7 +86,8 @@ jobs:
         if: steps.cache-anchor.outputs.cache-hit != 'true'
         run: |
           export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
-          cargo install --git https://github.com/project-serum/anchor --tag v${{ env.anchor_version }}  anchor-cli --locked
+          cargo install --git https://github.com/coral-xyz/anchor avm --locked --force
+          avm install ${{ env.anchor_version }}
       - name: build programs
         working-directory: ${{ env.protocol_path }}
         run: |

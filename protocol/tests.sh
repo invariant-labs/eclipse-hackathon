@@ -7,10 +7,11 @@ e2e_tests=(
     "invoke"
     "init-lp-pool"
     "mint"
+    "burn"
 )
 
 # currenty, there are no unit tests 
-# cargo test
+cargo test
 
 # build protocol before run test
 ./build.sh

@@ -30,6 +30,7 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import {
+  IBurnLpToken,
   IDeposit,
   IInitLpPool,
   IInvokeClosePosition,
@@ -465,6 +466,63 @@ export class Protocol {
 
     return await this.program.methods
       .mintLpToken(liquidityDelta, index)
+      .accounts({
+        state: this.stateAddress,
+        programAuthority: this.programAuthority,
+        lpPool,
+        tokenLp,
+        accountLp,
+        owner,
+        pool,
+        tokenX: pair.tokenX,
+        tokenY: pair.tokenY,
+        reserveX,
+        reserveY,
+        tokenXProgram,
+        tokenYProgram,
+        tokenProgram: TOKEN_2022_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+        ...accounts,
+      })
+      .instruction();
+  }
+
+  async burnLpToken(params: IBurnLpToken, signer: Keypair) {
+    const setCuIx = computeUnitsInstruction(1_400_000);
+    const ix = await this.burnLpTokenIx(params, signer);
+    return await this.sendTx([setCuIx, ix], [signer]);
+  }
+
+  async burnLpTokenIx(
+    { pair, liquidityDelta, index, ...accounts }: IBurnLpToken,
+    signer?: Keypair
+  ) {
+    const owner = signer?.publicKey ?? this.wallet.publicKey;
+
+    const [lpPool] = this.getLpPoolAddressAndBump(pair);
+    const [tokenLp] = this.getLpTokenAddressAndBump(pair);
+    const pool =
+      accounts.pool ??
+      (await pair.getAddress(new PublicKey(getMarketAddress(this.network))));
+    const reserveX = this.getReserveAddress(pair.tokenX);
+    const reserveY = this.getReserveAddress(pair.tokenY);
+    const tokenXProgram =
+      accounts.tokenXProgram ??
+      (await getTokenProgramAddress(this.connection, pair.tokenX));
+    const tokenYProgram =
+      accounts.tokenYProgram ??
+      (await getTokenProgramAddress(this.connection, pair.tokenY));
+    const accountLp = getAssociatedTokenAddressSync(
+      tokenLp,
+      owner,
+      undefined,
+      TOKEN_2022_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID
+    );
+
+    return await this.program.methods
+      .burnLpToken(liquidityDelta, index)
       .accounts({
         state: this.stateAddress,
         programAuthority: this.programAuthority,
