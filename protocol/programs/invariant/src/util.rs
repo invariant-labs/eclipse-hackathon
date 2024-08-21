@@ -1,8 +1,6 @@
-use anchor_lang::__private::CLOSED_ACCOUNT_DISCRIMINATOR;
-use anchor_lang::error::ErrorCode::AccountDidNotDeserialize;
+use anchor_lang::solana_program::system_program;
 use std::cell::RefMut;
 use std::convert::TryInto;
-use std::io::Write;
 
 use crate::math::calculate_price_sqrt;
 use crate::structs::pool::Pool;
@@ -131,14 +129,8 @@ pub fn close<'info>(info: AccountInfo<'info>, sol_destination: AccountInfo<'info
         dest_starting_lamports.checked_add(info.lamports()).unwrap();
     **info.lamports.borrow_mut() = 0;
 
-    // Mark the account discriminator as closed.
-    let mut data = info.try_borrow_mut_data()?;
-    let dst: &mut [u8] = &mut data;
-    let mut cursor = std::io::Cursor::new(dst);
-    cursor
-        .write_all(&CLOSED_ACCOUNT_DISCRIMINATOR)
-        .map_err(|_| AccountDidNotDeserialize)?;
-    Ok(())
+    info.assign(&system_program::ID);
+    info.realloc(0, false).map_err(Into::into)
 }
 
 #[cfg(test)]
