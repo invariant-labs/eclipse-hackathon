@@ -1,11 +1,11 @@
 {
-  "name": "sdk",
-  "version": "1.0.0",
+  "name": "@invariant-labs/eclipse-link-sdk",
+  "version": "0.1.3",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "prebuild:protocol": "rm -rf ./src/idl/protocol.ts && cp -r ../target/types/protocol.ts ./src/idl",
-    "prebuild:puppet": "rm -rf ./src/idl/puppet.ts && cp -r ../target/types/puppet.ts ./src/idl",
-    "prebuild:all": "npm run prebuild:protocol && npm run prebuild:puppet",
+    "prebuild:all": "npm run prebuild:protocol",
     "build": "npm run prebuild:all && npx tsc"
   },
   "keywords": [],
