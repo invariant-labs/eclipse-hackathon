@@ -4,7 +4,7 @@ import useStyles from './style'
 import { Grid, Popover, Typography } from '@mui/material'
 
 export interface IRoutesModal {
-  routes: string[]
+  routes: { root: string; name: string }[]
   open: boolean
   anchorEl: HTMLButtonElement | null
   handleClose: () => void
@@ -26,8 +26,8 @@ export const RoutesModal: React.FC<IRoutesModal> = ({
   const { classes } = useStyles()
 
   const otherRoutesToHighlight: Record<string, RegExp[]> = {
-    liquidity: [/^\/?liquidity(\/(add|remove)(\/[^\/]*)*)?$/],
-    exchange: [/^exchange\/*/]
+    liquidity: [/^\/?liquidity(\/(add|remove)(\/[^/]*)*)?$/],
+    position: [/^\/?position\/.*$/]
   }
 
   return (
@@ -48,23 +48,23 @@ export const RoutesModal: React.FC<IRoutesModal> = ({
         {routes.map(route => (
           <Grid
             item
-            key={`routes-${route}`}
+            key={`routes-${route.root}`}
             className={classes.listItem}
             onClick={() => {
-              onSelect(route)
+              onSelect(route.root)
               handleClose()
             }}>
-            <Link to={`/${route}`} className={classes.link}>
+            <Link to={`/${route.root}`} className={classes.link}>
               <Typography
                 className={
-                  current === route ||
+                  current === route.root ||
                   (typeof current !== 'undefined' &&
-                    !!otherRoutesToHighlight[route] &&
-                    otherRoutesToHighlight[route].some(pathRegex => pathRegex.test(current)))
+                    !!otherRoutesToHighlight[route.root] &&
+                    otherRoutesToHighlight[route.root].some(pathRegex => pathRegex.test(current)))
                     ? classes.current
                     : classes.name
                 }>
-                {route}
+                {route.name}
               </Typography>
             </Link>
           </Grid>

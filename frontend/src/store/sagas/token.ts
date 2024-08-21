@@ -1,12 +1,9 @@
 import {
   Connection,
-  Keypair,
   PublicKey,
-  sendAndConfirmTransaction,
   Signer,
-  Transaction
 } from '@solana/web3.js'
-import { createMint, getMint, mintTo, getOrCreateAssociatedTokenAccount } from '@solana/spl-token'
+import { createMint, getMint } from '@solana/spl-token'
 
 import { call, SagaGenerator } from 'typed-redux-saga'
 import { getConnection } from './connection'

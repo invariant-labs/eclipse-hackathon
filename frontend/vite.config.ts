@@ -2,9 +2,11 @@ import react from '@vitejs/plugin-react-swc'
 import { defineConfig } from 'vite'
 import topLevelAwait from 'vite-plugin-top-level-await'
 import { compression } from 'vite-plugin-compression2'
+import inject from '@rollup/plugin-inject'
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 export default defineConfig({
-  plugins: [react(), topLevelAwait(), compression()],
+  plugins: [react(), topLevelAwait(), compression(), nodePolyfills()],
   resolve: {
     alias: {
       '@components': '/src/components',
@@ -23,7 +25,7 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      external: ['fs/promises', 'path']
+      plugins: [inject({ Buffer: ['buffer', 'Buffer'] })]
     }
   }
 })

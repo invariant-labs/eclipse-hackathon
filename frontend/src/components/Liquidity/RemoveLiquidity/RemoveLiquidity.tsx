@@ -28,7 +28,6 @@ export interface IRemoveLiquidity {
   progress: ProgressState
   LPTokenName: string
   LPTokenBalance: BN
-  LPTokenIcon: string
   tokenAReceive: string
   tokenBReceive: string
   className?: string
@@ -44,7 +43,6 @@ export const RemoveLiquidity: React.FC<IRemoveLiquidity> = ({
   progress,
   LPTokenName,
   LPTokenBalance,
-  LPTokenIcon,
   tokenAReceive,
   tokenBReceive,
   className

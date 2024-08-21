@@ -32,7 +32,6 @@ export interface IAddLiquidity {
   feeTierIndex: number
   progress: ProgressState
   LPTokenName: string
-  LPTokenIcon: string
   LPTokenReceive: string
   priceA?: number
   priceB?: number
@@ -51,7 +50,6 @@ export const AddLiquidity: React.FC<IAddLiquidity> = ({
   feeTierIndex,
   progress,
   LPTokenName,
-  LPTokenIcon,
   LPTokenReceive,
   priceA,
   priceB,

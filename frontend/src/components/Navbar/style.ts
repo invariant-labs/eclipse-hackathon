@@ -4,7 +4,7 @@ import { makeStyles } from 'tss-react/mui'
 const useStyles = makeStyles()(() => {
   return {
     button: {
-      minWidth: 67,
+      minWidth: 190,
       backgroundColor: 'transparent',
       color: colors.invariant.light,
       height: 32,
