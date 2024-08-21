@@ -38,7 +38,7 @@ export const Header: React.FC<IHeader> = ({
   walletConnected,
   landing,
   typeOfNetwork,
-  rpc,
+  // rpc,
   onFaucet,
   onDisconnectWallet,
   defaultTestnetRPC,
@@ -51,17 +51,21 @@ export const Header: React.FC<IHeader> = ({
 
   const isMdDown = useMediaQuery(theme.breakpoints.down('md'))
 
-  const routes = ['exchange', 'liquidity', 'statistics']
+  const routes = [
+    { root: 'liquidity', name: 'Liquidity management' },
+    { root: 'position', name: 'Fungible position' },
+    { root: 'orderbook', name: 'Orderbook' }
+  ]
 
   const otherRoutesToHighlight: Record<string, RegExp[]> = {
-    liquidity: [/^\/?liquidity(\/(add|remove)(\/[^\/]*)*)?$/],
-    exchange: [/^\/?exchange\/.*$/]
+    liquidity: [/^\/?liquidity(\/(add|remove)(\/[^/]*)*)?$/],
+    position: [/^\/?position\/.*$/]
   }
 
-  const [activePath, setActive] = useState('exchange')
+  const [activePath, setActive] = useState('liquidity')
 
   const [routesModalOpen, setRoutesModalOpen] = useState(false)
-  const [testnetRpcsOpen, setTestnetRpcsOpen] = useState(false)
+  // const [testnetRpcsOpen, setTestnetRpcsOpen] = useState(false)
   const [routesModalAnchor, setRoutesModalAnchor] = useState<HTMLButtonElement | null>(null)
 
   useEffect(() => {
@@ -122,20 +126,20 @@ export const Header: React.FC<IHeader> = ({
           wrap='nowrap'
           sx={{ display: { xs: 'none', lg: 'block' } }}>
           {routes.map(path => (
-            <Link key={`path-${path}`} to={`/${path}`} className={classes.link}>
+            <Link key={`path-${path.name}`} to={`/${path.root}`} className={classes.link}>
               <NavbarButton
-                name={path}
+                name={path.name}
                 onClick={e => {
-                  if (path === 'exchange' && activePath.startsWith('exchange')) {
+                  if (path.root === 'liquidity' && activePath.startsWith('liquidity')) {
                     e.preventDefault()
                   }
 
-                  setActive(path)
+                  setActive(path.root)
                 }}
                 active={
-                  path === activePath ||
-                  (!!otherRoutesToHighlight[path] &&
-                    otherRoutesToHighlight[path].some(pathRegex => pathRegex.test(activePath)))
+                  path.root === activePath ||
+                  (!!otherRoutesToHighlight[path.root] &&
+                    otherRoutesToHighlight[path.root].some(pathRegex => pathRegex.test(activePath)))
                 }
               />
             </Link>
@@ -225,7 +229,7 @@ export const Header: React.FC<IHeader> = ({
               typeOfNetwork === NetworkType.TESTNET && isMdDown
                 ? () => {
                     setRoutesModalOpen(false)
-                    setTestnetRpcsOpen(true)
+                    // setTestnetRpcsOpen(true)
                   }
                 : undefined
             }

@@ -1016,6 +1016,10 @@ export type Protocol = {
             "type": "publicKey"
           },
           {
+            "name": "positionBump",
+            "type": "u8"
+          },
+          {
             "name": "leftoverX",
             "type": "u64"
           },
@@ -2186,6 +2190,10 @@ export const IDL: Protocol = {
           {
             "name": "invariantPosition",
             "type": "publicKey"
+          },
+          {
+            "name": "positionBump",
+            "type": "u8"
           },
           {
             "name": "leftoverX",

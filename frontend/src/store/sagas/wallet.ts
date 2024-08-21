@@ -10,11 +10,10 @@ import {
 } from 'typed-redux-saga'
 import { createLoaderKey } from '@utils/utils'
 import { closeSnackbar } from 'notistack'
-import { actions, ITokenAccount, Status } from '@store/reducers/wallet'
+import { actions, Status } from '@store/reducers/wallet'
 import {
   NetworkType,
   Token as StoreToken,
-  Token,
   airdropQuantities,
   airdropTokens
 } from '@store/consts/static'
@@ -69,15 +68,15 @@ export function* handleBalance(): Generator {
   yield* put(actions.setIsBalanceLoading(false))
 }
 
-interface IparsedTokenInfo {
-  mint: string
-  owner: string
-  tokenAmount: {
-    amount: string
-    decimals: number
-    uiAmount: number
-  }
-}
+// interface IparsedTokenInfo {
+//   mint: string
+//   owner: string
+//   tokenAmount: {
+//     amount: string
+//     decimals: number
+//     uiAmount: number
+//   }
+// }
 // export function* fetchTokensAccounts(): Generator {
 //   const connection = yield* call(getConnection)
 //   const wallet = yield* call(getWallet)
@@ -463,7 +462,7 @@ export function* handleReconnect(): Generator {
   yield* call(handleConnect, { type: actions.connect.type, payload: false })
 }
 
-// eslint-disable-next-line @typescript-eslint/promise-function-async
+
 export const sleep = (ms: number) => {
   return new Promise(resolve => setTimeout(resolve, ms))
 }

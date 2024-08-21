@@ -1,0 +1,96 @@
+name: build & e2e tests
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+env:
+  solana_version: '1.18.12'
+  anchor_version: '0.29.0'
+  protocol_path: 'protocol'
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v2
+        name: Cache Cargo registry + index
+        id: cache-anchor
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: cargo-${{ runner.os }}-v0000-${{ hashFiles('**/Cargo.lock') }}
+      - uses: actions/cache@v2
+        name: Cache Solana Tool Suite
+        id: cache-solana
+        with:
+          path: |
+            ~/.cache/solana/
+            ~/.local/share/solana/
+          key: solana-${{ runner.os }}-v0000-${{ env.solana_version }}
+      - uses: actions/cache@v2
+        name: Cache target folder
+        id: cache-programs
+        with:
+          path: |
+            ./target
+          key: solana-${{ runner.os }}-v0000-${{ hashFiles('**/programs/**/*.rs') }}-${{ hashFiles('**/programs/**/*.toml') }}
+      - uses: actions/cache@v2
+        name: Cache Node Modules
+        id: cache-node-modules
+        with:
+          path: |
+            ~/.npm/
+            ./node_modules
+          key: npm-${{ runner.os }}-v0000-${{ hashFiles('**/package-lock.json') }}
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly-2024-02-04
+          override: true
+      - name: install global mocha
+        run: |
+          export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
+          npm install -g mocha
+          npm install -g ts-mocha
+          npm install -g typescript
+          npm install -g @project-serum/anchor
+          ts-mocha -h
+      - name: install essential
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config build-essential libudev-dev
+      - name: install solana
+        if: steps.cache-solana.outputs.cache-hit != 'true'
+        run: |
+          sh -c "$(curl -sSfL https://release.solana.com/v${{ env.solana_version }}/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+          export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
+          solana --version
+      - name: setup solana
+        run: |
+          export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
+          solana --version
+          solana-keygen new -o "$HOME/.config/solana/id.json" --no-passphrase --silent
+      - name: install Anchor
+        if: steps.cache-anchor.outputs.cache-hit != 'true'
+        run: |
+          export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
+          cargo install --git https://github.com/project-serum/anchor --tag v${{ env.anchor_version }}  anchor-cli --locked
+      - name: build programs
+        working-directory: ${{ env.protocol_path }}
+        run: |
+          export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
+          npm i
+          chmod +x tests.sh
+          ./tests.sh

@@ -6,6 +6,7 @@ puppet='[51,155,154,107,110,131,244,50,197,81,99,152,71,175,210,224,80,66,26,119
 invarinat='[100,94,104,217,253,66,112,71,155,206,9,70,30,6,93,185,82,49,169,250,96,24,120,234,25,145,148,106,134,60,55,123,176,93,3,185,31,73,255,255,107,72,82,123,112,9,31,16,214,15,171,107,164,37,143,208,35,195,133,157,224,137,246,197]'
 
 # Write the keypair JSON to file
+mkdir -p target/deploy
 echo "$protocol" > target/deploy/protocol-keypair.json
 echo "$puppet" > target/deploy/puppet-keypair.json
 echo "$invarinat" > target/deploy/invariant-keypair.json

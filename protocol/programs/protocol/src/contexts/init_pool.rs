@@ -78,6 +78,7 @@ impl InitPoolCtx<'_> {
 
         **lp_pool = LpPool {
             invariant_position: Pubkey::default(),
+            position_bump: 0,
             leftover_x: 0,
             leftover_y: 0,
             token_x,

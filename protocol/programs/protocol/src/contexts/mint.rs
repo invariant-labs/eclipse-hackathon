@@ -295,10 +295,16 @@ impl<'info> MintLpTokenCtx<'info> {
         let lp_pool = &self.lp_pool.load()?;
         if lp_pool.invariant_position != Pubkey::default() {
             let upper_tick_index = get_max_tick(lp_pool.tick_spacing);
-            let lower_tick_index = -upper_tick_index;
+            let lower_tick_index = get_min_tick(lp_pool.tick_spacing);
             let position = try_from!(AccountLoader::<Position>, &self.position)?;
             require_eq!(position.load()?.upper_tick_index, upper_tick_index);
             require_eq!(position.load()?.lower_tick_index, lower_tick_index);
+            // explicitly support only one pool till more positions (pools) are supported
+            require_keys_eq!(self.position.key(), self.last_position.key());
+            let owner = self.program_authority.key();
+            let seeds = [b"positionv1", owner.as_ref(), &0i32.to_le_bytes()];
+            let (pubkey, _bump) = Pubkey::find_program_address(&seeds, &invariant::ID);
+            require_keys_eq!(self.last_position.key(), pubkey);
         }
         Ok(())
     }
@@ -423,7 +429,11 @@ impl<'info> MintLpTokenCtx<'info> {
             )?;
 
             // TODO: adjust to support multiple pools
-            lp_pool.invariant_position = self.position.key();
+            lp_pool.invariant_position = self.last_position.key();
+            {
+                let new_position = try_from!(AccountLoader::<Position>, &self.last_position)?;
+                lp_pool.position_bump = new_position.load()?.bump;
+            }
         }
         // mint LP tokens for user
         mint_to(
