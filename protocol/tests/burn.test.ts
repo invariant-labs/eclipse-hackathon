@@ -133,7 +133,6 @@ describe("burn lp token", () => {
     const positionId = 0;
     const lastPositionId = 0;
 
-
     const liquidityDelta = new BN(50000000);
 
     const { address: stateAddress } = await market.getStateAddress();
@@ -170,7 +169,7 @@ describe("burn lp token", () => {
 
     const [tokenLp] = protocol.getLpTokenAddressAndBump(pair);
     // getorCreate has the advantage since you can call it several times with no downsides
-    const accountLp = await getOrCreateAssociatedTokenAccount(
+    let accountLp = await getOrCreateAssociatedTokenAccount(
       connection,
       owner,
       tokenLp,
@@ -205,7 +204,6 @@ describe("burn lp token", () => {
       owner
     );
 
-
     const position = await market.getPosition(
       protocol.programAuthority,
       positionId
@@ -214,8 +212,20 @@ describe("burn lp token", () => {
     assert.ok(position);
 
     const { positionAddress: lastPositionAddress2 } =
-    await market.getPositionAddress(protocol.programAuthority, 0);
+      await market.getPositionAddress(protocol.programAuthority, 0);
     const liquidityDelta2 = new BN(49000747);
+    accountLp = await getOrCreateAssociatedTokenAccount(
+      connection,
+      owner,
+      tokenLp,
+      owner.publicKey,
+      undefined,
+      undefined,
+      undefined,
+      TOKEN_2022_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID
+    );
+    assert.equal(accountLp.amount, 23n);
 
     await protocol.burnLpToken(
       {
@@ -239,6 +249,7 @@ describe("burn lp token", () => {
       },
       owner
     );
+
     let err;
     try {
       const positionAfterBurn = await market.getPosition(
@@ -247,9 +258,20 @@ describe("burn lp token", () => {
       );
       console.log(positionAfterBurn);
     } catch (e) {
-      err =true;
+      err = true;
     }
-    assert(err, "burn did not remove position")
-    
+    assert(err, "burn did not remove position");
+    accountLp = await getOrCreateAssociatedTokenAccount(
+      connection,
+      owner,
+      tokenLp,
+      owner.publicKey,
+      undefined,
+      undefined,
+      undefined,
+      TOKEN_2022_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID
+    );
+    assert.equal(accountLp.amount, 0n);
   });
 });
