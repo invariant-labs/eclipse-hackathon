@@ -1,16 +1,14 @@
-import { AnchorProvider, BN, utils } from "@coral-xyz/anchor";
+import { AnchorProvider, BN } from "@coral-xyz/anchor";
 import {
   BlockheightBasedTransactionConfirmationStrategy,
   ComputeBudgetProgram,
   ConfirmOptions,
   Connection,
   Keypair,
-  PublicKey,
   Transaction,
   TransactionInstruction,
   TransactionSignature,
 } from "@solana/web3.js";
-import { PUPPET_COUNTER_SEED } from "./consts";
 
 export const signAndSend = async (
   tx: Transaction,
@@ -43,19 +41,6 @@ export const computeUnitsInstruction = (
   units: number
 ): TransactionInstruction => {
   return ComputeBudgetProgram.setComputeUnitLimit({ units });
-};
-
-export const getPuppetCounterAddressAndBump = (
-  programId: PublicKey
-): [PublicKey, number] => {
-  return PublicKey.findProgramAddressSync(
-    [Buffer.from(utils.bytes.utf8.encode(PUPPET_COUNTER_SEED))],
-    programId
-  );
-};
-
-export const getPuppetCounterAddress = (programId: PublicKey): PublicKey => {
-  return getPuppetCounterAddressAndBump(programId)[0];
 };
 
 export const bigNumberToBuffer = (n: BN, size: 16 | 32 | 64 | 128 | 256) => {

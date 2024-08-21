@@ -1503,14 +1503,6 @@ dependencies = [
  "bytemuck",
  "decimal",
  "invariant",
- "puppet",
-]
-
-[[package]]
-name = "puppet"
-version = "0.1.0"
-dependencies = [
- "anchor-lang",
 ]
 
 [[package]]

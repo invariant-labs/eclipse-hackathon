@@ -20,15 +20,3 @@ export const getProtocolProgramAddress = (network: Network): string => {
   }
 };
 
-export const getPuppetProgramAddress = (network: Network): string => {
-  switch (network) {
-    case Network.LOCAL:
-      return "8KQzCc22ZqGLPoipqRhYvkQtHJw6nY1NxrrGy8JLz1jC";
-    case Network.DEV:
-      return "8KQzCc22ZqGLPoipqRhYvkQtHJw6nY1NxrrGy8JLz1jC";
-    case Network.MAIN:
-      return "8KQzCc22ZqGLPoipqRhYvkQtHJw6nY1NxrrGy8JLz1jC";
-    default:
-      throw new Error("Unknown network");
-  }
-};
