@@ -134,7 +134,7 @@ describe("mint lp token", () => {
     const positionId = 0;
     const lastPositionId = 0;
 
-    const liquidityDelta = new BN(5000);
+    const liquidityDelta = new BN(500000000);
 
     const { address: stateAddress } = await market.getStateAddress();
     const poolAddress = await pair.getAddress(INVARIANT_ADDRESS);

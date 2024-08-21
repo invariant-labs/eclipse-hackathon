@@ -104,6 +104,6 @@ pub mod protocol {
 
     pub fn burn_lp_token(ctx: Context<BurnLpTokenCtx>, liquidity: u128, index: u32) -> Result<()> {
         ctx.accounts
-            .process(decimals::Liquidity::new(liquidity), index)
+            .process(Liquidity::new(liquidity), index)
     }
 }
