@@ -26,6 +26,8 @@ macro_rules! get_signer {
 #[program]
 pub mod protocol {
 
+    use decimals::Liquidity;
+
     use super::*;
 
     pub fn init(ctx: Context<InitCtx>, bump_authority: u8) -> Result<()> {
@@ -37,9 +39,9 @@ pub mod protocol {
         ctx.accounts.process(state_bump)
     }
 
-    pub fn mint(ctx: Context<MintCtx>, amount: u64) -> Result<()> {
-        ctx.accounts.process(amount)
-    }
+    // pub fn mint(ctx: Context<MintCtx>, amount: u64) -> Result<()> {
+    //     ctx.accounts.process(amount)
+    // }
 
     pub fn deposit(ctx: Context<DepositCtx>, amount: u64) -> Result<()> {
         ctx.accounts.process(amount)
@@ -91,7 +93,13 @@ pub mod protocol {
     }
 
     pub fn init_lp_pool(ctx: Context<InitPoolCtx>) -> Result<()> {
+        let token_bump = ctx.bumps.token_lp;
         let bump = ctx.bumps.lp_pool;
-        ctx.accounts.process(bump)
+        ctx.accounts.process(token_bump, bump)
+    }
+
+    pub fn mint_lp_token(ctx: Context<MintLpTokenCtx>, liquidity: u128, index: u32) -> Result<()> {
+        ctx.accounts
+            .process(Liquidity::new(liquidity), index)
     }
 }

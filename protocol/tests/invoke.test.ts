@@ -48,7 +48,7 @@ describe("invariant cpi", () => {
     );
 
     protocol = await Protocol.build(Network.LOCAL, walletAnchor, connection);
-    protocol.init(owner);
+    await protocol.init(owner);
 
     market = await Market.build(
       Network.LOCAL,
