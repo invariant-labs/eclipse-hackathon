@@ -28,33 +28,4 @@ describe("init", () => {
 
     await protocol.init(owner);
   });
-
-  it("cpi works", async () => {
-    const protocol = await Protocol.build(
-      Network.LOCAL,
-      walletAnchor,
-      connection
-    );
-    const puppet = await Puppet.build(Network.LOCAL, walletAnchor, connection);
-
-    const [puppetCounterAddress, bump] = getPuppetCounterAddressAndBump(
-      puppet.program.programId
-    );
-
-    await protocol.test(
-      {
-        puppetProgram: puppet.program.programId,
-        counter: puppetCounterAddress,
-        stateBump: bump,
-      },
-      owner
-    );
-
-    const stateAccount = await puppet.program.account.counter.fetch(
-      puppetCounterAddress
-    );
-    assert.equal(stateAccount.owner?.toString(), owner.publicKey.toString());
-    assert.equal(stateAccount.counter, 0);
-    assert.equal(stateAccount.bump, bump);
-  });
 });

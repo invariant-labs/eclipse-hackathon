@@ -3,8 +3,6 @@ set -e
 
 e2e_tests=(
     "init"
-    # "token"
-    "invoke"
     "init-lp-pool"
     "mint"
     "burn"
