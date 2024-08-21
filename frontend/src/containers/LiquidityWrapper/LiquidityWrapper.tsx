@@ -232,9 +232,9 @@ export const LiquidityWrapper: React.FC<IProps> = ({
       }}
       progress={'none'}
       isXtoY={true}
-      xDecimal={12}
-      yDecimal={10}
-      tickSpacing={1}
+      xDecimal={tokenAIndex !== null ? tokens[tokenAIndex]?.decimals : 0}
+      yDecimal={tokenBIndex !== null ? tokens[tokenBIndex]?.decimals : 0}
+      tickSpacing={tickSpacing}
       isWaitingForNewPool={false}
       poolIndex={poolIndex}
       bestTiers={bestTiers[currentNetwork]}
@@ -251,6 +251,7 @@ export const LiquidityWrapper: React.FC<IProps> = ({
       tokenBPriceData={{ price: 1 }}
       priceALoading={false}
       priceBLoading={false}
+      sqrtPrice={poolIndex !== null ? allPools[poolIndex].sqrtPrice : { v: new BN(0) }}
     />
   )
 }

@@ -24,6 +24,9 @@ import classNames from 'classnames'
 import FeeSwitch from './FeeSwitch/FeeSwitch'
 import Select from '@components/Inputs/Select/Select'
 import SwapList from '@static/svg/swap-list.svg'
+import { getMaxLiquidity, liquidityToLpTokenAmount } from '@invariant-labs/eclipse-link-sdk'
+import { getMaxTick, getMinTick } from '@invariant-labs/sdk-eclipse/lib/utils'
+import { Decimal } from '@invariant-labs/sdk-eclipse/lib/market'
 
 export interface ILiquidity {
   initialTokenFrom: string
@@ -67,6 +70,7 @@ export interface ILiquidity {
   tokenBPriceData?: TokenPriceData
   priceALoading?: boolean
   priceBLoading?: boolean
+  sqrtPrice: Decimal
 }
 
 export const Liquidity: React.FC<ILiquidity> = ({
@@ -84,9 +88,9 @@ export const Liquidity: React.FC<ILiquidity> = ({
   noConnectedBlockerProps,
   progress,
   // isXtoY,
-  // xDecimal,
-  // yDecimal,
-  // tickSpacing,
+  xDecimal,
+  yDecimal,
+  tickSpacing,
   // isWaitingForNewPool,
   poolIndex,
   bestTiers,
@@ -102,7 +106,8 @@ export const Liquidity: React.FC<ILiquidity> = ({
   tokenAPriceData,
   tokenBPriceData,
   priceALoading,
-  priceBLoading
+  priceBLoading,
+  sqrtPrice
 }) => {
   const { classes } = useStyles()
   const navigate = useNavigate()
@@ -228,8 +233,6 @@ export const Liquidity: React.FC<ILiquidity> = ({
 
   const [lastInput, setLastInput] = useState<'A' | 'B'>('A')
 
-  console.log('pi', poolIndex)
-
   useEffect(() => {
     if (tokenAIndex !== null && tokenBIndex !== null) {
       if (lastInput === 'A') {
@@ -247,6 +250,32 @@ export const Liquidity: React.FC<ILiquidity> = ({
       }
     }
   }, [poolIndex])
+
+  const LPTokenReceive = useMemo(() => {
+    if (tokenADeposit && tokenBDeposit) {
+      console.log('sqrt price', sqrtPrice.v.toString(), tickSpacing, getMaxTick(tickSpacing))
+
+      const maxLiquidity = getMaxLiquidity(
+        { v: printBNtoBN(tokenADeposit, xDecimal) },
+        { v: printBNtoBN(tokenBDeposit, yDecimal) },
+        getMinTick(tickSpacing),
+        getMaxTick(tickSpacing),
+        sqrtPrice,
+        true
+      )
+
+      const lpTokenAmount = liquidityToLpTokenAmount(
+        { v: new BN(0) },
+        { v: new BN(0) },
+        maxLiquidity.liquidity,
+        false
+      )
+
+      return printBN(lpTokenAmount.v.toString(), 6)
+    }
+
+    return '0'
+  }, [tokenADeposit, tokenBDeposit, poolIndex])
 
   return (
     <Grid container className={classes.wrapper} direction='column'>
@@ -408,7 +437,7 @@ export const Liquidity: React.FC<ILiquidity> = ({
               feeTierIndex={currentFeeIndex}
               progress={progress}
               LPTokenName={lpTokenName ?? ''}
-              LPTokenReceive={''}
+              LPTokenReceive={LPTokenReceive}
               priceA={tokenAPriceData?.price}
               priceB={tokenBPriceData?.price}
               priceALoading={priceALoading}
