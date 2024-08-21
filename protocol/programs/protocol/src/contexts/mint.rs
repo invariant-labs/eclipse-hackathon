@@ -358,7 +358,7 @@ impl<'info> MintLpTokenCtx<'info> {
             liquidity,
             TokenAmount::new(lp_pool.leftover_x) + position_x + unclaimed_fee_x,
             TokenAmount::new(lp_pool.leftover_y) + position_y + unclaimed_fee_y,
-            tick_spacing,
+            lp_pool.tick_spacing,
             current_tick_index,
             current_sqrt_price,
         )

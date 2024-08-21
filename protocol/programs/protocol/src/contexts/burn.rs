@@ -291,6 +291,12 @@ impl<'info> BurnLpTokenCtx<'info> {
             let position = try_from!(AccountLoader::<Position>, &self.position)?;
             require_eq!(position.load()?.upper_tick_index, upper_tick_index);
             require_eq!(position.load()?.lower_tick_index, lower_tick_index);
+
+            require_keys_eq!(self.position.key(), self.last_position.key());
+            let owner = self.program_authority.key();
+            let seeds = [b"positionv1", owner.as_ref(), &0i32.to_le_bytes()];
+            let (pubkey, _bump) = Pubkey::find_program_address(&seeds, &invariant::ID);
+            require_keys_eq!(self.last_position.key(), pubkey);
         }
         Ok(())
     }
@@ -341,8 +347,9 @@ impl<'info> BurnLpTokenCtx<'info> {
             Price::new(pool.sqrt_price.v),
         )
         .unwrap();
-        // .map_err(|_| InvalidShares)?;
 
+        lp_pool.leftover_x = leftover_amounts.0.get();
+        lp_pool.leftover_x = leftover_amounts.1.get();
         let lp_token_amount =
             lp_token_change.expect("Lp change can't be zero when liquidity delta is not zero");
         let (transfer_x, transfer_y) = transferred_amounts;
@@ -379,7 +386,7 @@ impl<'info> BurnLpTokenCtx<'info> {
             _ => return Err(InvalidTokenProgram.into()),
         };
 
-        let position_key = if positions_details.liquidity.v != 0 {
+        if positions_details.liquidity.v != 0 {
             invariant::cpi::create_tick(
                 self.create_tick(self.lower_tick.to_account_info()),
                 lower_tick_index,
@@ -398,14 +405,14 @@ impl<'info> BurnLpTokenCtx<'info> {
                 pool.sqrt_price,
                 pool.sqrt_price,
             )?;
-            self.position.key()
-        } else {
-            Pubkey::default()
-        };
 
-        lp_pool.leftover_x = leftover_amounts.0.get();
-        lp_pool.leftover_x = leftover_amounts.1.get();
-        lp_pool.invariant_position = position_key;
+            let new_position = try_from!(AccountLoader::<Position>, &self.last_position)?;
+            lp_pool.position_bump = new_position.load()?.bump;
+            lp_pool.invariant_position = self.last_position.key();
+        } else {
+            lp_pool.position_bump = 0;
+            lp_pool.invariant_position = Pubkey::default();
+        };
 
         Ok(())
     }
