@@ -1,12 +1,9 @@
-use std::cell::{Ref, RefMut};
+use std::cell::RefMut;
 
 use crate::math::{
-    calculate_amount_delta, compute_lp_share_change, get_max_tick, get_min_tick,
-    LiquidityChangeResult,
+    calculate_amount_delta, compute_lp_share_change, get_max_tick, LiquidityChangeResult,
 };
-use crate::states::{
-    DerivedAccountIdentifier, LpPool, State, INVARIANT_POOL_IDENT, LP_TOKEN_IDENT,
-};
+use crate::states::{DerivedAccountIdentifier, LpPool, State, LP_TOKEN_IDENT};
 use crate::{decimals::*, try_from};
 use crate::{get_signer, ErrorCode::*};
 use anchor_lang::prelude::*;
@@ -17,7 +14,8 @@ use anchor_spl::{
     token::{self},
     token_2022,
 };
-use invariant::decimals::{Liquidity as InvLiquidity, Price as InvPrice};
+use invariant::cpi::accounts::CreateTick;
+use invariant::decimals::Liquidity as InvLiquidity;
 use invariant::{
     cpi::accounts::{CreatePosition, RemovePosition},
     structs::{Pool, Position},
@@ -207,6 +205,27 @@ impl<'info> BurnLpTokenCtx<'info> {
         )
     }
 
+    pub fn create_tick(
+        &self,
+        account: AccountInfo<'info>,
+    ) -> CpiContext<'_, '_, '_, 'info, CreateTick<'info>> {
+        CpiContext::new(
+            self.inv_program.to_account_info(),
+            CreateTick {
+                tick: account,
+                pool: self.pool.to_account_info(),
+                tickmap: self.tickmap.to_account_info(),
+                payer: self.owner.to_account_info(),
+                token_x: self.token_x.to_account_info(),
+                token_y: self.token_y.to_account_info(),
+                token_x_program: self.token_x_program.to_account_info(),
+                token_y_program: self.token_y_program.to_account_info(),
+                rent: self.rent.to_account_info(),
+                system_program: self.system_program.to_account_info(),
+            },
+        )
+    }
+
     pub fn create_position(&self) -> CpiContext<'_, '_, '_, 'info, CreatePosition<'info>> {
         CpiContext::new(
             self.inv_program.to_account_info(),
@@ -358,6 +377,16 @@ impl<'info> BurnLpTokenCtx<'info> {
             token::ID => token::transfer(self.withdraw_y().with_signer(signer), transfer_y.0)?,
             _ => return Err(InvalidTokenProgram.into()),
         };
+
+        invariant::cpi::create_tick(
+            self.create_tick(self.lower_tick.to_account_info()),
+            lower_tick_index,
+        )?;
+
+        invariant::cpi::create_tick(
+            self.create_tick(self.upper_tick.to_account_info()),
+            upper_tick_index,
+        )?;
 
         invariant::cpi::create_position(
             self.create_position().with_signer(signer),
