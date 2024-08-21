@@ -3,9 +3,6 @@ import { Network } from "../sdk/src/network";
 import { Protocol } from "../sdk/src/protocol";
 import { Keypair } from "@solana/web3.js";
 import { requestAirdrop } from "./test-utils";
-import { Puppet } from "../sdk/dist/puppet";
-import { getPuppetCounterAddressAndBump } from "../sdk/src/utils";
-import { assert } from "chai";
 
 describe("init", () => {
   const { wallet: walletAnchor, connection } = AnchorProvider.local();

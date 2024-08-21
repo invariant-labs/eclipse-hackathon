@@ -31,16 +31,8 @@ import {
 } from "@solana/spl-token";
 import {
   IBurnLpToken,
-  IDeposit,
   IInitLpPool,
-  IInvokeClosePosition,
-  IInvokeCreatePosition,
-  IInvokeUpdateSecondsPerLiquidity,
-  IMint,
   IMintLpToken,
-  IReopenPosition,
-  ITest,
-  IWithdraw,
   LpPoolStructure,
 } from "./types";
 import {
