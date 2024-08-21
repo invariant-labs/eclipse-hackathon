@@ -213,6 +213,8 @@ export const LiquidityWrapper: React.FC<IProps> = ({
     }
   }, [allLpPools])
 
+  console.log(lpPoolIndex)
+
   useEffect(() => {
     isMountedRef.current = true
     return () => {
