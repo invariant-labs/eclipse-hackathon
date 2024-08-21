@@ -203,33 +203,80 @@ describe("mint lp token", () => {
       owner
     );
 
-    // const { positionAddress: lastPositionAddress2 } =
-    // await market.getPositionAddress(protocol.programAuthority, 1);
+    console.log("mint 2");
 
-    // console.log("mint 2")
+    await protocol.mintLpToken(
+      {
+        liquidityDelta,
+        pair,
+        index: positionId,
+        invProgram: INVARIANT_ADDRESS,
+        invState: stateAddress,
+        position: positionAddress,
+        lastPosition: lastPositionAddress,
+        pool: poolAddress,
+        positionList: positionListAddress,
+        lowerTick: lowerTickAddress,
+        upperTick: upperTickAddress,
+        tickmap,
+        accountX: userTokenXAccount.address,
+        accountY: userTokenYAccount.address,
+        invReserveX: tokenXReserve,
+        invReserveY: tokenYReserve,
+        invProgramAuthority: market.programAuthority,
+      },
+      owner
+    );
 
-    // await protocol.mintLpToken(
-    //   {
-    //     liquidityDelta,
-    //     pair,
-    //     index: positionId,
-    //     invProgram: INVARIANT_ADDRESS,
-    //     invState: stateAddress,
-    //     position: positionAddress,
-    //     lastPosition: lastPositionAddress,
-    //     pool: poolAddress,
-    //     positionList: positionListAddress,
-    //     lowerTick: lowerTickAddress,
-    //     upperTick: upperTickAddress,
-    //     tickmap,
-    //     accountX: userTokenXAccount.address,
-    //     accountY: userTokenYAccount.address,
-    //     invReserveX: tokenXReserve,
-    //     invReserveY: tokenYReserve,
-    //     invProgramAuthority: market.programAuthority,
-    //   },
-    //   owner
-    // );
+    console.log("mint 3");
+
+    await protocol.mintLpToken(
+      {
+        liquidityDelta,
+        pair,
+        index: positionId,
+        invProgram: INVARIANT_ADDRESS,
+        invState: stateAddress,
+        position: positionAddress,
+        lastPosition: lastPositionAddress,
+        pool: poolAddress,
+        positionList: positionListAddress,
+        lowerTick: lowerTickAddress,
+        upperTick: upperTickAddress,
+        tickmap,
+        accountX: userTokenXAccount.address,
+        accountY: userTokenYAccount.address,
+        invReserveX: tokenXReserve,
+        invReserveY: tokenYReserve,
+        invProgramAuthority: market.programAuthority,
+      },
+      owner
+    );
+
+    console.log("mint 4");
+
+    await protocol.mintLpToken(
+      {
+        liquidityDelta,
+        pair,
+        index: positionId,
+        invProgram: INVARIANT_ADDRESS,
+        invState: stateAddress,
+        position: positionAddress,
+        lastPosition: lastPositionAddress,
+        pool: poolAddress,
+        positionList: positionListAddress,
+        lowerTick: lowerTickAddress,
+        upperTick: upperTickAddress,
+        tickmap,
+        accountX: userTokenXAccount.address,
+        accountY: userTokenYAccount.address,
+        invReserveX: tokenXReserve,
+        invReserveY: tokenYReserve,
+        invProgramAuthority: market.programAuthority,
+      },
+      owner
+    );
 
     const position = await market.getPosition(
       protocol.programAuthority,

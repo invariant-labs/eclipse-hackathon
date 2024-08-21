@@ -13,7 +13,7 @@ use anchor_spl::{
 use decimal::{BetweenDecimals, Decimal};
 use invariant::decimals::{Liquidity as InvLiquidity, Price as InvPrice};
 use invariant::{
-    cpi::accounts::{CreatePosition, RemovePosition},
+    cpi::accounts::{CreatePosition, CreateTick, RemovePosition},
     structs::{Pool, Position},
 };
 
@@ -242,6 +242,28 @@ impl<'info> MintLpTokenCtx<'info> {
         )
     }
 
+    pub fn create_tick(
+        &self,
+        account: AccountInfo<'info>,
+    ) -> CpiContext<'_, '_, '_, 'info, CreateTick<'info>> {
+        CpiContext::new(
+            self.inv_program.to_account_info(),
+            CreateTick {
+                tick: account,
+                pool: self.pool.to_account_info(),
+                tickmap: self.tickmap.to_account_info(),
+
+                payer: self.owner.to_account_info(),
+                token_x: self.token_x.to_account_info(),
+                token_y: self.token_y.to_account_info(),
+                token_x_program: self.token_x_program.to_account_info(),
+                token_y_program: self.token_y_program.to_account_info(),
+                rent: self.rent.to_account_info(),
+                system_program: self.system_program.to_account_info(),
+            },
+        )
+    }
+
     pub fn validate_pool(&self) -> Result<()> {
         let lp_pool = &self.lp_pool.load()?;
         let pool = &self.pool.load()?;
@@ -373,7 +395,18 @@ impl<'info> MintLpTokenCtx<'info> {
                 lower_tick_index,
                 upper_tick_index,
             )?;
+
+            invariant::cpi::create_tick(
+                self.create_tick(self.lower_tick.to_account_info()),
+                lower_tick_index,
+            )?;
+
+            invariant::cpi::create_tick(
+                self.create_tick(self.upper_tick.to_account_info()),
+                upper_tick_index,
+            )?;
         }
+
         {
             let new_liquidity = shares.positions_details.liquidity.v;
             msg!("new_liquidity: {}", new_liquidity);
