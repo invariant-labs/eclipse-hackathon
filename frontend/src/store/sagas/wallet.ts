@@ -8,9 +8,9 @@ import {
   select,
   takeLatest
 } from 'typed-redux-saga'
-import { createLoaderKey } from '@utils/utils'
+import { createLoaderKey, getTokenProgramId } from '@utils/utils'
 import { closeSnackbar } from 'notistack'
-import { actions, Status } from '@store/reducers/wallet'
+import { actions, ITokenAccount, Status } from '@store/reducers/wallet'
 import {
   NetworkType,
   Token as StoreToken,
@@ -21,7 +21,10 @@ import { WalletAdapter } from '@utils/web3/adapters/types'
 import { BN } from '@project-serum/anchor'
 import { disconnectWallet, getSolanaWallet } from '@utils/web3/wallet'
 import {
+  AccountInfo,
+  ParsedAccountData,
   PublicKey,
+  RpcResponseAndContext,
   Signer,
   SystemProgram,
   Transaction,
@@ -31,6 +34,7 @@ import {
 import { getConnection } from './connection'
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
+  Mint,
   TOKEN_PROGRAM_ID,
   createAssociatedTokenAccountInstruction,
   createMintToInstruction,
@@ -46,6 +50,7 @@ import airdropAdmin from '@store/consts/airdropAdmin'
 import { getTokenDetails } from './token'
 import { openWalletSelectorModal } from '@utils/web3/selector'
 import { PayloadAction } from '@reduxjs/toolkit'
+import { TOKEN_2022_PROGRAM_ID } from '@invariant-labs/sdk-eclipse'
 
 export function* getWallet(): SagaGenerator<WalletAdapter> {
   const wallet = yield* call(getSolanaWallet)
@@ -64,68 +69,83 @@ export function* handleBalance(): Generator {
   yield* put(actions.setIsBalanceLoading(true))
   const balance = yield* call(getBalance, wallet.publicKey)
   yield* put(actions.setBalance(balance))
-  // yield* call(fetchTokensAccounts)
+  yield* call(fetchTokensAccounts)
   yield* put(actions.setIsBalanceLoading(false))
 }
 
-// interface IparsedTokenInfo {
-//   mint: string
-//   owner: string
-//   tokenAmount: {
-//     amount: string
-//     decimals: number
-//     uiAmount: number
-//   }
-// }
-// export function* fetchTokensAccounts(): Generator {
-//   const connection = yield* call(getConnection)
-//   const wallet = yield* call(getWallet)
-//   const tokensAccounts = yield* call(
-//     [connection, connection.getParsedTokenAccountsByOwner],
-//     wallet.publicKey,
-//     {
-//       programId: TOKEN_PROGRAM_ID
-//     }
-//   )
-//   const allTokens = yield* select(tokens)
-//   const newAccounts: ITokenAccount[] = []
-//   const unknownTokens: Record<string, StoreToken> = {}
-//   for (const account of tokensAccounts.value) {
-//     const info: IparsedTokenInfo = account.account.data.parsed.info
-//     newAccounts.push({
-//       programId: new PublicKey(info.mint),
-//       balance: new BN(info.tokenAmount.amount),
-//       address: account.pubkey,
-//       decimals: info.tokenAmount.decimals
-//     })
+interface IparsedTokenInfo {
+  mint: string
+  owner: string
+  tokenAmount: {
+    amount: string
+    decimals: number
+    uiAmount: number
+  }
+}
 
-//     if (!allTokens[info.mint]) {
-//       unknownTokens[info.mint] = {
-//         name: info.mint,
-//         symbol: `${info.mint.slice(0, 4)}...${info.mint.slice(-4)}`,
-//         decimals: info.tokenAmount.decimals,
-//         address: new PublicKey(info.mint),
-//         logoURI: '/unknownToken.svg',
-//         isUnknown: true
-//       }
-//     }
-//   }
+interface TokenAccountInfo {
+  pubkey: PublicKey
+  account: AccountInfo<ParsedAccountData>
+}
+export function* fetchTokensAccounts(): Generator {
+  const connection = yield* call(getConnection)
+  const wallet = yield* call(getWallet)
+  console.log(connection)
+  const splTokensAccounts: RpcResponseAndContext<TokenAccountInfo[]> = yield* call(
+    [connection, connection.getParsedTokenAccountsByOwner],
+    wallet.publicKey,
+    {
+      programId: TOKEN_PROGRAM_ID
+    }
+  )
+  console.log(splTokensAccounts)
+  const token2022TokensAccounts: RpcResponseAndContext<TokenAccountInfo[]> = yield* call(
+    [connection, connection.getParsedTokenAccountsByOwner],
+    wallet.publicKey,
+    {
+      programId: TOKEN_2022_PROGRAM_ID
+    }
+  )
+  console.log(token2022TokensAccounts)
+  const mergedAccounts: TokenAccountInfo[] = [
+    ...splTokensAccounts.value,
+    ...token2022TokensAccounts.value
+  ]
+  console.log(mergedAccounts)
+  const allTokens = yield* select(tokens)
+  const newAccounts: ITokenAccount[] = []
+  const unknownTokens: Record<string, StoreToken> = {}
+  for (const account of mergedAccounts) {
+    const info: IparsedTokenInfo = account.account.data.parsed.info
+    newAccounts.push({
+      programId: new PublicKey(info.mint),
+      balance: new BN(info.tokenAmount.amount),
+      address: account.pubkey,
+      decimals: info.tokenAmount.decimals
+    })
 
-//   yield* put(actions.addTokenAccounts(newAccounts))
-//   yield* put(poolsActions.addTokens(unknownTokens))
-// }
+    if (!allTokens[info.mint]) {
+      unknownTokens[info.mint] = {
+        name: info.mint,
+        symbol: `${info.mint.slice(0, 4)}...${info.mint.slice(-4)}`,
+        decimals: info.tokenAmount.decimals,
+        address: new PublicKey(info.mint),
+        logoURI: '/unknownToken.svg',
+        isUnknown: true
+      }
+    }
+  }
+  console.log(newAccounts)
+  console.log(unknownTokens)
+  yield* put(actions.addTokenAccounts(newAccounts))
+  yield* put(poolsActions.addTokens(unknownTokens))
+}
 
-// export function* getToken(tokenAddress: PublicKey): SagaGenerator<Token> {
-//   const connection = yield* call(getConnection)
-//   const token = new Token(connection, tokenAddress, TOKEN_PROGRAM_ID, new Account())
-//   return token
-// }
-
-export function* getToken(tokenAddress: PublicKey): SagaGenerator<any> {
+export function* getToken(tokenAddress: PublicKey): SagaGenerator<Mint> {
   const connection = yield* call(getConnection)
 
   const mintInfo = yield* call(getMint, connection, tokenAddress)
-
+  console.log(mintInfo)
   return mintInfo
 }
 
@@ -203,7 +223,7 @@ export function* setEmptyAccounts(collateralsAddresses: PublicKey[]): Generator 
       ? tokensAccounts[collateral.toString()].address
       : null
     if (accountAddress == null) {
-      acc.push(collateralTokenProgram.publicKey)
+      acc.push(new PublicKey(collateralTokenProgram.address))
     }
   }
   if (acc.length !== 0) {
@@ -295,7 +315,7 @@ export function* getCollateralTokenAirdrop(
 
 export function* signAndSend(wallet: WalletAdapter, tx: Transaction): SagaGenerator<string> {
   const connection = yield* call(getConnection)
-  const blockhash = yield* call([connection, connection.getLatestBlockhash])
+  const blockhash = yield* call([connection, connection.getRecentBlockhash])
   tx.feePayer = wallet.publicKey
   tx.recentBlockhash = blockhash.blockhash
   const signedTx = yield* call([wallet, wallet.signTransaction], tx)
@@ -448,7 +468,9 @@ export function* init(isEagerConnect?: boolean): Generator {
     const balance = yield* call(getBalance, wallet.publicKey)
     yield* put(actions.setBalance(balance))
     yield* put(actions.setStatus(Status.Initialized))
-    // yield* call(fetchTokensAccounts)
+    console.log('fetching tokens')
+    yield* call(fetchTokensAccounts)
+    console.log('fetching tokens')
     yield* put(actions.setIsBalanceLoading(false))
   } catch (error) {
     yield* put(actions.setStatus(Status.Uninitialized))
@@ -461,7 +483,6 @@ export function* handleReconnect(): Generator {
   yield* call(openWalletSelectorModal, true)
   yield* call(handleConnect, { type: actions.connect.type, payload: false })
 }
-
 
 export const sleep = (ms: number) => {
   return new Promise(resolve => setTimeout(resolve, ms))
