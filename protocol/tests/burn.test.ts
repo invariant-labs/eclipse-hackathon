@@ -215,9 +215,8 @@ describe("burn lp token", () => {
 
     const { positionAddress: lastPositionAddress2 } =
     await market.getPositionAddress(protocol.programAuthority, 0);
-    const liquidityDelta2 = new BN(49000000);
+    const liquidityDelta2 = new BN(49000747);
 
-    console.log(accountLp.amount)
     await protocol.burnLpToken(
       {
         liquidityDelta: liquidityDelta2,
@@ -240,12 +239,17 @@ describe("burn lp token", () => {
       },
       owner
     );
-
-    const position3 = await market.getPosition(
-      protocol.programAuthority,
-      positionId
-    );
-    console.log(position3);
-    assert.ok(position3);
+    let err;
+    try {
+      const positionAfterBurn = await market.getPosition(
+        protocol.programAuthority,
+        positionId
+      );
+      console.log(positionAfterBurn);
+    } catch (e) {
+      err =true;
+    }
+    assert(err, "burn did not remove position")
+    
   });
 });

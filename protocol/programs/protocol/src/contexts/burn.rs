@@ -1,7 +1,8 @@
 use std::cell::RefMut;
 
 use crate::math::{
-    calculate_amount_delta, compute_lp_share_change, get_max_tick, LiquidityChangeResult,
+    calculate_amount_delta, compute_lp_share_change, get_max_tick, get_min_tick,
+    LiquidityChangeResult,
 };
 use crate::states::{DerivedAccountIdentifier, LpPool, State, LP_TOKEN_IDENT};
 use crate::{decimals::*, try_from};
@@ -286,7 +287,7 @@ impl<'info> BurnLpTokenCtx<'info> {
         let lp_pool = &self.lp_pool.load()?;
         if lp_pool.invariant_position != Pubkey::default() {
             let upper_tick_index = get_max_tick(lp_pool.tick_spacing);
-            let lower_tick_index = -upper_tick_index;
+            let lower_tick_index = get_min_tick(lp_pool.tick_spacing);
             let position = try_from!(AccountLoader::<Position>, &self.position)?;
             require_eq!(position.load()?.upper_tick_index, upper_tick_index);
             require_eq!(position.load()?.lower_tick_index, lower_tick_index);
@@ -378,28 +379,33 @@ impl<'info> BurnLpTokenCtx<'info> {
             _ => return Err(InvalidTokenProgram.into()),
         };
 
-        invariant::cpi::create_tick(
-            self.create_tick(self.lower_tick.to_account_info()),
-            lower_tick_index,
-        )?;
+        let position_key = if positions_details.liquidity.v != 0 {
+            invariant::cpi::create_tick(
+                self.create_tick(self.lower_tick.to_account_info()),
+                lower_tick_index,
+            )?;
 
-        invariant::cpi::create_tick(
-            self.create_tick(self.upper_tick.to_account_info()),
-            upper_tick_index,
-        )?;
+            invariant::cpi::create_tick(
+                self.create_tick(self.upper_tick.to_account_info()),
+                upper_tick_index,
+            )?;
 
-        invariant::cpi::create_position(
-            self.create_position().with_signer(signer),
-            positions_details.lower_tick,
-            positions_details.upper_tick,
-            InvLiquidity::new(positions_details.liquidity.v),
-            pool.sqrt_price,
-            pool.sqrt_price,
-        )?;
+            invariant::cpi::create_position(
+                self.create_position().with_signer(signer),
+                positions_details.lower_tick,
+                positions_details.upper_tick,
+                InvLiquidity::new(positions_details.liquidity.v),
+                pool.sqrt_price,
+                pool.sqrt_price,
+            )?;
+            self.position.key()
+        } else {
+            Pubkey::default()
+        };
 
         lp_pool.leftover_x = leftover_amounts.0.get();
         lp_pool.leftover_x = leftover_amounts.1.get();
-        lp_pool.invariant_position = self.position.key();
+        lp_pool.invariant_position = position_key;
 
         Ok(())
     }
