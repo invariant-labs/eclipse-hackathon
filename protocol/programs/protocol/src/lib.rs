@@ -100,6 +100,6 @@ pub mod protocol {
 
     pub fn mint_lp_token(ctx: Context<MintLpTokenCtx>, liquidity: u128, index: u32) -> Result<()> {
         ctx.accounts
-            .process(Liquidity::from_integer(liquidity), index)
+            .process(Liquidity::new(liquidity), index)
     }
 }
