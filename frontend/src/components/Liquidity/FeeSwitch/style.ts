@@ -95,6 +95,10 @@ export const useSingleTabStyles = makeStyles()(() => {
       '&:hover': {
         color: colors.white.main
       }
+    },
+    disabled: {
+      ...typography.heading4,
+      color: '#3a466b' + ' !important'
     }
   }
 })

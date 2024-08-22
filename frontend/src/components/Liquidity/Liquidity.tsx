@@ -93,7 +93,7 @@ export const Liquidity: React.FC<ILiquidity> = ({
   tickSpacing,
   // isWaitingForNewPool,
   poolIndex,
-  bestTiers,
+  // bestTiers,
   // canCreateNewPool,
   handleAddToken,
   commonTokens,
@@ -182,16 +182,19 @@ export const Liquidity: React.FC<ILiquidity> = ({
     return trimLeadingZeros(printBN(result, tokens[printIndex].decimals))
   }
 
-  const bestTierIndex =
-    tokenAIndex === null || tokenBIndex === null
-      ? undefined
-      : (bestTiers.find(
-          tier =>
-            (tier.tokenX.equals(tokens[tokenAIndex].assetAddress) &&
-              tier.tokenY.equals(tokens[tokenBIndex].assetAddress)) ||
-            (tier.tokenX.equals(tokens[tokenBIndex].assetAddress) &&
-              tier.tokenY.equals(tokens[tokenAIndex].assetAddress))
-        )?.bestTierIndex ?? undefined)
+  // const bestTierIndex =
+  //   tokenAIndex === null || tokenBIndex === null
+  //     ? undefined
+  //     : (bestTiers.find(
+  //         tier =>
+  //           (tier.tokenX.equals(tokens[tokenAIndex].assetAddress) &&
+  //             tier.tokenY.equals(tokens[tokenBIndex].assetAddress)) ||
+  //           (tier.tokenX.equals(tokens[tokenBIndex].assetAddress) &&
+  //             tier.tokenY.equals(tokens[tokenAIndex].assetAddress))
+  //       )?.bestTierIndex ?? undefined)
+
+  // Temporary set best tier index as only available
+  const bestTierIndex = 2
 
   const updatePath = (
     index1: number | null,
@@ -257,7 +260,8 @@ export const Liquidity: React.FC<ILiquidity> = ({
       tokenBIndex !== null &&
       tokenADeposit !== null &&
       tokenBDeposit !== null &&
-      !sqrtPrice.v.eq(new BN(0))
+      !sqrtPrice.v.eq(new BN(0)) &&
+      tokenAIndex !== tokenBIndex
     ) {
       const maxLiquidity = getMaxLiquidity(
         { v: printBNtoBN(tokenADeposit, xDecimal) },
@@ -281,6 +285,11 @@ export const Liquidity: React.FC<ILiquidity> = ({
     return '0'
   }, [tokenADeposit, tokenBDeposit, poolIndex])
 
+  useEffect(() => {
+    if (bestTierIndex) {
+      setPositionTokens(tokenAIndex, tokenBIndex, bestTierIndex, true)
+    }
+  }, [bestTierIndex])
   return (
     <Grid container className={classes.wrapper} direction='column'>
       {showNoConnected && <NoConnected {...noConnectedBlockerProps} />}

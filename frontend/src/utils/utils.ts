@@ -8,7 +8,6 @@ import {
   USDC_DEV,
   USDC_TEST,
   WETH_DEV,
-  WETH_TEST,
   addressTickerMap,
   defaultPrefixConfig,
   defaultThresholds
@@ -215,8 +214,8 @@ export const getNetworkTokensList = (networkType: NetworkType): Record<string, T
     case NetworkType.TESTNET:
       return {
         [USDC_TEST.address.toString()]: USDC_TEST,
-        [BTC_TEST.address.toString()]: BTC_TEST,
-        [WETH_TEST.address.toString()]: WETH_TEST
+        [BTC_TEST.address.toString()]: BTC_TEST
+        // [WETH_TEST.address.toString()]: WETH_TEST
       }
     default:
       return {}

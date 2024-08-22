@@ -53,7 +53,7 @@ export const Header: React.FC<IHeader> = ({
 
   const routes = [
     { root: 'liquidity', name: 'Fullrange Tokenizer' },
-    { root: 'position', name: 'Fingible Position' },
+    { root: 'position', name: 'Active Liquidity Management' },
     { root: 'orderbook', name: 'Orderbook' }
   ]
 

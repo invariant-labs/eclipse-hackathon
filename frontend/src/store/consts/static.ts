@@ -212,7 +212,8 @@ export const bestTiers: Record<NetworkType, BestTier[]> = {
 export const commonTokensForNetworks: Record<NetworkType, PublicKey[]> = {
   Devnet: [USDC_DEV.address, BTC_DEV.address, WETH_DEV.address],
   Mainnet: [],
-  Testnet: [USDC_TEST.address, BTC_TEST.address, WETH_TEST.address],
+  // Testnet: [USDC_TEST.address, BTC_TEST.address, WETH_TEST.address],
+  Testnet: [USDC_TEST.address, BTC_TEST.address],
   Localnet: []
 }
 export const airdropTokens: Record<NetworkType, PublicKey[]> = {
