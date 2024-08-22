@@ -55,10 +55,8 @@ export const FeeSwitch: React.FC<IFeeSwitch> = ({
                 singleTabClasses.root,
                 index === bestTierIndex ? singleTabClasses.best : undefined
               ),
-              selected: singleTabClasses.selected,
-              disabled: singleTabClasses.disabled
+              selected: singleTabClasses.selected
             }}
-            disabled={index !== bestTierIndex}
           />
         ))}
       </Tabs>

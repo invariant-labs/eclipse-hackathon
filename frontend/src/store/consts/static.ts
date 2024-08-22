@@ -2,6 +2,7 @@ import { BN } from '@project-serum/anchor'
 import { PublicKey } from '@solana/web3.js'
 import { FormatNumberThreshold, PrefixConfig } from './types'
 import { FEE_TIERS } from '@invariant-labs/sdk-eclipse/lib/utils'
+import { ISnackbar } from '@store/reducers/snackbars'
 export interface FeeTier {
   fee: BN
   tickSpacing?: number
@@ -276,4 +277,10 @@ export const addressTickerMap: { [key: string]: string } = {
   BTC: '2F5TprcNBqj2hXVr9oTssabKdf8Zbsf9xStqWjPm8yLo',
   USDC: '5gFSyxjNsuQsZKn9g5L9Ky3cSUvJ6YXqWVuPzmSi8Trx',
   ETH: 'So11111111111111111111111111111111111111112'
+}
+
+export const SIGNING_SNACKBAR_CONFIG: Omit<ISnackbar, 'open'> = {
+  message: 'Signing transactions',
+  variant: 'pending',
+  persist: true
 }

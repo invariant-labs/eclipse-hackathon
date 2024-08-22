@@ -3,7 +3,7 @@ import { SwapToken } from '@store/selectors/wallet'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useStyles from './style'
-import { FormatNumberThreshold, TokenPriceData } from '@store/consts/types'
+import { TokenPriceData } from '@store/consts/types'
 import { TooltipHover } from '@components/TooltipHover/TooltipHover'
 import { INoConnected, NoConnected } from '@components/NoConnected/NoConnected'
 import { ProgressState } from '@components/AnimatedButton/AnimatedButton'
@@ -37,7 +37,7 @@ export interface ILiquidity {
   midPrice: any
   setMidPrice: (mid: any) => void
   addLiquidityHandler: (tokenXDeposit: BN, tokenYDeposit: BN) => void
-  removeLiquidityHandler: (xAmount: number, yAmount: FormatNumberThreshold) => void
+  removeLiquidityHandler: () => void
   onChangePositionTokens: (
     tokenAIndex: number | null,
     tokenBindex: number | null,
@@ -81,7 +81,7 @@ export const Liquidity: React.FC<ILiquidity> = ({
   tokens,
   // setMidPrice,
   addLiquidityHandler,
-  // removeLiquidityHandler,
+  removeLiquidityHandler,
   onChangePositionTokens,
   calcAmount,
   feeTiers,
@@ -93,7 +93,7 @@ export const Liquidity: React.FC<ILiquidity> = ({
   tickSpacing,
   // isWaitingForNewPool,
   poolIndex,
-  // bestTiers,
+  bestTiers,
   // canCreateNewPool,
   handleAddToken,
   commonTokens,
@@ -182,19 +182,16 @@ export const Liquidity: React.FC<ILiquidity> = ({
     return trimLeadingZeros(printBN(result, tokens[printIndex].decimals))
   }
 
-  // const bestTierIndex =
-  //   tokenAIndex === null || tokenBIndex === null
-  //     ? undefined
-  //     : (bestTiers.find(
-  //         tier =>
-  //           (tier.tokenX.equals(tokens[tokenAIndex].assetAddress) &&
-  //             tier.tokenY.equals(tokens[tokenBIndex].assetAddress)) ||
-  //           (tier.tokenX.equals(tokens[tokenBIndex].assetAddress) &&
-  //             tier.tokenY.equals(tokens[tokenAIndex].assetAddress))
-  //       )?.bestTierIndex ?? undefined)
-
-  // Temporary set best tier index as only available
-  const bestTierIndex = 2
+  const bestTierIndex =
+    tokenAIndex === null || tokenBIndex === null
+      ? undefined
+      : (bestTiers.find(
+          tier =>
+            (tier.tokenX.equals(tokens[tokenAIndex].assetAddress) &&
+              tier.tokenY.equals(tokens[tokenBIndex].assetAddress)) ||
+            (tier.tokenX.equals(tokens[tokenBIndex].assetAddress) &&
+              tier.tokenY.equals(tokens[tokenAIndex].assetAddress))
+        )?.bestTierIndex ?? undefined)
 
   const updatePath = (
     index1: number | null,
@@ -285,11 +282,6 @@ export const Liquidity: React.FC<ILiquidity> = ({
     return '0'
   }, [tokenADeposit, tokenBDeposit, poolIndex])
 
-  useEffect(() => {
-    if (bestTierIndex) {
-      setPositionTokens(tokenAIndex, tokenBIndex, bestTierIndex, true)
-    }
-  }, [bestTierIndex])
   return (
     <Grid container className={classes.wrapper} direction='column'>
       {showNoConnected && <NoConnected {...noConnectedBlockerProps} />}
@@ -464,9 +456,7 @@ export const Liquidity: React.FC<ILiquidity> = ({
           ) : (
             <RemoveLiquidity
               tokens={tokens}
-              onRemoveLiquidity={() => {
-                //TODO
-              }}
+              onRemoveLiquidity={removeLiquidityHandler}
               LPTokenInputState={{
                 value: LPTokenDeposit,
                 setValue: value => {

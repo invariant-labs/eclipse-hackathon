@@ -98,6 +98,11 @@ export interface MintData {
   lpPoolExists: boolean
 }
 
+export interface BurnData {
+  pair: Pair
+  liquidityDelta: BN
+}
+
 export const poolsSliceName = 'pools'
 const poolsSlice = createSlice({
   name: poolsSliceName,
@@ -150,6 +155,9 @@ const poolsSlice = createSlice({
       return state
     },
     mint(state, _action: PayloadAction<MintData>) {
+      return state
+    },
+    burn(state, _action: PayloadAction<BurnData>) {
       return state
     }
   }
