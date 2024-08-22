@@ -6,6 +6,7 @@ import {
   getLiquidityByYInFullRange,
   getMaxLiquidity,
   liquidityToLpTokenAmount,
+  lpTokenAmountToLiquidity,
 } from "../sdk/src/math";
 import { assert } from "chai";
 import { getMaxTick, getMinTick } from "@invariant-labs/sdk-eclipse/lib/utils";
@@ -80,6 +81,16 @@ describe("math", () => {
     );
 
     assert.ok(result.v.eq(new BN(1n)));
+  });
+
+  it("lp token amount to liquidity works", () => {
+    const result = lpTokenAmountToLiquidity(
+      { v: new BN(101) },
+      { v: new BN(1010) },
+      { v: new BN(1) }
+    );
+
+    assert.ok(result.v.eq(new BN(10n)));
   });
 
   it("compute lp share change works", () => {
