@@ -5,8 +5,17 @@ import { PayloadAction } from '@reduxjs/toolkit'
 import { getMarketProgram } from '@web3/programs/amm'
 import { getPools } from '@store/consts/utils'
 import { Pair } from '@invariant-labs/sdk-eclipse'
-import { FEE_TIERS } from '@invariant-labs/sdk-eclipse/lib/utils'
+import { FEE_TIERS, getMaxTick, getMinTick } from '@invariant-labs/sdk-eclipse/lib/utils'
 import { getProtocolProgram } from '@web3/programs/protocol'
+import { AnchorProvider, BN } from '@project-serum/anchor'
+import { BlockheightBasedTransactionConfirmationStrategy, Transaction } from '@solana/web3.js'
+import { getAssociatedTokenAddress } from '@solana/spl-token'
+import { getConnection } from './connection'
+import { getWallet } from './wallet'
+import { createLoaderKey } from '@utils/utils'
+import { actions as snackbarsActions } from '@store/reducers/snackbars'
+import { SIGNING_SNACKBAR_CONFIG } from '@store/consts/static'
+import { closeSnackbar } from 'notistack'
 
 export interface iTick {
   index: iTick[]
@@ -70,6 +79,118 @@ export function* fetchLpPoolData(action: PayloadAction<Pair>) {
   }
 }
 
+export function* handleBurn(action: PayloadAction<Pair>) {
+  const loaderHandleBurn = createLoaderKey()
+  const loaderSigningTx = createLoaderKey()
+
+  try {
+    yield put(
+      snackbarsActions.add({
+        message: 'Removing liquidity...',
+        variant: 'pending',
+        persist: true,
+        key: loaderHandleBurn
+      })
+    )
+
+    const pair = action.payload
+
+    const networkType = yield* select(network)
+    const rpc = yield* select(rpcAddress)
+    const wallet = yield* call(getWallet)
+    const connection = yield* call(getConnection)
+
+    const protocolProgram = yield* call(getProtocolProgram, networkType, rpc)
+    const marketProgram = yield* call(getMarketProgram, networkType, rpc)
+
+    const tx = new Transaction()
+
+    const { address: stateAddress } = yield* call([marketProgram, marketProgram.getStateAddress])
+    const { positionListAddress } = yield* call(
+      [marketProgram, marketProgram.getPositionListAddress],
+      protocolProgram.programAuthority
+    )
+    const { positionAddress } = yield* call(
+      [marketProgram, marketProgram.getPositionAddress],
+      protocolProgram.programAuthority,
+      0
+    )
+    const { positionAddress: lastPositionAddress } = yield* call(
+      [marketProgram, marketProgram.getPositionAddress],
+      protocolProgram.programAuthority,
+      0
+    )
+    const { tickAddress: lowerTickAddress } = yield* call(
+      [marketProgram, marketProgram.getTickAddress],
+      pair,
+      getMinTick(pair.feeTier.tickSpacing ?? 0)
+    )
+    const { tickAddress: upperTickAddress } = yield* call(
+      [marketProgram, marketProgram.getTickAddress],
+      pair,
+      getMaxTick(pair.feeTier.tickSpacing ?? 0)
+    )
+    const pool = yield* call([marketProgram, marketProgram.getPool], pair)
+    const accountXAddress = yield* call(getAssociatedTokenAddress, pool.tokenX, wallet.publicKey)
+    const accountYAddress = yield* call(getAssociatedTokenAddress, pool.tokenY, wallet.publicKey)
+    const { programAuthority } = yield* call([marketProgram, marketProgram.getProgramAuthority])
+
+    const burnIx = yield* call([protocolProgram, protocolProgram.burnLpTokenIx], {
+      pair,
+      index: 0,
+      liquidityDelta: new BN(10000),
+      invProgram: marketProgram.program.programId,
+      invState: stateAddress,
+      position: positionAddress,
+      lastPosition: lastPositionAddress,
+      positionList: positionListAddress,
+      lowerTick: lowerTickAddress,
+      upperTick: upperTickAddress,
+      tickmap: pool.tickmap,
+      accountX: accountXAddress,
+      accountY: accountYAddress,
+      invReserveX: pool.tokenXReserve,
+      invReserveY: pool.tokenYReserve,
+      invProgramAuthority: programAuthority
+    })
+    tx.add(burnIx)
+
+    const blockhash = yield* call([connection, connection.getLatestBlockhash])
+    tx.recentBlockhash = blockhash.blockhash
+    tx.feePayer = wallet.publicKey
+
+    yield put(snackbarsActions.add({ ...SIGNING_SNACKBAR_CONFIG, key: loaderSigningTx }))
+
+    const signedTx = yield* call([wallet, wallet.signTransaction], tx)
+
+    closeSnackbar(loaderSigningTx)
+    yield put(snackbarsActions.remove(loaderSigningTx))
+
+    const signature = yield* call(
+      [connection, connection.sendRawTransaction],
+      signedTx.serialize(),
+      AnchorProvider.defaultOptions()
+    )
+
+    const confirmStrategy: BlockheightBasedTransactionConfirmationStrategy = {
+      blockhash: blockhash.blockhash,
+      lastValidBlockHeight: blockhash.lastValidBlockHeight,
+      signature
+    }
+    yield* call([connection, connection.confirmTransaction], confirmStrategy)
+
+    closeSnackbar(loaderHandleBurn)
+    yield put(snackbarsActions.remove(loaderHandleBurn))
+  } catch (error) {
+    closeSnackbar(loaderSigningTx)
+    yield put(snackbarsActions.remove(loaderSigningTx))
+    closeSnackbar(loaderHandleBurn)
+    yield put(snackbarsActions.remove(loaderHandleBurn))
+
+    console.error('Error burning LP tokens:', error)
+  }
+}
+
 export function* getPoolDataHandler(): Generator {
   yield* takeLatest(actions.getPoolData, fetchPoolData)
 }
@@ -82,6 +203,14 @@ export function* getLpPoolDataHandler(): Generator {
   yield* takeLatest(actions.getLpPoolData, fetchLpPoolData)
 }
 
+export function* burnHandler(): Generator {
+  yield* takeLatest(actions.burn, handleBurn)
+}
+
 export function* poolsSaga(): Generator {
-  yield all([getPoolDataHandler, getAllPoolsForPairDataHandler, getLpPoolDataHandler].map(spawn))
+  yield all(
+    [getPoolDataHandler, getAllPoolsForPairDataHandler, getLpPoolDataHandler, burnHandler].map(
+      spawn
+    )
+  )
 }

@@ -140,6 +140,9 @@ const poolsSlice = createSlice({
       state.lpPools = R.merge(state.lpPools, newData)
       state.isLoadingLatestPoolsForTransaction = false
       return state
+    },
+    burn(state, _action: PayloadAction<Pair>) {
+      return state
     }
   }
 })

@@ -218,8 +218,6 @@ export const LiquidityWrapper: React.FC<IProps> = ({
     }
   }, [allLpPools])
 
-  console.log(lpPoolIndex)
-
   useEffect(() => {
     isMountedRef.current = true
     return () => {
@@ -237,7 +235,19 @@ export const LiquidityWrapper: React.FC<IProps> = ({
       midPrice={10}
       setMidPrice={() => {}}
       addLiquidityHandler={() => {}}
-      removeLiquidityHandler={() => {}}
+      removeLiquidityHandler={() => {
+        if (tokenAIndex !== null && tokenBIndex !== null) {
+          dispatch(
+            poolsActions.burn(
+              new Pair(
+                tokens[tokenAIndex].address,
+                tokens[tokenBIndex].address,
+                FEE_TIERS[feeIndex]
+              )
+            )
+          )
+        }
+      }}
       onChangePositionTokens={(tokenA, tokenB, feeTierIndex) => {
         setTokenAIndex(tokenA)
         setTokenBIndex(tokenB)
