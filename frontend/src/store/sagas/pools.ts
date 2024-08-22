@@ -76,7 +76,7 @@ export function* fetchLpPoolData(action: PayloadAction<Pair>) {
 }
 
 export function* handleMint(action: PayloadAction<MintData>) {
-  const { pair, tokenXDeposit, tokenYDeposit, lpPoolExists } = action.payload
+  const { pair, lpPoolExists } = action.payload
 
   const networkType = yield* select(network)
   const rpc = yield* select(rpcAddress)

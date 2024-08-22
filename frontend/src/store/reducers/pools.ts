@@ -149,7 +149,7 @@ const poolsSlice = createSlice({
       state.isLoadingLatestPoolsForTransaction = false
       return state
     },
-    mint(state, action: PayloadAction<MintData>) {
+    mint(state, _action: PayloadAction<MintData>) {
       return state
     }
   }
