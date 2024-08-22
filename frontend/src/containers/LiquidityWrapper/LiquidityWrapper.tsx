@@ -253,13 +253,14 @@ export const LiquidityWrapper: React.FC<IProps> = ({
       removeLiquidityHandler={() => {
         if (tokenAIndex !== null && tokenBIndex !== null) {
           dispatch(
-            poolsActions.burn(
-              new Pair(
+            poolsActions.burn({
+              pair: new Pair(
                 tokens[tokenAIndex].address,
                 tokens[tokenBIndex].address,
                 FEE_TIERS[feeIndex]
-              )
-            )
+              ),
+              liquidityDelta: new BN(10000)
+            })
           )
         }
       }}

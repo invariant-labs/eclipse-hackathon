@@ -1,4 +1,4 @@
-import { actions, MintData, PairTokens, PoolWithAddress } from '@store/reducers/pools'
+import { actions, BurnData, MintData, PairTokens, PoolWithAddress } from '@store/reducers/pools'
 import { network, rpcAddress } from '@store/selectors/connection'
 import { all, call, put, select, spawn, takeLatest } from 'typed-redux-saga'
 import { PayloadAction } from '@reduxjs/toolkit'
@@ -189,7 +189,7 @@ export function* handleMint(action: PayloadAction<MintData>) {
   yield* call([connection, connection.confirmTransaction], confirmStrategy)
 }
 
-export function* handleBurn(action: PayloadAction<Pair>) {
+export function* handleBurn(action: PayloadAction<BurnData>) {
   const loaderHandleBurn = createLoaderKey()
   const loaderSigningTx = createLoaderKey()
 
@@ -203,7 +203,7 @@ export function* handleBurn(action: PayloadAction<Pair>) {
       })
     )
 
-    const pair = action.payload
+    const { liquidityDelta, pair } = action.payload
 
     const networkType = yield* select(network)
     const rpc = yield* select(rpcAddress)
@@ -248,7 +248,7 @@ export function* handleBurn(action: PayloadAction<Pair>) {
     const burnIx = yield* call([protocolProgram, protocolProgram.burnLpTokenIx], {
       pair,
       index: 0,
-      liquidityDelta: new BN(10000),
+      liquidityDelta,
       invProgram: marketProgram.program.programId,
       invState: stateAddress,
       position: positionAddress,
