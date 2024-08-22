@@ -80,113 +80,148 @@ export function* fetchLpPoolData(action: PayloadAction<Pair>) {
 }
 
 export function* handleMint(action: PayloadAction<MintData>) {
-  const { pair, lpPoolExists } = action.payload
+  const loaderHandleMint = createLoaderKey()
+  const loaderSigningTx = createLoaderKey()
+  try {
+    yield put(
+      snackbarsActions.add({
+        message: 'Adding liquidity...',
+        variant: 'pending',
+        persist: true,
+        key: loaderHandleMint
+      })
+    )
+    const { pair, lpPoolExists } = action.payload
 
-  const networkType = yield* select(network)
-  const rpc = yield* select(rpcAddress)
-  const wallet = yield* call(getWallet)
-  const connection = yield* call(getConnection)
+    const networkType = yield* select(network)
+    const rpc = yield* select(rpcAddress)
+    const wallet = yield* call(getWallet)
+    const connection = yield* call(getConnection)
 
-  const protocolProgram = yield* call(getProtocolProgram, networkType, rpc)
-  const marketProgram = yield* call(getMarketProgram, networkType, rpc)
+    const protocolProgram = yield* call(getProtocolProgram, networkType, rpc)
+    const marketProgram = yield* call(getMarketProgram, networkType, rpc)
 
-  const tx = new Transaction()
+    const tx = new Transaction()
 
-  if (lpPoolExists) {
-    const initLpPoolIx = yield* call([protocolProgram, protocolProgram.initLpPoolIx], {
-      pair
+    if (lpPoolExists) {
+      const initLpPoolIx = yield* call([protocolProgram, protocolProgram.initLpPoolIx], {
+        pair
+      })
+      tx.add(initLpPoolIx)
+
+      const lowerTickIndex = getMinTick(pair.feeTier.tickSpacing ?? 0)
+      try {
+        yield* call([marketProgram, marketProgram.getTick], pair, lowerTickIndex)
+      } catch (e) {
+        const createLowerTickIx = yield* call(
+          [marketProgram, marketProgram.createTickInstruction],
+          {
+            pair,
+            index: getMinTick(pair.feeTier.tickSpacing ?? 0)
+          }
+        )
+        tx.add(createLowerTickIx)
+      }
+
+      const upperTickIndex = getMaxTick(pair.feeTier.tickSpacing ?? 0)
+      try {
+        yield* call([marketProgram, marketProgram.getTick], pair, upperTickIndex)
+      } catch (e) {
+        const createLowerTickIx = yield* call(
+          [marketProgram, marketProgram.createTickInstruction],
+          {
+            pair,
+            index: getMinTick(pair.feeTier.tickSpacing ?? 0)
+          }
+        )
+        tx.add(createLowerTickIx)
+      }
+    }
+
+    const { address: stateAddress } = yield* call([marketProgram, marketProgram.getStateAddress])
+    const { positionListAddress } = yield* call(
+      [marketProgram, marketProgram.getPositionListAddress],
+      protocolProgram.programAuthority
+    )
+    const { positionAddress } = yield* call(
+      [marketProgram, marketProgram.getPositionAddress],
+      protocolProgram.programAuthority,
+      0
+    )
+    const { positionAddress: lastPositionAddress } = yield* call(
+      [marketProgram, marketProgram.getPositionAddress],
+      protocolProgram.programAuthority,
+      0
+    )
+    const { tickAddress: lowerTickAddress } = yield* call(
+      [marketProgram, marketProgram.getTickAddress],
+      pair,
+      getMinTick(pair.feeTier.tickSpacing ?? 0)
+    )
+    const { tickAddress: upperTickAddress } = yield* call(
+      [marketProgram, marketProgram.getTickAddress],
+      pair,
+      getMaxTick(pair.feeTier.tickSpacing ?? 0)
+    )
+    const pool = yield* call([marketProgram, marketProgram.getPool], pair)
+    const accountXAddress = yield* call(getAssociatedTokenAddress, pool.tokenX, wallet.publicKey)
+    const accountYAddress = yield* call(getAssociatedTokenAddress, pool.tokenY, wallet.publicKey)
+    const { programAuthority } = yield* call([marketProgram, marketProgram.getProgramAuthority])
+
+    const mintIx = yield* call([protocolProgram, protocolProgram.mintLpTokenIx], {
+      pair,
+      index: 0,
+      liquidityDelta: new BN(10000),
+      invProgram: marketProgram.program.programId,
+      invState: stateAddress,
+      position: positionAddress,
+      lastPosition: lastPositionAddress,
+      positionList: positionListAddress,
+      lowerTick: lowerTickAddress,
+      upperTick: upperTickAddress,
+      tickmap: pool.tickmap,
+      accountX: accountXAddress,
+      accountY: accountYAddress,
+      invReserveX: pool.tokenXReserve,
+      invReserveY: pool.tokenYReserve,
+      invProgramAuthority: programAuthority
     })
-    tx.add(initLpPoolIx)
+    tx.add(mintIx)
 
-    const lowerTickIndex = getMinTick(pair.feeTier.tickSpacing ?? 0)
-    try {
-      yield* call([marketProgram, marketProgram.getTick], pair, lowerTickIndex)
-    } catch (e) {
-      const createLowerTickIx = yield* call([marketProgram, marketProgram.createTickInstruction], {
-        pair,
-        index: getMinTick(pair.feeTier.tickSpacing ?? 0)
-      })
-      tx.add(createLowerTickIx)
+    const blockhash = yield* call([connection, connection.getLatestBlockhash])
+    tx.recentBlockhash = blockhash.blockhash
+    tx.feePayer = wallet.publicKey
+
+    yield put(snackbarsActions.add({ ...SIGNING_SNACKBAR_CONFIG, key: loaderSigningTx }))
+
+    const signedTx = yield* call([wallet, wallet.signTransaction], tx)
+
+    closeSnackbar(loaderSigningTx)
+    yield put(snackbarsActions.remove(loaderSigningTx))
+
+    const signature = yield* call(
+      [connection, connection.sendRawTransaction],
+      signedTx.serialize(),
+      AnchorProvider.defaultOptions()
+    )
+
+    const confirmStrategy: BlockheightBasedTransactionConfirmationStrategy = {
+      blockhash: blockhash.blockhash,
+      lastValidBlockHeight: blockhash.lastValidBlockHeight,
+      signature
     }
+    yield* call([connection, connection.confirmTransaction], confirmStrategy)
 
-    const upperTickIndex = getMaxTick(pair.feeTier.tickSpacing ?? 0)
-    try {
-      yield* call([marketProgram, marketProgram.getTick], pair, upperTickIndex)
-    } catch (e) {
-      const createLowerTickIx = yield* call([marketProgram, marketProgram.createTickInstruction], {
-        pair,
-        index: getMinTick(pair.feeTier.tickSpacing ?? 0)
-      })
-      tx.add(createLowerTickIx)
-    }
+    closeSnackbar(loaderHandleMint)
+    yield put(snackbarsActions.remove(loaderHandleMint))
+  } catch (error) {
+    closeSnackbar(loaderSigningTx)
+    yield put(snackbarsActions.remove(loaderSigningTx))
+    closeSnackbar(loaderHandleMint)
+    yield put(snackbarsActions.remove(loaderHandleMint))
+
+    console.error('Error minting LP tokens:', error)
   }
-
-  const { address: stateAddress } = yield* call([marketProgram, marketProgram.getStateAddress])
-  const { positionListAddress } = yield* call(
-    [marketProgram, marketProgram.getPositionListAddress],
-    protocolProgram.programAuthority
-  )
-  const { positionAddress } = yield* call(
-    [marketProgram, marketProgram.getPositionAddress],
-    protocolProgram.programAuthority,
-    0
-  )
-  const { positionAddress: lastPositionAddress } = yield* call(
-    [marketProgram, marketProgram.getPositionAddress],
-    protocolProgram.programAuthority,
-    0
-  )
-  const { tickAddress: lowerTickAddress } = yield* call(
-    [marketProgram, marketProgram.getTickAddress],
-    pair,
-    getMinTick(pair.feeTier.tickSpacing ?? 0)
-  )
-  const { tickAddress: upperTickAddress } = yield* call(
-    [marketProgram, marketProgram.getTickAddress],
-    pair,
-    getMaxTick(pair.feeTier.tickSpacing ?? 0)
-  )
-  const pool = yield* call([marketProgram, marketProgram.getPool], pair)
-  const accountXAddress = yield* call(getAssociatedTokenAddress, pool.tokenX, wallet.publicKey)
-  const accountYAddress = yield* call(getAssociatedTokenAddress, pool.tokenY, wallet.publicKey)
-  const { programAuthority } = yield* call([marketProgram, marketProgram.getProgramAuthority])
-
-  const mintIx = yield* call([protocolProgram, protocolProgram.mintLpTokenIx], {
-    pair,
-    index: 0,
-    liquidityDelta: new BN(10000),
-    invProgram: marketProgram.program.programId,
-    invState: stateAddress,
-    position: positionAddress,
-    lastPosition: lastPositionAddress,
-    positionList: positionListAddress,
-    lowerTick: lowerTickAddress,
-    upperTick: upperTickAddress,
-    tickmap: pool.tickmap,
-    accountX: accountXAddress,
-    accountY: accountYAddress,
-    invReserveX: pool.tokenXReserve,
-    invReserveY: pool.tokenYReserve,
-    invProgramAuthority: programAuthority
-  })
-  tx.add(mintIx)
-
-  const blockhash = yield* call([connection, connection.getLatestBlockhash])
-  tx.recentBlockhash = blockhash.blockhash
-  tx.feePayer = wallet.publicKey
-  const signedTx = yield* call([wallet, wallet.signTransaction], tx)
-  const signature = yield* call(
-    [connection, connection.sendRawTransaction],
-    signedTx.serialize(),
-    AnchorProvider.defaultOptions()
-  )
-
-  const confirmStrategy: BlockheightBasedTransactionConfirmationStrategy = {
-    blockhash: blockhash.blockhash,
-    lastValidBlockHeight: blockhash.lastValidBlockHeight,
-    signature
-  }
-  yield* call([connection, connection.confirmTransaction], confirmStrategy)
 }
 
 export function* handleBurn(action: PayloadAction<BurnData>) {
