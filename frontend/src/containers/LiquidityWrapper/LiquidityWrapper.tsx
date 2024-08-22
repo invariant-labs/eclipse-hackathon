@@ -2,7 +2,7 @@ import { Liquidity } from '@components/Liquidity/Liquidity'
 import { BN } from '@project-serum/anchor'
 import { PublicKey } from '@solana/web3.js'
 import { ALL_FEE_TIERS_DATA, bestTiers, commonTokensForNetworks } from '@store/consts/static'
-import { actions as poolsActions } from '@store/reducers/pools'
+import { actions, actions as poolsActions } from '@store/reducers/pools'
 import { actions as snackbarsActions } from '@store/reducers/snackbars'
 import { Status, actions as walletActions } from '@store/reducers/wallet'
 import { network } from '@store/selectors/connection'
@@ -234,7 +234,22 @@ export const LiquidityWrapper: React.FC<IProps> = ({
       tokens={tokens}
       midPrice={10}
       setMidPrice={() => {}}
-      addLiquidityHandler={() => {}}
+      addLiquidityHandler={(tokenXDeposit: BN, tokenYDeposit: BN) => {
+        if (tokenAIndex !== null && tokenBIndex !== null) {
+          dispatch(
+            actions.mint({
+              pair: new Pair(
+                tokens[tokenAIndex].address,
+                tokens[tokenBIndex].address,
+                FEE_TIERS[feeIndex]
+              ),
+              tokenXDeposit,
+              tokenYDeposit,
+              lpPoolExists: lpPoolIndex !== null
+            })
+          )
+        }
+      }}
       removeLiquidityHandler={() => {
         if (tokenAIndex !== null && tokenBIndex !== null) {
           dispatch(

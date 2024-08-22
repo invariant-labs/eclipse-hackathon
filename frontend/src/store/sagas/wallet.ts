@@ -304,7 +304,7 @@ export function* getCollateralTokenAirdrop(
   tx.feePayer = wallet.publicKey
   tx.recentBlockhash = blockhash
 
-  const signedTx = yield* call([wallet, wallet.signTransaction], tx)
+  const signedTx = (yield* call([wallet, wallet.signTransaction], tx)) as Transaction
   signedTx.partialSign(airdropAdmin)
 
   yield* call([connection, connection.sendRawTransaction], signedTx.serialize(), {
