@@ -1,6 +1,7 @@
 import { LpPoolStructure } from '@invariant-labs/eclipse-link-sdk/dist/types'
 import { Pair } from '@invariant-labs/sdk-eclipse'
 import { PoolStructure } from '@invariant-labs/sdk-eclipse/lib/market'
+import { BN } from '@project-serum/anchor'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { PublicKey } from '@solana/web3.js'
 import { Token } from '@store/consts/static'
@@ -90,6 +91,13 @@ export interface ListPoolsResponse {
   listType: ListType
 }
 
+export interface MintData {
+  pair: Pair
+  tokenXDeposit: BN
+  tokenYDeposit: BN
+  lpPoolExists: boolean
+}
+
 export const poolsSliceName = 'pools'
 const poolsSlice = createSlice({
   name: poolsSliceName,
@@ -139,6 +147,9 @@ const poolsSlice = createSlice({
       )
       state.lpPools = R.merge(state.lpPools, newData)
       state.isLoadingLatestPoolsForTransaction = false
+      return state
+    },
+    mint(state, _action: PayloadAction<MintData>) {
       return state
     }
   }
