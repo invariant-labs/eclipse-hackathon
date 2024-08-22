@@ -54,7 +54,7 @@ npm i
 ./tests.sh
 ```
 
-## Math
+## Core formulas
 
 ### Auxiliary functions
 
