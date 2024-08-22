@@ -6,6 +6,7 @@ export {
   getMaxLiquidity,
   computeMaxLiquidityPosition,
   liquidityToLpTokenAmount,
+  lpTokenAmountToLiquidity,
   computeLpShareChange,
 } from "./math";
 export { Protocol } from "./protocol";
