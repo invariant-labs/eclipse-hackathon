@@ -1,6 +1,10 @@
-# eclipse-hackathon
+# Invariant Link
 
-## Protocol
+## Fullrange Tokenizer
+
+### Additional resources
+- [Video demonstration](https://github.com/user-attachments/assets/047c3b6e-e8db-4c55-8e47-48e452903dc7)
+- [Demo site](https://link.invariant.app)
 
 ### Prerequisites
 
