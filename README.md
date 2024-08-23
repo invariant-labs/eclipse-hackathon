@@ -3,7 +3,7 @@
 ## Fullrange Tokenizer
 
 ### Additional resources
-- [Video demonstration](https://github.com/user-attachments/assets/047c3b6e-e8db-4c55-8e47-48e452903dc7)
+- [Video demonstration](https://www.youtube.com/watch?v=4o0hQRQQMsI)
 - [Demo site](https://link.invariant.app)
 
 ### Core functionality
