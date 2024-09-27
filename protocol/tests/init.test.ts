@@ -2,7 +2,8 @@ import { AnchorProvider } from "@coral-xyz/anchor";
 import { Network } from "../sdk/src/network";
 import { Protocol } from "../sdk/src/protocol";
 import { Keypair } from "@solana/web3.js";
-import { requestAirdrop } from "./test-utils";
+import { INVARIANT_ADDRESS, requestAirdrop } from "./test-utils";
+import { Market } from "@invariant-labs/sdk-eclipse";
 
 describe("init", () => {
   const { wallet: walletAnchor, connection } = AnchorProvider.local();
@@ -23,6 +24,13 @@ describe("init", () => {
       connection
     );
 
-    await protocol.init(owner);
+    const market = await Market.build(
+      Network.LOCAL,
+      walletAnchor,
+      connection,
+      INVARIANT_ADDRESS
+    );
+
+    await protocol.init(owner, market);
   });
 });

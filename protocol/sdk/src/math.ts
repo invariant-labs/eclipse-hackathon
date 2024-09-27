@@ -217,10 +217,20 @@ export const liquidityToLpTokenAmount = (
 export const lpTokenAmountToLiquidity = (
   lpTokenSupply: Decimal,
   currentLiquidity: Decimal,
-  lpTokenAmountDelta: Decimal
+  lpTokenAmountDelta: Decimal,
+  roundingUp: boolean
 ) => {
   if (lpTokenSupply.v.eq(new BN(0))) {
     return { v: lpTokenAmountDelta.v.muln(ONE_LP_TOKEN) };
+  }
+
+  if (roundingUp && lpTokenSupply.v !== new BN(0)) {
+    return {
+      v: lpTokenAmountDelta.v
+        .mul(currentLiquidity.v)
+        .add(lpTokenSupply.v.sub(new BN(1)))
+        .div(lpTokenSupply.v),
+    };
   }
 
   return {

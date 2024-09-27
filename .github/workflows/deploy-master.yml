@@ -1,23 +1,23 @@
-name: deploy master
+# name: deploy master
 
-on:
-  push:
-    branches: [master]
+# on:
+#   push:
+#     branches: [master]
 
-jobs:
-  upload:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Deploy to Vercel Action
-        uses: BetaHuhn/deploy-to-vercel-action@v1
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VERCEL_SCOPE: ${{ secrets.VERCEL_ORG_ID }}
-          WORKING_DIRECTORY: frontend
-          ALIAS_DOMAINS: |
-            link.invariant.app
+# jobs:
+#   upload:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v2
+#       - name: Deploy to Vercel Action
+#         uses: BetaHuhn/deploy-to-vercel-action@v1
+#         with:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+#           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+#           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+#           VERCEL_SCOPE: ${{ secrets.VERCEL_ORG_ID }}
+#           WORKING_DIRECTORY: frontend
+#           ALIAS_DOMAINS: |
+#             link.invariant.app

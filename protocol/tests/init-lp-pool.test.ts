@@ -41,15 +41,15 @@ describe("init lp-pool", () => {
       giveSOL.map((account) => requestAirdrop(connection, account, 1e14))
     );
 
-    protocol = await Protocol.build(Network.LOCAL, walletAnchor, connection);
-    protocol.init(owner);
-
     market = await Market.build(
       Network.LOCAL,
       walletAnchor,
       connection,
       INVARIANT_ADDRESS
     );
+
+    protocol = await Protocol.build(Network.LOCAL, walletAnchor, connection);
+    protocol.init(owner, market);
 
     const [token0, token1] = await Promise.all([
       createTokenMint(connection, owner, mintAuthority.publicKey, 6),
@@ -66,7 +66,6 @@ describe("init lp-pool", () => {
       },
       owner
     );
-
     const lpPool: LpPoolStructure = await protocol.getLpPool(pair);
 
     assert.ok(lpPool);
@@ -74,14 +73,13 @@ describe("init lp-pool", () => {
     assert.ok(lpPool.tokenY.equals(pair.tokenY));
     assert.ok(lpPool.fee.v.eq(pair.feeTier.fee));
     assert.equal(lpPool.tickSpacing, pair.feeTier.tickSpacing);
-    assert.ok(lpPool.invariantPosition.equals(PublicKey.default));
+    assert.notOk(lpPool.positionExists);
     assert.ok(lpPool.leftoverX.eq(new BN(0)));
     assert.ok(lpPool.leftoverY.eq(new BN(0)));
 
-    // test if the new LpToken can be minted
     const [lpToken] = protocol.getLpTokenAddressAndBump(pair);
-    const mintAmount = new BN(1000);
 
+    // create an account for the user
     const lpTokenAccount = await getOrCreateAssociatedTokenAccount(
       connection,
       owner,
@@ -103,25 +101,5 @@ describe("init lp-pool", () => {
       );
       assert.equal(lpTokenAccountInfo.amount, 0n);
     }
-
-  // test mint entrypoint does not support our new PDA format
-  //   await protocol.mint(
-  //     {
-  //       tokenMint: lpToken,
-  //       to: lpTokenAccount.address,
-  //       amount: mintAmount,
-  //     },
-  //     owner
-  //   );
-
-  //   {
-  //     const lpTokenAccountInfo = await getAccount(
-  //       connection,
-  //       lpTokenAccount.address,
-  //       undefined,
-  //       TOKEN_2022_PROGRAM_ID
-  //     );
-  //     assert.equal(lpTokenAccountInfo.amount, mintAmount);
-  //   }
   });
 });

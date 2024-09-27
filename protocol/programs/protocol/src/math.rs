@@ -27,15 +27,14 @@ pub struct SingleTokenLiquidity {
 }
 
 #[derive(Debug, Clone)]
-pub struct PositionDetails {
-    pub lower_tick: i32,
-    pub upper_tick: i32,
-    pub liquidity: Liquidity,
+pub struct LiquidityChange {
+    pub l: Liquidity,
+    pub add: bool,
 }
 
 #[derive(Debug, Clone)]
-pub struct LiquidityChangeResult {
-    pub positions_details: PositionDetails,
+pub struct ComputeLpShareChangeResult {
+    pub liquidity_change: LiquidityChange,
     pub transferred_amounts: (TokenAmount, TokenAmount),
     pub lp_token_change: Option<TokenAmount>,
     pub leftover_amounts: (TokenAmount, TokenAmount),
@@ -641,93 +640,90 @@ pub fn compute_lp_share_change(
     provide_liquidity: bool,
     lp_token_supply: TokenAmount,
     liquidity_delta: Liquidity,
-    x_before: TokenAmount, //fee + reserve + amount
-    y_before: TokenAmount, //fee + reserve + amount
+    liquidity_before: Liquidity,
+    accumulated_x: TokenAmount, // unclaimed fee + reserve (leftovers)
+    accumulated_y: TokenAmount, // unclaimed fee + reserve (leftovers)
     tick_spacing: u16,
     current_tick_index: i32,
     current_sqrt_price: Price,
-) -> TrackableResult<LiquidityChangeResult> {
+) -> TrackableResult<ComputeLpShareChangeResult> {
     let max_tick = get_max_tick(tick_spacing);
     let min_tick = get_min_tick(tick_spacing);
-    let (old_x, old_y, current_liquidity) = compute_max_liquidity_position(
-        x_before,
-        y_before,
-        min_tick,
-        max_tick,
-        current_tick_index,
-        current_sqrt_price,
-    )?;
+    let (accumulated_usable_x, accumulated_usable_y, accumulated_liquidity) =
+        compute_max_liquidity_position(
+            accumulated_x,
+            accumulated_y,
+            min_tick,
+            max_tick,
+            current_tick_index,
+            current_sqrt_price,
+        )?;
 
-    // since the second position doesn't have an error,
-    // the only way for leftovers to appear is from creating the initial position with fee
-    let leftover_x = x_before - old_x;
-    let leftover_y = y_before - old_y;
+    let leftover_x = accumulated_x
+        .checked_sub(accumulated_usable_x)
+        .unwrap_or_default();
+    let leftover_y = accumulated_y
+        .checked_sub(accumulated_usable_y)
+        .unwrap_or_default();
 
     if liquidity_delta.v == 0 {
-        return Ok(LiquidityChangeResult {
-            positions_details: PositionDetails {
-                lower_tick: min_tick,
-                upper_tick: max_tick,
-                liquidity: current_liquidity,
+        return Ok(ComputeLpShareChangeResult {
+            liquidity_change: LiquidityChange {
+                l: accumulated_liquidity,
+                add: true,
             },
             lp_token_change: None,
             transferred_amounts: (TokenAmount::new(0), TokenAmount::new(0)),
             leftover_amounts: (leftover_x, leftover_y),
         });
     }
-
-    let new_liquidity = if provide_liquidity {
-        current_liquidity
+    let mut add_liquidity = true;
+    let liquidity_change = if provide_liquidity {
+        accumulated_liquidity
             .checked_add(liquidity_delta)
             .map_err(|_| err!(TrackableError::ADD))?
     } else {
-        current_liquidity
-            .checked_sub(liquidity_delta)
-            .map_err(|_| err!(TrackableError::SUB))?
+        if accumulated_liquidity >= liquidity_delta {
+            accumulated_liquidity
+                .checked_sub(liquidity_delta)
+                .map_err(|_| err!(TrackableError::SUB))?
+        } else {
+            add_liquidity = false;
+            liquidity_delta
+                .checked_sub(accumulated_liquidity)
+                .map_err(|_| err!(TrackableError::SUB))?
+        }
     };
 
-    let new_position_amounts = calculate_amount_delta(
+    let (transferred_x, transferred_y) = calculate_amount_delta(
         current_sqrt_price,
-        new_liquidity,
-        true,
+        liquidity_delta,
+        provide_liquidity,
         current_tick_index,
         min_tick,
         max_tick,
     )
-    .map_err(|_| err!("Failed to calculate new lp share token cost"))?;
+    .map_err(|_| err!("Failed to calculate transferred token amount"))?;
 
-    let (transferred_x, transferred_y) = if provide_liquidity {
-        (
-            new_position_amounts.0 - old_x,
-            new_position_amounts.1 - old_y,
-        )
-    } else {
-        (
-            old_x - new_position_amounts.0,
-            old_y - new_position_amounts.1,
-        )
-    };
+    let lp_token_change = liquidity_to_lp_token_amount(
+        lp_token_supply,
+        liquidity_before + accumulated_liquidity,
+        liquidity_delta,
+        !provide_liquidity,
+    )?;
 
     if transferred_x == TokenAmount::new(0) && transferred_y == TokenAmount::new(0) {
         Err(err!("Liquidity delta too small to create a deposit"))?
     }
 
-    let lp_token_change = liquidity_to_lp_token_amount(
-        lp_token_supply,
-        current_liquidity,
-        liquidity_delta,
-        !provide_liquidity,
-    )?;
-
     if lp_token_change == TokenAmount::new(0) {
         Err(err!("Liquidity delta too small to change LpToken amount"))?
     }
 
-    Ok(LiquidityChangeResult {
-        positions_details: PositionDetails {
-            lower_tick: min_tick,
-            upper_tick: max_tick,
-            liquidity: new_liquidity,
+    Ok(ComputeLpShareChangeResult {
+        liquidity_change: LiquidityChange {
+            l: liquidity_change,
+            add: add_liquidity,
         },
         lp_token_change: Some(lp_token_change),
         transferred_amounts: (transferred_x, transferred_y),
@@ -812,6 +808,7 @@ mod test {
                 true,
                 TokenAmount(0),
                 delta_liquidity,
+                Liquidity::new(0),
                 TokenAmount::new(0),
                 TokenAmount::new(0),
                 1,
@@ -819,9 +816,9 @@ mod test {
                 Price::from_integer(1),
             )
             .unwrap();
-            assert_eq!(val.positions_details.liquidity.v, ONE_LP_TOKEN as u128);
+            assert_eq!(val.liquidity_change.l.v, ONE_LP_TOKEN as u128);
             assert_eq!(
-                val.positions_details.liquidity,
+                val.liquidity_change.l,
                 current_liquidity.l + delta_liquidity
             );
 
@@ -860,6 +857,7 @@ mod test {
                 true,
                 token_supply,
                 delta_liquidity,
+                Liquidity::new(0),
                 TokenAmount::new(1000),
                 TokenAmount::new(1000),
                 1,
@@ -867,9 +865,57 @@ mod test {
                 Price::from_integer(1),
             )
             .unwrap();
-            assert_eq!(val.positions_details.liquidity.v, 1331825849);
+            assert_eq!(val.liquidity_change.l.v, 1331825849);
             assert_eq!(
-                val.positions_details.liquidity,
+                val.liquidity_change.l,
+                current_liquidity.l + delta_liquidity
+            );
+
+            assert_eq!(val.lp_token_change.unwrap(), TokenAmount::new(99));
+            assert_eq!(
+                val.transferred_amounts,
+                (TokenAmount::new(187), TokenAmount::new(187))
+            );
+            assert_eq!(
+                val.leftover_amounts,
+                (TokenAmount::new(0), TokenAmount::new(0))
+            );
+        }
+        {
+            let delta_liquidity = Liquidity::new(ONE_LP_TOKEN as u128 * 100);
+            let current_liquidity = get_max_liquidity(
+                TokenAmount::new(200000000),
+                TokenAmount::new(200000000),
+                -get_max_tick(1),
+                get_max_tick(1),
+                Price::from_integer(1),
+                true,
+            )
+            .unwrap();
+
+            let token_supply = liquidity_to_lp_token_amount(
+                TokenAmount::new(0),
+                Liquidity::new(0),
+                current_liquidity.l,
+                false,
+            )
+            .unwrap();
+
+            let val = compute_lp_share_change(
+                true,
+                token_supply,
+                delta_liquidity,
+                Liquidity::new(0),
+                TokenAmount::new(200000000),
+                TokenAmount::new(200000000),
+                1,
+                0,
+                Price::from_integer(1),
+            )
+            .unwrap();
+            assert_eq!(val.liquidity_change.l.v, 224422339705851);
+            assert_eq!(
+                val.liquidity_change.l,
                 current_liquidity.l + delta_liquidity
             );
 
@@ -889,6 +935,7 @@ mod test {
                 false,
                 TokenAmount::new(1),
                 Liquidity::new(1),
+                Liquidity::new(0),
                 TokenAmount::new(0),
                 TokenAmount::new(0),
                 1,
@@ -912,6 +959,7 @@ mod test {
                 false,
                 TokenAmount::new(1),
                 current_liquidity.l - Liquidity::new(1),
+                Liquidity::new(0),
                 TokenAmount::new(1),
                 TokenAmount::new(1),
                 1,
@@ -935,6 +983,7 @@ mod test {
                 false,
                 TokenAmount::new(217),
                 current_liquidity.l,
+                Liquidity::new(0),
                 TokenAmount::new(1000),
                 TokenAmount::new(1000),
                 1,

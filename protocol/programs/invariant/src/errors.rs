@@ -24,7 +24,7 @@ pub enum ErrorCode {
     InvalidTickLiquidity = 9, // 1779
     #[msg("Disable empty position pokes")]
     EmptyPositionPokes = 10, // 177a
-    #[msg("Invalid tick liquidity")]
+    #[msg("Invalid position liquidity")]
     InvalidPositionLiquidity = 11, // 177b
     #[msg("Invalid pool liquidity")]
     InvalidPoolLiquidity = 12, // 177c

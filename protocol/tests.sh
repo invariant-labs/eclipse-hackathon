@@ -2,10 +2,15 @@
 set -e
 
 e2e_tests=(
+    "math"
     "init"
     "init-lp-pool"
-    "mint"
     "burn"
+    "mint-high-tick-big"
+    "mint-high-tick-small"
+    "mint-zero-tick-big"
+    "mint-zero-tick-small"
+    "multi-pool"
 )
 
 # currenty, there are no unit tests 

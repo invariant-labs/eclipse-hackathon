@@ -10,16 +10,20 @@
     "test": "npm run build:all && npx ts-mocha -p tsconfig.json tests/**/*.ts",
     "test:init": "anchor test --skip-build tests/init.test.ts",
     "test:init-lp-pool": "anchor test --skip-build tests/init-lp-pool.test.ts",
-    "test:mint": "anchor test --skip-build tests/mint.test.ts",
+    "test:mint-zero-tick-small": "anchor test --skip-build tests/mint-zero-tick-small.test.ts",
+    "test:mint-zero-tick-big": "anchor test --skip-build tests/mint-zero-tick-big.test.ts",
+    "test:mint-high-tick-small": "anchor test --skip-build tests/mint-high-tick-small.test.ts",
+    "test:mint-high-tick-big": "anchor test --skip-build tests/mint-high-tick-big.test.ts",
     "test:burn": "anchor test --skip-build tests/burn.test.ts",
-    "test:math": "anchor test --skip-build tests/math.test.ts"
+    "test:math": "anchor test --skip-build tests/math.test.ts",
+    "test:multi-pool": "anchor test --skip-build tests/multi-pool.test.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@coral-xyz/anchor": "0.29.0",
-    "@invariant-labs/sdk-eclipse": "^0.0.17",
+    "@invariant-labs/sdk-eclipse": "=0.0.17",
     "@project-serum/serum": "^0.13.65",
     "@solana/spl-token": "^0.4.3",
     "@solana/web3.js": "^1.91.4"

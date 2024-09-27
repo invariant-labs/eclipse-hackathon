@@ -82,26 +82,6 @@ export type Protocol = {
           "isSigner": false
         },
         {
-          "name": "reserveX",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "reserveY",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenXProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenYProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
@@ -196,11 +176,6 @@ export type Protocol = {
           "isSigner": false
         },
         {
-          "name": "lastPosition",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "pool",
           "isMut": true,
           "isSigner": false
@@ -280,10 +255,6 @@ export type Protocol = {
         {
           "name": "liquidity",
           "type": "u128"
-        },
-        {
-          "name": "index",
-          "type": "u32"
         }
       ]
     },
@@ -307,6 +278,11 @@ export type Protocol = {
         },
         {
           "name": "lpPool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lastPositionLpPool",
           "isMut": true,
           "isSigner": false
         },
@@ -448,10 +424,6 @@ export type Protocol = {
         {
           "name": "liquidity",
           "type": "u128"
-        },
-        {
-          "name": "index",
-          "type": "u32"
         }
       ]
     }
@@ -463,12 +435,12 @@ export type Protocol = {
         "kind": "struct",
         "fields": [
           {
-            "name": "invariantPosition",
-            "type": "publicKey"
+            "name": "positionIndex",
+            "type": "u32"
           },
           {
-            "name": "positionBump",
-            "type": "u8"
+            "name": "positionExists",
+            "type": "bool"
           },
           {
             "name": "leftoverX",
@@ -709,26 +681,6 @@ export const IDL: Protocol = {
           "isSigner": false
         },
         {
-          "name": "reserveX",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "reserveY",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenXProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenYProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
@@ -823,11 +775,6 @@ export const IDL: Protocol = {
           "isSigner": false
         },
         {
-          "name": "lastPosition",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "pool",
           "isMut": true,
           "isSigner": false
@@ -907,10 +854,6 @@ export const IDL: Protocol = {
         {
           "name": "liquidity",
           "type": "u128"
-        },
-        {
-          "name": "index",
-          "type": "u32"
         }
       ]
     },
@@ -934,6 +877,11 @@ export const IDL: Protocol = {
         },
         {
           "name": "lpPool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lastPositionLpPool",
           "isMut": true,
           "isSigner": false
         },
@@ -1075,10 +1023,6 @@ export const IDL: Protocol = {
         {
           "name": "liquidity",
           "type": "u128"
-        },
-        {
-          "name": "index",
-          "type": "u32"
         }
       ]
     }
@@ -1090,12 +1034,12 @@ export const IDL: Protocol = {
         "kind": "struct",
         "fields": [
           {
-            "name": "invariantPosition",
-            "type": "publicKey"
+            "name": "positionIndex",
+            "type": "u32"
           },
           {
-            "name": "positionBump",
-            "type": "u8"
+            "name": "positionExists",
+            "type": "bool"
           },
           {
             "name": "leftoverX",

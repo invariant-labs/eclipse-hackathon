@@ -1,9 +1,7 @@
 use std::cell::RefMut;
+use std::u32;
 
-use crate::math::{
-    calculate_amount_delta, compute_lp_share_change,
-    LiquidityChangeResult,
-};
+use crate::math::{compute_lp_share_change, ComputeLpShareChangeResult};
 use crate::states::{DerivedAccountIdentifier, LpPool, State, LP_TOKEN_IDENT};
 use crate::{decimals::*, try_from};
 use crate::{get_signer, ErrorCode::*};
@@ -15,10 +13,11 @@ use anchor_spl::{
     token::{self},
     token_2022,
 };
-use invariant::cpi::accounts::CreateTick;
+use invariant::cpi::accounts::ChangeLiquidity;
 use invariant::decimals::Liquidity as InvLiquidity;
+use invariant::structs::PositionList;
 use invariant::{
-    cpi::accounts::{CreatePosition, RemovePosition},
+    cpi::accounts::RemovePosition,
     structs::{Pool, Position},
 };
 
@@ -40,8 +39,11 @@ pub struct BurnLpTokenCtx<'info> {
         bump=lp_pool.load()?.bump,
     )]
     pub lp_pool: AccountLoader<'info, LpPool>,
+    // validated right before removing the position
+    #[account(mut)]
+    pub last_position_lp_pool: AccountLoader<'info, LpPool>,
     #[account(mut,
-        // validated in the handler!
+        // validated in validate_token_lp
         // seeds = [LP_TOKEN_IDENT, token_x.key().as_ref(), token_y.key().as_ref(), &lp_pool.load()?.fee.v.to_le_bytes(), &lp_pool.load()?.tick_spacing.to_le_bytes()],
         // bump=lp_pool.load()?.token_bump,
     )]
@@ -73,12 +75,12 @@ pub struct BurnLpTokenCtx<'info> {
     pub inv_state: UncheckedAccount<'info>,
     /// CHECK: invariant_program_authority is the authority of the Invariant program
     pub inv_program_authority: UncheckedAccount<'info>,
-    /// CHECK: might not exist, explicit check in the handler
+    /// CHECK: validated in the handler
     #[account(mut)]
-    pub position: AccountInfo<'info>,
-    /// CHECK: might not exist, check in Invariant CPI
+    pub position: AccountLoader<'info, Position>,
+    // validated right before removing the position
     #[account(mut)]
-    pub last_position: UncheckedAccount<'info>,
+    pub last_position: AccountLoader<'info, Position>,
     #[account(mut,
         // validated in the handler!
         // seeds = [INVARIANT_POOL_IDENT, token_x.key().as_ref(), token_y.key().as_ref(), &lp_pool.load()?.fee.v.to_le_bytes(), &lp_pool.load()?.tick_spacing.to_le_bytes()],
@@ -90,9 +92,11 @@ pub struct BurnLpTokenCtx<'info> {
         // constraint = pool.load()?.fee.v == lp_pool.load()?.fee.v
     )]
     pub pool: AccountLoader<'info, Pool>,
-    /// CHECK: passed to Invariant
-    #[account(mut)]
-    pub position_list: UncheckedAccount<'info>,
+    #[account(mut,
+        seeds = [b"positionlistv1", program_authority.key().as_ref()],
+        seeds::program = invariant::ID,
+        bump = position_list.load()?.bump )]
+    pub position_list: AccountLoader<'info, PositionList>,
     /// CHECK: passed to Invariant
     #[account(mut)]
     pub lower_tick: UncheckedAccount<'info>,
@@ -186,6 +190,7 @@ impl<'info> BurnLpTokenCtx<'info> {
             RemovePosition {
                 state: self.inv_state.to_account_info(),
                 program_authority: self.inv_program_authority.to_account_info(),
+                payer: self.owner.to_account_info(),
                 owner: self.program_authority.to_account_info(),
                 removed_position: self.position.to_account_info(),
                 position_list: self.position_list.to_account_info(),
@@ -206,52 +211,26 @@ impl<'info> BurnLpTokenCtx<'info> {
         )
     }
 
-    pub fn create_tick(
-        &self,
-        account: AccountInfo<'info>,
-    ) -> CpiContext<'_, '_, '_, 'info, CreateTick<'info>> {
+    pub fn change_liquidity(&self) -> CpiContext<'_, '_, '_, 'info, ChangeLiquidity<'info>> {
         CpiContext::new(
             self.inv_program.to_account_info(),
-            CreateTick {
-                tick: account,
-                pool: self.pool.to_account_info(),
-                tickmap: self.tickmap.to_account_info(),
-                payer: self.owner.to_account_info(),
-                token_x: self.token_x.to_account_info(),
-                token_y: self.token_y.to_account_info(),
-                token_x_program: self.token_x_program.to_account_info(),
-                token_y_program: self.token_y_program.to_account_info(),
-                rent: self.rent.to_account_info(),
-                system_program: self.system_program.to_account_info(),
-            },
-        )
-    }
-
-    pub fn create_position(&self) -> CpiContext<'_, '_, '_, 'info, CreatePosition<'info>> {
-        CpiContext::new(
-            self.inv_program.to_account_info(),
-            CreatePosition {
+            ChangeLiquidity {
                 state: self.inv_state.to_account_info(),
-                // the previous last position was moved to the previous' address
-                position: self.last_position.to_account_info(),
-                pool: self.pool.to_account_info(),
-                position_list: self.position_list.to_account_info(),
-                payer: self.owner.to_account_info(),
+                program_authority: self.inv_program_authority.to_account_info(),
                 owner: self.program_authority.to_account_info(),
+                payer: self.owner.to_account_info(),
+                position: self.position.to_account_info(),
+                pool: self.pool.to_account_info(),
                 lower_tick: self.lower_tick.to_account_info(),
                 upper_tick: self.upper_tick.to_account_info(),
-                tickmap: self.tickmap.to_account_info(),
                 token_x: self.token_x.to_account_info(),
                 token_y: self.token_y.to_account_info(),
                 account_x: self.reserve_x.to_account_info(),
                 account_y: self.reserve_y.to_account_info(),
                 reserve_x: self.inv_reserve_x.to_account_info(),
                 reserve_y: self.inv_reserve_y.to_account_info(),
-                program_authority: self.inv_program_authority.to_account_info(),
                 token_x_program: self.token_x_program.to_account_info(),
                 token_y_program: self.token_y_program.to_account_info(),
-                rent: self.rent.to_account_info(),
-                system_program: self.system_program.to_account_info(),
             },
         )
     }
@@ -285,12 +264,43 @@ impl<'info> BurnLpTokenCtx<'info> {
 
     pub fn validate_position(&self) -> Result<()> {
         let lp_pool = &self.lp_pool.load()?;
-        require_keys_eq!(lp_pool.invariant_position, self.position.key());
+
+        let seeds = [
+            b"positionv1",
+            self.program_authority.key.as_ref(),
+            &lp_pool.position_index.to_le_bytes(),
+        ];
+        let (position_key, position_bump) = Pubkey::find_program_address(&seeds, &invariant::ID);
+        require_keys_eq!(position_key, self.position.key());
+        require_eq!(position_bump, self.position.load()?.bump);
 
         Ok(())
     }
 
-    pub fn process(&mut self, liquidity_delta: Liquidity, index: u32) -> Result<()> {
+    pub fn validate_last_position(&self) -> Result<()> {
+        if self.last_position_lp_pool.key() != self.lp_pool.key() {
+            require_eq!(
+                self.last_position_lp_pool.load()?.position_index,
+                self.position_list.load()?.head - 1
+            );
+            let seeds = [
+                b"positionv1",
+                self.program_authority.key.as_ref(),
+                &self
+                    .last_position_lp_pool
+                    .load()?
+                    .position_index
+                    .to_le_bytes(),
+            ];
+            let (position_key, position_bump) =
+                Pubkey::find_program_address(&seeds, &invariant::ID);
+            require_keys_eq!(position_key, self.last_position.key());
+            require_eq!(position_bump, self.last_position.load()?.bump);
+        }
+        Ok(())
+    }
+
+    pub fn process(&mut self, liquidity_delta: Liquidity) -> Result<()> {
         self.validate_pool()?;
         self.validate_token_lp()?;
         self.validate_position()?;
@@ -307,53 +317,72 @@ impl<'info> BurnLpTokenCtx<'info> {
 
         let lower_tick_index = position.lower_tick_index;
         let upper_tick_index = position.upper_tick_index;
-        let (amount_x, amount_y) = calculate_amount_delta(
-            Price::new(pool.sqrt_price.v),
-            current_liquidity,
-            false,
-            current_tick_index,
-            lower_tick_index,
-            upper_tick_index,
-        )
-        .map_err(|_| InvalidShares)?;
 
-        let total_x = TokenAmount::new(lp_pool.leftover_x) + amount_x + fee_x;
-        let total_y = TokenAmount::new(lp_pool.leftover_y) + amount_y + fee_y;
+        let accumulated_x = TokenAmount::new(lp_pool.leftover_x) + fee_x;
+        let accumulated_y = TokenAmount::new(lp_pool.leftover_y) + fee_y;
 
-        let LiquidityChangeResult {
-            positions_details,
-            transferred_amounts,
+        let ComputeLpShareChangeResult {
+            liquidity_change,
+            mut transferred_amounts,
             lp_token_change,
             leftover_amounts,
         } = compute_lp_share_change(
             false,
             TokenAmount(self.token_lp.supply),
             liquidity_delta,
-            total_x,
-            total_y,
+            current_liquidity,
+            accumulated_x,
+            accumulated_y,
             lp_pool.tick_spacing,
             current_tick_index,
             Price::new(pool.sqrt_price.v),
         )
         .unwrap();
 
-        lp_pool.leftover_x = leftover_amounts.0.get();
-        lp_pool.leftover_x = leftover_amounts.1.get();
-        let lp_token_amount =
+        let lp_token_change =
             lp_token_change.expect("Lp change can't be zero when liquidity delta is not zero");
+        let remove_position = lp_token_change.get() == self.token_lp.supply;
+
+        if remove_position {
+            transferred_amounts.0 += leftover_amounts.0;
+            transferred_amounts.1 += leftover_amounts.1;
+
+            lp_pool.leftover_x = 0;
+            lp_pool.leftover_y = 0;
+        } else {
+            lp_pool.leftover_x = leftover_amounts.0.get();
+            lp_pool.leftover_y = leftover_amounts.1.get();
+        }
+
         let (transfer_x, transfer_y) = transferred_amounts;
 
         let signer: &[&[&[u8]]] = get_signer!(self.state.load()?.bump_authority);
         // burn lp token
-        token_2022::burn(self.burn_lp().with_signer(signer), lp_token_amount.get())?;
+        token_2022::burn(self.burn_lp().with_signer(signer), lp_token_change.get())?;
+        if remove_position {
+            self.validate_last_position()?;
+            invariant::cpi::remove_position(
+                self.remove_position().with_signer(signer),
+                lp_pool.position_index,
+                lower_tick_index,
+                upper_tick_index,
+            )?;
 
-        // TODO: move and track index inside of LpPool
-        invariant::cpi::remove_position(
-            self.remove_position().with_signer(signer),
-            index,
-            lower_tick_index,
-            upper_tick_index,
-        )?;
+            if self.last_position_lp_pool.key() != self.lp_pool.key() {
+                self.last_position_lp_pool.load_mut()?.position_index = lp_pool.position_index;
+            }
+            lp_pool.position_index = u32::MAX;
+            lp_pool.position_exists = false;
+        } else {
+            invariant::cpi::change_liquidity(
+                self.change_liquidity().with_signer(signer),
+                lp_pool.position_index,
+                InvLiquidity::new(liquidity_change.l.v),
+                liquidity_change.add,
+                pool.sqrt_price,
+                pool.sqrt_price,
+            )?;
+        }
 
         match self.token_x_program.key() {
             token_2022::ID => token_2022::transfer_checked(
@@ -373,34 +402,6 @@ impl<'info> BurnLpTokenCtx<'info> {
             )?,
             token::ID => token::transfer(self.withdraw_y().with_signer(signer), transfer_y.0)?,
             _ => return Err(InvalidTokenProgram.into()),
-        };
-
-        if positions_details.liquidity.v != 0 {
-            invariant::cpi::create_tick(
-                self.create_tick(self.lower_tick.to_account_info()),
-                lower_tick_index,
-            )?;
-
-            invariant::cpi::create_tick(
-                self.create_tick(self.upper_tick.to_account_info()),
-                upper_tick_index,
-            )?;
-
-            invariant::cpi::create_position(
-                self.create_position().with_signer(signer),
-                positions_details.lower_tick,
-                positions_details.upper_tick,
-                InvLiquidity::new(positions_details.liquidity.v),
-                pool.sqrt_price,
-                pool.sqrt_price,
-            )?;
-
-            let new_position = try_from!(AccountLoader::<Position>, &self.last_position)?;
-            lp_pool.position_bump = new_position.load()?.bump;
-            lp_pool.invariant_position = self.last_position.key();
-        } else {
-            lp_pool.position_bump = 0;
-            lp_pool.invariant_position = Pubkey::default();
         };
 
         Ok(())
