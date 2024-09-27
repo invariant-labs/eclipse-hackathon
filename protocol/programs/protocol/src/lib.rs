@@ -13,7 +13,7 @@ pub use program_id::*;
 
 mod program_id {
     use anchor_lang::prelude::*;
-    declare_id!("HTBzkQCWc2sbkn5WmLkPmQKKotaeeWgZ3RSD4Eg3f1MS");
+    declare_id!("FE56ivh6V5JXW9nGuRV6DCWccXntLX8h4gtCqeJDwLZ8");
 }
 
 #[macro_export]
