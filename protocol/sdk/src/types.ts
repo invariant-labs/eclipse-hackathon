@@ -1,16 +1,22 @@
 import { BN } from "@coral-xyz/anchor";
 import { Pair } from "@invariant-labs/sdk-eclipse";
-import { Decimal } from "@invariant-labs/sdk-eclipse/lib/market";
+import {
+  Decimal,
+  Market,
+  PoolStructure,
+} from "@invariant-labs/sdk-eclipse/lib/market";
 import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 
 export interface LpPoolStructure {
-  invariantPosition: PublicKey;
+  positionIndex: number;
+  positionExists: boolean;
   leftoverX: BN;
   leftoverY: BN;
   tokenX: PublicKey;
   tokenY: PublicKey;
   tickSpacing: number;
   fee: Decimal;
+  tokenBump: number;
   bump: number;
 }
 
@@ -29,24 +35,14 @@ export interface IInitLpPool {
 export interface IMintLpToken {
   // data
   pair: Pair;
+  invariant: Market;
+  poolStructure?: PoolStructure;
   // params
-  index: number;
   liquidityDelta: BN;
   // invariant accounts
-  invProgram: PublicKey;
-  invState: PublicKey;
-  pool?: PublicKey;
   position: PublicKey;
-  lastPosition: PublicKey;
-  positionList: PublicKey;
-  lowerTick: PublicKey;
-  upperTick: PublicKey;
-  tickmap: PublicKey;
   accountX: PublicKey;
   accountY: PublicKey;
-  invReserveX: PublicKey;
-  invReserveY: PublicKey;
-  invProgramAuthority: PublicKey;
   tokenXProgram?: PublicKey;
   tokenYProgram?: PublicKey;
 }
@@ -54,24 +50,17 @@ export interface IMintLpToken {
 export interface IBurnLpToken {
   // data
   pair: Pair;
+  invariant: Market;
+  poolStructure?: PoolStructure;
   // params
-  index: number;
   liquidityDelta: BN;
+  // fullrange accounts
+  lastPositionLpPool: PublicKey;
   // invariant accounts
-  invProgram: PublicKey;
-  invState: PublicKey;
-  pool?: PublicKey;
   position: PublicKey;
   lastPosition: PublicKey;
-  positionList: PublicKey;
-  lowerTick: PublicKey;
-  upperTick: PublicKey;
-  tickmap: PublicKey;
   accountX: PublicKey;
   accountY: PublicKey;
-  invReserveX: PublicKey;
-  invReserveY: PublicKey;
-  invProgramAuthority: PublicKey;
   tokenXProgram?: PublicKey;
   tokenYProgram?: PublicKey;
 }

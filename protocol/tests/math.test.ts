@@ -87,7 +87,8 @@ describe("math", () => {
     const result = lpTokenAmountToLiquidity(
       { v: new BN(101) },
       { v: new BN(1010) },
-      { v: new BN(1) }
+      { v: new BN(1) },
+      false
     );
 
     assert.ok(result.v.eq(new BN(10n)));

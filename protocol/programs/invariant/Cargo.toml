@@ -21,8 +21,11 @@ all = []
 
 [dependencies]
 decimal = { path = "decimal" }
+
+solana-program = "=1.17.6"
 anchor-lang = "0.29.0"
 anchor-spl = "0.29.0"
+
 integer-sqrt = "0.1.5"
 uint = "0.9.1"
 num-traits = "0.2.14"

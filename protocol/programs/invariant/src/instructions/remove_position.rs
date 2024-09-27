@@ -32,7 +32,7 @@ pub struct RemovePosition<'info> {
     )]
     pub position_list: AccountLoader<'info, PositionList>,
     #[account(mut,
-        close = owner,
+        close = payer,
         seeds = [b"positionv1",
         owner.key().as_ref(),
         &(position_list.load()?.head - 1).to_le_bytes()],
@@ -62,6 +62,7 @@ pub struct RemovePosition<'info> {
     )]
     pub upper_tick: AccountLoader<'info, Tick>,
     #[account(mut)]
+    pub payer: Signer<'info>,
     pub owner: Signer<'info>,
     #[account(constraint = token_x.key() == pool.load()?.token_x @ InvalidTokenAccount, mint::token_program = token_x_program)]
     pub token_x: InterfaceAccount<'info, Mint>,
@@ -198,7 +199,7 @@ impl<'info> RemovePosition<'info> {
             }
             close(
                 self.lower_tick.to_account_info(),
-                self.owner.to_account_info(),
+                self.payer.to_account_info(),
             )
             .unwrap();
 
@@ -211,7 +212,7 @@ impl<'info> RemovePosition<'info> {
             }
             close(
                 self.upper_tick.to_account_info(),
-                self.owner.to_account_info(),
+                self.payer.to_account_info(),
             )
             .unwrap();
 

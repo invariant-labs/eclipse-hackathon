@@ -96,6 +96,22 @@ pub mod invariant {
             .handler(index, lower_tick_index, upper_tick_index)
     }
 
+    pub fn change_liquidity(
+        ctx: Context<ChangeLiquidity>,
+        _index: u32,
+        liquidity_delta: Liquidity,
+        add_liquidity: bool,
+        slippage_limit_lower: Price,
+        slippage_limit_upper: Price,
+    ) -> Result<()> {
+        ctx.accounts.handler(
+            liquidity_delta,
+            add_liquidity,
+            slippage_limit_lower,
+            slippage_limit_upper,
+        )
+    }
+
     pub fn transfer_position_ownership(
         ctx: Context<TransferPositionOwnership>,
         index: u32,

@@ -25,9 +25,9 @@ import {
 } from "./consts";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
+  createAssociatedTokenAccountIdempotentInstruction,
   getAssociatedTokenAddressSync,
   TOKEN_2022_PROGRAM_ID,
-  TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import {
   IBurnLpToken,
@@ -41,6 +41,7 @@ import {
   Market,
   Pair,
 } from "@invariant-labs/sdk-eclipse";
+import { getMaxTick, getMinTick } from "@invariant-labs/sdk-eclipse/lib/utils";
 
 export class Protocol {
   public connection: Connection;
@@ -134,18 +135,58 @@ export class Protocol {
     return await signAndSend(tx, signers, this.connection);
   }
 
-  async init(signer: Keypair): Promise<TransactionSignature> {
-    const ix = await this.initIx(signer);
-    return await this.sendTx([ix], [signer]);
+  newReserveIfNoneIx(
+    token: PublicKey,
+    program_id: PublicKey,
+    signer?: Keypair
+  ): TransactionInstruction {
+    const reserveAddress = getAssociatedTokenAddressSync(
+      token,
+      this.programAuthority,
+      true,
+      program_id,
+      ASSOCIATED_TOKEN_PROGRAM_ID
+    );
+    const payer = signer?.publicKey ?? this.wallet.publicKey;
+    return createAssociatedTokenAccountIdempotentInstruction(
+      payer,
+      reserveAddress,
+      this.programAuthority,
+      token,
+      program_id,
+      ASSOCIATED_TOKEN_PROGRAM_ID
+    );
   }
-  // TODO: Make this the only init function
-  async initWithPositionlist(
+
+  newLpAccountIfNoneIx(
+    token: PublicKey,
+    signer?: Keypair
+  ): TransactionInstruction {
+    const payer = signer?.publicKey ?? this.wallet.publicKey;
+
+    const lpAccountAddress = getAssociatedTokenAddressSync(
+      token,
+      payer,
+      undefined,
+      TOKEN_2022_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID
+    );
+    return createAssociatedTokenAccountIdempotentInstruction(
+      payer,
+      lpAccountAddress,
+      payer,
+      token,
+      TOKEN_2022_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID
+    );
+  }
+
+  async init(
     signer: Keypair,
     market: Market
   ): Promise<TransactionSignature> {
     const ix = await this.initIx(signer);
 
-    // TODO: Fix the function in SDK To accept different payer and owner
     const { positionListAddress } = await market.getPositionListAddress(
       this.programAuthority
     );
@@ -192,14 +233,6 @@ export class Protocol {
     const pool =
       accounts.pool ??
       (await pair.getAddress(new PublicKey(getMarketAddress(this.network))));
-    const reserveX = this.getReserveAddress(pair.tokenX);
-    const reserveY = this.getReserveAddress(pair.tokenY);
-    const tokenXProgram =
-      accounts.tokenXProgram ??
-      (await getTokenProgramAddress(this.connection, pair.tokenX));
-    const tokenYProgram =
-      accounts.tokenYProgram ??
-      (await getTokenProgramAddress(this.connection, pair.tokenY));
 
     return await this.program.methods
       .initLpPool()
@@ -212,10 +245,6 @@ export class Protocol {
         pool,
         tokenX: pair.tokenX,
         tokenY: pair.tokenY,
-        reserveX,
-        reserveY,
-        tokenXProgram,
-        tokenYProgram,
         tokenProgram: TOKEN_2022_PROGRAM_ID,
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
@@ -226,29 +255,54 @@ export class Protocol {
 
   async mintLpToken(params: IMintLpToken, signer: Keypair) {
     const setCuIx = computeUnitsInstruction(1_400_000);
-    const ix = await this.mintLpTokenIx(params, signer);
-    return await this.sendTx([setCuIx, ix], [signer]);
+
+    const tokenXProgram =
+      params.tokenXProgram ??
+      (await getTokenProgramAddress(this.connection, params.pair.tokenX));
+    const tokenYProgram =
+      params.tokenYProgram ??
+      (await getTokenProgramAddress(this.connection, params.pair.tokenY));
+
+    const reserveXmaybeIx = this.newReserveIfNoneIx(
+      params.pair.tokenX,
+      tokenXProgram,
+      signer
+    );
+    const reserveYmaybeIx = this.newReserveIfNoneIx(
+      params.pair.tokenY,
+      tokenYProgram,
+      signer
+    );
+
+    const [tokenLp] = this.getLpTokenAddressAndBump(params.pair);
+    const accountLpMaybeIx = this.newLpAccountIfNoneIx(tokenLp, signer);
+
+    const ix = await this.mintLpTokenIx(
+      { tokenXProgram, tokenYProgram, ...params },
+      signer
+    );
+    return await this.sendTx(
+      [setCuIx, reserveXmaybeIx, reserveYmaybeIx, accountLpMaybeIx, ix],
+      [signer]
+    );
   }
 
   async mintLpTokenIx(
-    { pair, liquidityDelta, index, ...accounts }: IMintLpToken,
+    {
+      pair,
+      invariant,
+      poolStructure,
+      liquidityDelta,
+      ...accounts
+    }: IMintLpToken,
     signer?: Keypair
   ) {
     const owner = signer?.publicKey ?? this.wallet.publicKey;
 
     const [lpPool] = this.getLpPoolAddressAndBump(pair);
     const [tokenLp] = this.getLpTokenAddressAndBump(pair);
-    const pool =
-      accounts.pool ??
-      (await pair.getAddress(new PublicKey(getMarketAddress(this.network))));
     const reserveX = this.getReserveAddress(pair.tokenX);
     const reserveY = this.getReserveAddress(pair.tokenY);
-    const tokenXProgram =
-      accounts.tokenXProgram ??
-      (await getTokenProgramAddress(this.connection, pair.tokenX));
-    const tokenYProgram =
-      accounts.tokenYProgram ??
-      (await getTokenProgramAddress(this.connection, pair.tokenY));
     const accountLp = getAssociatedTokenAddressSync(
       tokenLp,
       owner,
@@ -257,8 +311,34 @@ export class Protocol {
       ASSOCIATED_TOKEN_PROGRAM_ID
     );
 
+    const {
+      tokenXReserve: invReserveX,
+      tokenYReserve: invReserveY,
+      tickmap,
+    } = poolStructure ?? (await invariant.getPool(pair));
+
+    // TODO: After Eclipse marketplace sdk update this won't need async at all
+    const pool = await pair.getAddress(
+      new PublicKey(getMarketAddress(this.network))
+    );
+
+    const { positionListAddress: positionList } =
+      await invariant.getPositionListAddress(this.programAuthority);
+
+    const lowerTickIndex = getMinTick(pair.feeTier.tickSpacing!);
+    const upperTickIndex = getMaxTick(pair.feeTier.tickSpacing!);
+
+    const { tickAddress: lowerTick } = await invariant.getTickAddress(
+      pair,
+      lowerTickIndex
+    );
+    const { tickAddress: upperTick } = await invariant.getTickAddress(
+      pair,
+      upperTickIndex
+    );
+
     return await this.program.methods
-      .mintLpToken(liquidityDelta, index)
+      .mintLpToken(liquidityDelta)
       .accounts({
         state: this.stateAddress,
         programAuthority: this.programAuthority,
@@ -271,8 +351,15 @@ export class Protocol {
         tokenY: pair.tokenY,
         reserveX,
         reserveY,
-        tokenXProgram,
-        tokenYProgram,
+        invProgram: invariant.program.programId,
+        invProgramAuthority: invariant.programAuthority,
+        invState: invariant.stateAddress,
+        lowerTick,
+        upperTick,
+        invReserveX,
+        invReserveY,
+        tickmap,
+        positionList,
         tokenProgram: TOKEN_2022_PROGRAM_ID,
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
@@ -288,24 +375,22 @@ export class Protocol {
   }
 
   async burnLpTokenIx(
-    { pair, liquidityDelta, index, ...accounts }: IBurnLpToken,
+    {
+      pair,
+      invariant,
+      poolStructure,
+      liquidityDelta,
+      ...accounts
+    }: IBurnLpToken,
     signer?: Keypair
   ) {
     const owner = signer?.publicKey ?? this.wallet.publicKey;
 
     const [lpPool] = this.getLpPoolAddressAndBump(pair);
     const [tokenLp] = this.getLpTokenAddressAndBump(pair);
-    const pool =
-      accounts.pool ??
-      (await pair.getAddress(new PublicKey(getMarketAddress(this.network))));
     const reserveX = this.getReserveAddress(pair.tokenX);
     const reserveY = this.getReserveAddress(pair.tokenY);
-    const tokenXProgram =
-      accounts.tokenXProgram ??
-      (await getTokenProgramAddress(this.connection, pair.tokenX));
-    const tokenYProgram =
-      accounts.tokenYProgram ??
-      (await getTokenProgramAddress(this.connection, pair.tokenY));
+
     const accountLp = getAssociatedTokenAddressSync(
       tokenLp,
       owner,
@@ -314,8 +399,40 @@ export class Protocol {
       ASSOCIATED_TOKEN_PROGRAM_ID
     );
 
+    const {
+      tokenXReserve: invReserveX,
+      tokenYReserve: invReserveY,
+      tickmap,
+    } = poolStructure ?? (await invariant.getPool(pair));
+
+    const tokenXProgram =
+      accounts.tokenXProgram ??
+      (await getTokenProgramAddress(this.connection, pair.tokenX));
+    const tokenYProgram =
+      accounts.tokenYProgram ??
+      (await getTokenProgramAddress(this.connection, pair.tokenY));
+    // TODO: After Eclipse marketplace sdk update this won't need async at all
+    const pool = await pair.getAddress(
+      new PublicKey(getMarketAddress(this.network))
+    );
+
+    const { positionListAddress: positionList } =
+      await invariant.getPositionListAddress(this.programAuthority);
+
+    const lowerTickIndex = getMinTick(pair.feeTier.tickSpacing!);
+    const upperTickIndex = getMaxTick(pair.feeTier.tickSpacing!);
+
+    const { tickAddress: lowerTick } = await invariant.getTickAddress(
+      pair,
+      lowerTickIndex
+    );
+    const { tickAddress: upperTick } = await invariant.getTickAddress(
+      pair,
+      upperTickIndex
+    );
+
     return await this.program.methods
-      .burnLpToken(liquidityDelta, index)
+      .burnLpToken(liquidityDelta)
       .accounts({
         state: this.stateAddress,
         programAuthority: this.programAuthority,
@@ -330,6 +447,15 @@ export class Protocol {
         reserveY,
         tokenXProgram,
         tokenYProgram,
+        invProgram: invariant.program.programId,
+        invProgramAuthority: invariant.programAuthority,
+        invState: invariant.stateAddress,
+        lowerTick,
+        upperTick,
+        invReserveX,
+        invReserveY,
+        tickmap,
+        positionList,
         tokenProgram: TOKEN_2022_PROGRAM_ID,
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId,

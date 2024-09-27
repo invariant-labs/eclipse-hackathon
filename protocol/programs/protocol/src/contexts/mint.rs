@@ -1,5 +1,5 @@
 use crate::decimals::{Liquidity, Price, TokenAmount};
-use crate::math::{calculate_amount_delta, compute_lp_share_change, get_max_tick, get_min_tick};
+use crate::math::{compute_lp_share_change, get_max_tick, get_min_tick};
 use crate::states::{DerivedAccountIdentifier, LpPool, State, LP_TOKEN_IDENT};
 use crate::{get_signer, ErrorCode::*};
 use anchor_lang::prelude::*;
@@ -11,9 +11,11 @@ use anchor_spl::{
     token_2022,
 };
 use decimal::{BetweenDecimals, Decimal};
+use invariant::cpi::accounts::{ChangeLiquidity, ClaimFee};
 use invariant::decimals::{Liquidity as InvLiquidity, Price as InvPrice};
+use invariant::structs::PositionList;
 use invariant::{
-    cpi::accounts::{CreatePosition, CreateTick, RemovePosition},
+    cpi::accounts::{CreatePosition, CreateTick},
     structs::{Pool, Position},
 };
 
@@ -25,7 +27,6 @@ macro_rules! try_from {
 }
 
 const ADD: bool = true;
-const SUBTRACT: bool = false;
 
 #[derive(Accounts)]
 pub struct MintLpTokenCtx<'info> {
@@ -81,9 +82,6 @@ pub struct MintLpTokenCtx<'info> {
     /// CHECK: might not exist, explicit check in the handler
     #[account(mut)]
     pub position: AccountInfo<'info>,
-    /// CHECK: might not exist, check in Invariant CPI
-    #[account(mut)]
-    pub last_position: UncheckedAccount<'info>,
     #[account(mut,
         // validated in the handler!
         // seeds = [INVARIANT_POOL_IDENT, token_x.key().as_ref(), token_y.key().as_ref(), &lp_pool.load()?.fee.v.to_le_bytes(), &lp_pool.load()?.tick_spacing.to_le_bytes()],
@@ -97,7 +95,7 @@ pub struct MintLpTokenCtx<'info> {
     pub pool: AccountLoader<'info, Pool>,
     /// CHECK: passed to Invariant
     #[account(mut)]
-    pub position_list: UncheckedAccount<'info>,
+    pub position_list: AccountLoader<'info, PositionList>,
     /// CHECK: passed to Invariant
     #[account(mut)]
     pub lower_tick: UncheckedAccount<'info>,
@@ -187,18 +185,39 @@ impl<'info> MintLpTokenCtx<'info> {
         )
     }
 
-    pub fn remove_position(&self) -> CpiContext<'_, '_, '_, 'info, RemovePosition<'info>> {
+    pub fn claim_fee(&self) -> CpiContext<'_, '_, '_, 'info, ClaimFee<'info>> {
         CpiContext::new(
             self.inv_program.to_account_info(),
-            RemovePosition {
+            ClaimFee {
+                state: self.inv_state.to_account_info(),
+                pool: self.pool.to_account_info(),
+                position: self.position.to_account_info(),
+                lower_tick: self.lower_tick.to_account_info(),
+                upper_tick: self.upper_tick.to_account_info(),
+                owner: self.program_authority.to_account_info(),
+                token_x: self.token_x.to_account_info(),
+                token_y: self.token_y.to_account_info(),
+                account_x: self.reserve_x.to_account_info(),
+                account_y: self.reserve_y.to_account_info(),
+                reserve_x: self.inv_reserve_x.to_account_info(),
+                reserve_y: self.inv_reserve_y.to_account_info(),
+                program_authority: self.inv_program_authority.to_account_info(),
+                token_x_program: self.token_x_program.to_account_info(),
+                token_y_program: self.token_y_program.to_account_info(),
+            },
+        )
+    }
+
+    pub fn change_liquidity(&self) -> CpiContext<'_, '_, '_, 'info, ChangeLiquidity<'info>> {
+        CpiContext::new(
+            self.inv_program.to_account_info(),
+            ChangeLiquidity {
                 state: self.inv_state.to_account_info(),
                 program_authority: self.inv_program_authority.to_account_info(),
                 owner: self.program_authority.to_account_info(),
-                removed_position: self.position.to_account_info(),
-                position_list: self.position_list.to_account_info(),
-                last_position: self.last_position.to_account_info(),
+                payer: self.owner.to_account_info(),
+                position: self.position.to_account_info(),
                 pool: self.pool.to_account_info(),
-                tickmap: self.tickmap.to_account_info(),
                 lower_tick: self.lower_tick.to_account_info(),
                 upper_tick: self.upper_tick.to_account_info(),
                 token_x: self.token_x.to_account_info(),
@@ -218,8 +237,7 @@ impl<'info> MintLpTokenCtx<'info> {
             self.inv_program.to_account_info(),
             CreatePosition {
                 state: self.inv_state.to_account_info(),
-                // the previous last position was moved to the previous' address
-                position: self.last_position.to_account_info(),
+                position: self.position.to_account_info(),
                 pool: self.pool.to_account_info(),
                 position_list: self.position_list.to_account_info(),
                 payer: self.owner.to_account_info(),
@@ -293,23 +311,28 @@ impl<'info> MintLpTokenCtx<'info> {
 
     pub fn validate_position(&self) -> Result<()> {
         let lp_pool = &self.lp_pool.load()?;
-        if lp_pool.invariant_position != Pubkey::default() {
+        if lp_pool.position_exists {
             let upper_tick_index = get_max_tick(lp_pool.tick_spacing);
             let lower_tick_index = get_min_tick(lp_pool.tick_spacing);
-            let position = try_from!(AccountLoader::<Position>, &self.position)?;
-            require_eq!(position.load()?.upper_tick_index, upper_tick_index);
-            require_eq!(position.load()?.lower_tick_index, lower_tick_index);
-            // explicitly support only one pool till more positions (pools) are supported
-            require_keys_eq!(self.position.key(), self.last_position.key());
-            let owner = self.program_authority.key();
-            let seeds = [b"positionv1", owner.as_ref(), &0i32.to_le_bytes()];
-            let (pubkey, _bump) = Pubkey::find_program_address(&seeds, &invariant::ID);
-            require_keys_eq!(self.last_position.key(), pubkey);
+            let position_loader = try_from!(AccountLoader::<Position>, &self.position)?;
+            let position = position_loader.load()?;
+            require_eq!(position.upper_tick_index, upper_tick_index);
+            require_eq!(position.lower_tick_index, lower_tick_index);
+
+            let seeds = [
+                b"positionv1",
+                self.program_authority.key.as_ref(),
+                &lp_pool.position_index.to_le_bytes(),
+            ];
+            let (position_key, position_bump) =
+                Pubkey::find_program_address(&seeds, &invariant::ID);
+            require_keys_eq!(position_key, self.position.key());
+            require_eq!(position_bump, position.bump);
         }
         Ok(())
     }
 
-    pub fn process(&mut self, liquidity: Liquidity, index: u32) -> Result<()> {
+    pub fn process(&mut self, liquidity: Liquidity) -> Result<()> {
         self.validate_pool()?;
         self.validate_token_lp()?;
         self.validate_position()?;
@@ -323,48 +346,29 @@ impl<'info> MintLpTokenCtx<'info> {
         let current_sqrt_price = Price::new(sqrt_price.v);
         let upper_tick_index = get_max_tick(lp_pool.tick_spacing);
         let lower_tick_index = get_min_tick(lp_pool.tick_spacing);
-        let tick_spacing = lp_pool.tick_spacing;
-        msg!("tick_spacing: {}", tick_spacing);
-        msg!("upper_tick_index: {}", upper_tick_index);
-        msg!("lower_tick_index: {}", lower_tick_index);
 
-        let (unclaimed_fee_x, unclaimed_fee_y, (position_x, position_y)) =
-            if lp_pool.invariant_position != Pubkey::default() {
-                let position = *try_from!(AccountLoader::<Position>, &self.position)?.load()?;
-                let liquidity = Liquidity::new(position.liquidity.v);
-                let tokens_owed_x = TokenAmount::from_decimal(position.tokens_owed_x);
-                let tokens_owed_y = TokenAmount::from_decimal(position.tokens_owed_y);
-                let position_tokens = calculate_amount_delta(
-                    current_sqrt_price,
-                    liquidity,
-                    SUBTRACT,
-                    current_tick_index,
-                    lower_tick_index,
-                    upper_tick_index,
-                )
-                .unwrap();
-                (tokens_owed_x, tokens_owed_y, position_tokens)
-            } else {
-                (
-                    TokenAmount::new(0),
-                    TokenAmount::new(0),
-                    (TokenAmount::new(0), TokenAmount::new(0)),
-                )
-            };
+        let (unclaimed_fee_x, unclaimed_fee_y, current_liquidity) = if lp_pool.position_exists {
+            let position = *try_from!(AccountLoader::<Position>, &self.position)?.load()?;
+            let tokens_owed_x = TokenAmount::from_decimal(position.tokens_owed_x);
+            let tokens_owed_y = TokenAmount::from_decimal(position.tokens_owed_y);
+            let liquidity = Liquidity::new(position.liquidity.v);
+            (tokens_owed_x, tokens_owed_y, liquidity)
+        } else {
+            (TokenAmount::new(0), TokenAmount::new(0), Liquidity::new(0))
+        };
 
         let shares = compute_lp_share_change(
             ADD,
             TokenAmount::new(self.token_lp.supply),
             liquidity,
-            TokenAmount::new(lp_pool.leftover_x) + position_x + unclaimed_fee_x,
-            TokenAmount::new(lp_pool.leftover_y) + position_y + unclaimed_fee_y,
+            current_liquidity,
+            TokenAmount::new(lp_pool.leftover_x) + unclaimed_fee_x,
+            TokenAmount::new(lp_pool.leftover_y) + unclaimed_fee_y,
             lp_pool.tick_spacing,
             current_tick_index,
             current_sqrt_price,
         )
         .unwrap();
-
-        msg!("shares: {:?}", shares);
 
         let (deposited_x, deposited_y) = shares.transferred_amounts;
         let (leftover_x, leftover_y) = shares.leftover_amounts;
@@ -391,49 +395,40 @@ impl<'info> MintLpTokenCtx<'info> {
             _ => return Err(InvalidTokenProgram.into()),
         };
 
-        // close and reopen position with new amount
+        // update or open a position
         let signer: &[&[&[u8]]] = get_signer!(self.state.load()?.bump_authority);
-        if lp_pool.invariant_position != Pubkey::default() {
-            // TODO: move and track index inside of LpPool
-            invariant::cpi::remove_position(
-                self.remove_position().with_signer(signer),
-                index,
-                lower_tick_index,
-                upper_tick_index,
+
+        let added_liquidity = shares.liquidity_change.l.v;
+        if lp_pool.position_exists {
+            // TODO gas optimization: only claim fee if it will affect liquidity
+            if unclaimed_fee_x + unclaimed_fee_y > TokenAmount::new(0) {
+                invariant::cpi::claim_fee(
+                    self.claim_fee().with_signer(signer),
+                    lp_pool.position_index,
+                    lower_tick_index,
+                    upper_tick_index,
+                )?;
+            }
+
+            invariant::cpi::change_liquidity(
+                self.change_liquidity().with_signer(signer),
+                lp_pool.position_index,
+                InvLiquidity::new(added_liquidity),
+                ADD,
+                sqrt_price,
+                sqrt_price,
             )?;
-
-            invariant::cpi::create_tick(
-                self.create_tick(self.lower_tick.to_account_info()),
-                lower_tick_index,
-            )?;
-
-            invariant::cpi::create_tick(
-                self.create_tick(self.upper_tick.to_account_info()),
-                upper_tick_index,
-            )?;
-        }
-
-        {
-            let new_liquidity = shares.positions_details.liquidity.v;
-            msg!("new_liquidity: {}", new_liquidity);
-            msg!("reserve x: {}", self.reserve_x.amount);
-            msg!("reserve y: {}", self.reserve_y.amount);
-
+        } else {
+            lp_pool.position_index = self.position_list.load()?.head;
+            lp_pool.position_exists = true;
             invariant::cpi::create_position(
                 self.create_position().with_signer(signer),
                 lower_tick_index,
                 upper_tick_index,
-                InvLiquidity::new(new_liquidity),
+                InvLiquidity::new(added_liquidity),
                 InvPrice::new(sqrt_price.v),
                 InvPrice::new(sqrt_price.v),
             )?;
-
-            // TODO: adjust to support multiple pools
-            lp_pool.invariant_position = self.last_position.key();
-            {
-                let new_position = try_from!(AccountLoader::<Position>, &self.last_position)?;
-                lp_pool.position_bump = new_position.load()?.bump;
-            }
         }
         // mint LP tokens for user
         mint_to(

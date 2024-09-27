@@ -41,12 +41,11 @@ pub mod protocol {
         ctx.accounts.process(token_bump, bump)
     }
 
-    pub fn mint_lp_token(ctx: Context<MintLpTokenCtx>, liquidity: u128, index: u32) -> Result<()> {
-        ctx.accounts.process(Liquidity::new(liquidity), index)
+    pub fn mint_lp_token(ctx: Context<MintLpTokenCtx>, liquidity: u128) -> Result<()> {
+        ctx.accounts.process(Liquidity::new(liquidity))
     }
 
-    pub fn burn_lp_token(ctx: Context<BurnLpTokenCtx>, liquidity: u128, index: u32) -> Result<()> {
-        ctx.accounts
-            .process(Liquidity::new(liquidity), index)
+    pub fn burn_lp_token(ctx: Context<BurnLpTokenCtx>, liquidity: u128) -> Result<()> {
+        ctx.accounts.process(Liquidity::new(liquidity))
     }
 }
